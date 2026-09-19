@@ -16,6 +16,7 @@ let activeMuscle = "All";
 let activeEquipment = "All";
 let searchTerm = "";
 let selectedExercise = null;
+let activeRoutine = null;
 
 let routines = [
   {
@@ -398,71 +399,7 @@ function render() {
          BOTTOM NAVIGATION
     ========================== -->
 
-    <nav
-      class="bottom-nav"
-      aria-label="Main navigation"
-    >
-
-      <button
-        class="nav-item active"
-        data-page="workouts"
-        type="button"
-      >
-        <span class="nav-icon">
-          ◈
-        </span>
-
-        <span class="nav-label">
-          Workouts
-        </span>
-      </button>
-
-
-      <button
-        class="nav-item"
-        data-page="routines"
-        type="button"
-      >
-        <span class="nav-icon">
-          ▣
-        </span>
-
-        <span class="nav-label">
-          Routines
-        </span>
-      </button>
-
-
-      <button
-        class="nav-item"
-        data-page="map"
-        type="button"
-      >
-        <span class="nav-icon">
-          ◎
-        </span>
-
-        <span class="nav-label">
-          Muscle Map
-        </span>
-      </button>
-
-
-      <button
-        class="nav-item"
-        data-page="profile"
-        type="button"
-      >
-        <span class="nav-icon">
-          ◉
-        </span>
-
-        <span class="nav-label">
-          Profile
-        </span>
-      </button>
-
-    </nav>
+    ${renderBottomNav("workouts")}
 
   `;
 
@@ -475,6 +412,381 @@ function render() {
   animateCards();
 }
 
+// =========================
+// SHARED BOTTOM NAVIGATION
+// =========================
+
+function renderBottomNav(activePage = "workouts") {
+  return `
+    <nav
+      class="bottom-nav"
+      aria-label="Main navigation"
+    >
+
+      <button
+        class="nav-item ${activePage === "workouts" ? "active" : ""}"
+        data-page="workouts"
+        type="button"
+      >
+        <span class="nav-icon">◈</span>
+        <span class="nav-label">Workouts</span>
+      </button>
+
+      <button
+        class="nav-item ${activePage === "routines" ? "active" : ""}"
+        data-page="routines"
+        type="button"
+      >
+        <span class="nav-icon">▣</span>
+        <span class="nav-label">Routines</span>
+      </button>
+
+      <button
+        class="nav-item ${activePage === "map" ? "active" : ""}"
+        data-page="map"
+        type="button"
+      >
+        <span class="nav-icon">◎</span>
+        <span class="nav-label">Muscle Map</span>
+      </button>
+
+      <button
+        class="nav-item ${activePage === "profile" ? "active" : ""}"
+        data-page="profile"
+        type="button"
+      >
+        <span class="nav-icon">◉</span>
+        <span class="nav-label">Profile</span>
+      </button>
+
+    </nav>
+  `;
+}
+
+function renderRoutines() {
+
+  const app = document.querySelector("#app");
+
+  app.innerHTML = `
+
+    <div class="app-shell">
+
+      <header class="app-header">
+
+        <a
+          href="#"
+          class="logo"
+          aria-label="REDLINE home"
+        >
+          RED<span>LINE</span>
+        </a>
+
+        <button
+          class="profile-button"
+          aria-label="Profile"
+          type="button"
+        >
+          ●
+        </button>
+
+      </header>
+
+
+      <main>
+
+        <section class="routines-screen">
+
+          <div class="routines-header">
+
+            <div class="routines-title-block">
+
+              <span class="section-kicker">
+                TRAINING SYSTEM
+              </span>
+
+              <h1>
+                MY ROUTINES
+              </h1>
+
+            </div>
+
+            <button
+              class="create-routine-page-button"
+              type="button"
+            >
+              <span>+</span>
+              CREATE
+            </button>
+
+          </div>
+
+
+          <div class="routine-grid">
+
+            ${routines.map((routine, index) => `
+
+              <article
+                class="routine-card"
+                data-routine-id="${routine.id}"
+              >
+
+                <div class="routine-card-top">
+
+                  <span class="routine-index">
+                    ${String(index + 1).padStart(2, "0")}
+                  </span>
+
+                  <span class="routine-arrow">
+                    ↗
+                  </span>
+
+                </div>
+
+
+                <h2>
+                  ${routine.name}
+                </h2>
+
+
+                <div class="routine-meta">
+
+                  <span>
+                    ${routine.exercises.length}
+                    ${routine.exercises.length === 1
+      ? "EXERCISE"
+      : "EXERCISES"}
+                  </span>
+
+                  <span>•</span>
+
+                  <span>
+                    READY
+                  </span>
+
+                </div>
+
+              </article>
+
+            `).join("")}
+
+          </div>
+
+        </section>
+
+      </main>
+
+    </div>
+
+
+    ${renderBottomNav("routines")}
+
+  `;
+
+  attachEvents();
+
+  animateRoutineCards();
+}
+
+function renderRoutineDetail() {
+
+  if (!activeRoutine) {
+    return;
+  }
+
+  const app = document.querySelector("#app");
+
+  const routineExercises =
+    activeRoutine.exercises
+      .map((exerciseId) =>
+        exercises.find(
+          (exercise) =>
+            exercise.id === exerciseId
+        )
+      )
+      .filter(Boolean);
+
+  app.innerHTML = `
+    <div class="app-shell">
+
+      <header class="app-header">
+
+        <button
+          class="routine-back-button"
+          type="button"
+        >
+          ←
+        </button>
+
+        <span class="routine-detail-label">
+          ROUTINE
+        </span>
+
+      </header>
+
+
+      <main>
+
+        <section class="routine-detail-page">
+
+          <span class="section-kicker">
+            TRAINING SYSTEM
+          </span>
+
+          <h1 class="routine-detail-title">
+            ${activeRoutine.name}
+          </h1>
+
+          <div class="routine-detail-meta">
+            <span>
+              ${routineExercises.length}
+              ${routineExercises.length === 1
+                ? "EXERCISE"
+                : "EXERCISES"}
+            </span>
+
+            <span>•</span>
+
+            <span>
+              READY
+            </span>
+          </div>
+
+
+          <section class="routine-exercise-list">
+
+            ${
+              routineExercises.length
+                ? routineExercises.map(
+                    (exercise, index) => `
+                      <article
+                        class="routine-exercise-item"
+                      >
+
+                        <span class="routine-exercise-number">
+                          ${String(index + 1).padStart(2, "0")}
+                        </span>
+
+                        <div>
+                          <h2>
+                            ${exercise.name}
+                          </h2>
+
+                          <span>
+                            ${exercise.muscle}
+                            •
+                            ${exercise.equipment}
+                          </span>
+                        </div>
+
+                        <span class="routine-exercise-arrow">
+                          →
+                        </span>
+
+                      </article>
+                    `
+                  ).join("")
+                : `
+                  <div class="routine-detail-empty">
+
+                    <span>NO EXERCISES</span>
+
+                    <p>
+                      Add exercises from the workout library.
+                    </p>
+
+                  </div>
+                `
+            }
+
+          </section>
+
+
+          <button
+            class="start-workout-button"
+            type="button"
+          >
+            <span>START WORKOUT</span>
+            <span>→</span>
+          </button>
+
+        </section>
+
+      </main>
+
+    </div>
+
+    ${renderBottomNav("routines")}
+  `;
+
+  attachEvents();
+
+  animateRoutineDetail();
+}
+
+function animateRoutineDetail() {
+
+  const page =
+    document.querySelector(
+      ".routine-detail-page"
+    );
+
+  const items =
+    document.querySelectorAll(
+      ".routine-exercise-item"
+    );
+
+  gsap.fromTo(
+    page,
+    {
+      opacity: 0,
+      y: 18
+    },
+    {
+      opacity: 1,
+      y: 0,
+      duration: 0.45,
+      ease: "power3.out"
+    }
+  );
+
+  gsap.fromTo(
+    items,
+    {
+      opacity: 0,
+      x: 18
+    },
+    {
+      opacity: 1,
+      x: 0,
+      duration: 0.35,
+      stagger: 0.06,
+      ease: "power3.out"
+    }
+  );
+}
+
+function animateRoutineCards() {
+  const cards = document.querySelectorAll(".routine-card");
+
+  if (!cards.length) return;
+
+  gsap.fromTo(
+    cards,
+    {
+      opacity: 0,
+      y: 24,
+      scale: 0.98
+    },
+    {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      duration: 0.5,
+      stagger: 0.07,
+      ease: "power3.out"
+    }
+  );
+}
 
 // =========================
 // EVENTS
@@ -1518,9 +1830,9 @@ function attachCreateRoutineEvents(
 
         name,
 
-        exercises: [
-          exercise.id
-        ]
+        exercises: exercise
+          ? [exercise.id]
+          : []
 
       };
 
@@ -1540,9 +1852,13 @@ function attachCreateRoutineEvents(
         overlay,
         () => {
 
-          closeRoutineSheet(
-            parentSheet
-          );
+          if (parentSheet) {
+            closeRoutineSheet(parentSheet);
+          }
+
+          if (document.querySelector(".routines-screen")) {
+            renderRoutines();
+          }
 
         }
       );
@@ -1828,7 +2144,42 @@ function attachEvents() {
       });
 
     });
+// =======================
+// ROUTINE CARD
+// =======================
 
+document
+  .querySelectorAll(".routine-card")
+  .forEach((card) => {
+
+    card.addEventListener(
+      "click",
+      () => {
+
+        const routineId =
+          Number(card.dataset.routineId);
+
+        const routine =
+          routines.find(
+            (item) =>
+              item.id === routineId
+          );
+
+        if (!routine) {
+          return;
+        }
+
+        activeRoutine = routine;
+
+        console.log(
+          "Routine selected:",
+          routine.name
+        );
+
+      }
+    );
+
+  });
 
   // =======================
   // PROFILE
@@ -1846,6 +2197,29 @@ function attachEvents() {
 
       console.log(
         "Profile clicked"
+      );
+
+    }
+  );
+
+
+  // =======================
+  // CREATE ROUTINE — PAGE
+  // =======================
+
+  const createRoutinePageButton =
+    document.querySelector(
+      ".create-routine-page-button"
+    );
+
+  createRoutinePageButton?.addEventListener(
+    "click",
+    () => {
+
+      openCreateRoutineModal(
+        null,
+        null,
+        null
       );
 
     }
@@ -1878,13 +2252,22 @@ function attachEvents() {
           );
 
 
+          const page = button.dataset.page;
+
           console.log(
             "Navigation:",
-            button.dataset.page
+            page
           );
 
-          // Other pages will be implemented
-          // one by one.
+          if (page === "workouts") {
+            render();
+            return;
+          }
+
+          if (page === "routines") {
+            renderRoutines();
+            return;
+          }
 
         }
       );

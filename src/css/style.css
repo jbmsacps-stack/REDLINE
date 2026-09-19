@@ -2723,3 +2723,484 @@ svg {
 .routine-create-submit span:last-child {
   font-size: 1.1rem;
 }
+
+/* =========================================================
+   MY ROUTINES
+========================================================= */
+
+.routines-screen {
+  width: 100%;
+  min-height: calc(100vh - 120px);
+
+  padding:
+    18px
+    16px
+    calc(110px + env(safe-area-inset-bottom));
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.routines-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 18px;
+
+  margin-bottom: 28px;
+}
+
+.section-kicker {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: var(--color-red);
+
+  font-size: 0.58rem;
+  font-weight: 900;
+
+  letter-spacing: 0.16em;
+  line-height: 1;
+
+  text-transform: uppercase;
+}
+
+.routines-header h1 {
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size:
+    clamp(
+      2.45rem,
+      11vw,
+      4.3rem
+    );
+
+  font-weight: 900;
+
+  line-height: 0.88;
+
+  letter-spacing: -0.06em;
+}
+
+
+/* =========================
+   CREATE BUTTON
+========================= */
+
+.routines-header .create-routine-button {
+  flex: 0 0 auto;
+
+  min-height: 42px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  padding:
+    0
+    14px;
+
+  border:
+    1px solid
+    rgba(225, 29, 46, 0.32);
+
+  border-radius: 11px;
+
+  background:
+    rgba(225, 29, 46, 0.08);
+
+  color:
+    var(--color-red);
+
+  font-size: 0.62rem;
+  font-weight: 900;
+
+  letter-spacing: 0.1em;
+
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.routines-header .create-routine-button span {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.routines-header .create-routine-button:hover {
+  background:
+    rgba(225, 29, 46, 0.14);
+
+  border-color:
+    rgba(225, 29, 46, 0.5);
+
+  color: #fff;
+}
+
+
+/* =========================
+   ROUTINE GRID
+========================= */
+
+.routine-grid {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr);
+
+  gap: 10px;
+}
+
+
+/* =========================
+   ROUTINE CARD
+========================= */
+
+.routine-card {
+  position: relative;
+
+  width: 100%;
+  min-height: 168px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  overflow: hidden;
+
+  padding: 17px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.07);
+
+  border-radius: 17px;
+
+  background:
+    radial-gradient(
+      circle at 88% 20%,
+      rgba(225, 29, 46, 0.10),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      #191919,
+      #111111 78%
+    );
+
+  box-shadow:
+    0 10px 35px
+    rgba(0, 0, 0, 0.18);
+
+  cursor: pointer;
+
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.routine-card:hover {
+  border-color:
+    rgba(255, 255, 255, 0.13);
+
+  background:
+    radial-gradient(
+      circle at 88% 20%,
+      rgba(225, 29, 46, 0.14),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      #1d1d1d,
+      #111111 78%
+    );
+
+  box-shadow:
+    0 15px 45px
+    rgba(0, 0, 0, 0.28);
+}
+
+
+/* =========================
+   CARD TOP
+========================= */
+
+.routine-card-top {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.routine-index {
+  color:
+    var(--color-red);
+
+  font-size: 0.62rem;
+  font-weight: 900;
+
+  letter-spacing: 0.12em;
+}
+
+.routine-arrow {
+  color: #6d6d6d;
+
+  font-size: 1rem;
+
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.routine-card:hover .routine-arrow {
+  color: #fff;
+
+  transform:
+    translate(2px, -2px);
+}
+
+
+/* =========================
+   CARD TITLE
+========================= */
+
+.routine-card h2 {
+  margin: 24px 0 0;
+
+  color:
+    var(--color-text);
+
+  font-size:
+    clamp(
+      1.45rem,
+      7vw,
+      2rem
+    );
+
+  font-weight: 900;
+
+  line-height: 0.95;
+
+  letter-spacing: -0.045em;
+}
+
+
+/* =========================
+   CARD META
+========================= */
+
+.routine-meta {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  margin-top: 14px;
+
+  color: #686868;
+
+  font-size: 0.58rem;
+  font-weight: 800;
+
+  letter-spacing: 0.09em;
+
+  text-transform: uppercase;
+}
+
+
+/* =========================
+   EMPTY STATE
+========================= */
+
+.routine-empty {
+  padding: 50px 20px;
+
+  border:
+    1px dashed
+    rgba(255, 255, 255, 0.08);
+
+  border-radius: 17px;
+
+  text-align: center;
+
+  color: #666;
+}
+
+
+/* =========================
+   TABLET+
+========================= */
+
+@media (min-width: 600px) {
+
+  .routines-screen {
+    padding:
+      24px
+      24px
+      125px;
+  }
+
+  .routine-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+
+    gap: 14px;
+  }
+
+}
+
+
+/* =========================
+   DESKTOP
+========================= */
+
+@media (min-width: 900px) {
+
+  .routines-screen {
+    padding:
+      30px
+      30px
+      125px;
+  }
+
+  .routine-grid {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
+
+    gap: 16px;
+  }
+
+}
+
+/* =========================================================
+   MY ROUTINES — PAGE HEADER FIX
+========================================================= */
+
+.routines-header {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+
+  gap: 20px;
+
+  margin-bottom: 28px;
+}
+
+
+.routines-title-block {
+  min-width: 0;
+}
+
+
+.routines-header h1 {
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size:
+    clamp(
+      2.45rem,
+      11vw,
+      4.3rem
+    );
+
+  font-weight: 900;
+
+  line-height: 0.88;
+
+  letter-spacing: -0.06em;
+}
+
+
+/* =========================
+   PAGE CREATE BUTTON
+========================= */
+
+.create-routine-page-button {
+  width: 100%;
+  height: 46px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  border:
+    1px solid
+    rgba(225, 29, 46, 0.35);
+
+  border-radius: 12px;
+
+  background:
+    rgba(225, 29, 46, 0.08);
+
+  color:
+    var(--color-red);
+
+  font-size: 0.64rem;
+  font-weight: 900;
+
+  letter-spacing: 0.11em;
+
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.create-routine-page-button span {
+  font-size: 1rem;
+}
+
+.create-routine-page-button:hover {
+  background:
+    rgba(225, 29, 46, 0.14);
+
+  border-color:
+    rgba(225, 29, 46, 0.5);
+
+  color: #fff;
+}
+
+
+/* =========================
+   TABLET+
+========================= */
+
+@media (min-width: 600px) {
+
+  .routines-header {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .create-routine-page-button {
+    width: auto;
+
+    min-width: 120px;
+
+    padding-inline: 16px;
+  }
+
+}
