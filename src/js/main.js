@@ -17,6 +17,23 @@ let activeEquipment = "All";
 let searchTerm = "";
 let selectedExercise = null;
 
+let routines = [
+  {
+    id: 1,
+    name: "Push Day",
+    exercises: []
+  },
+  {
+    id: 2,
+    name: "Pull Day",
+    exercises: []
+  },
+  {
+    id: 3,
+    name: "Leg Destroyer",
+    exercises: []
+  }
+];
 
 // =========================
 // FILTER OPTIONS
@@ -463,8 +480,61 @@ function render() {
 // EVENTS
 // =========================
 
+function exerciseMedia(exercise) {
+  /*
+    Future:
+    - image
+    - GIF
+    - WebM
+    - MP4
 
-function openExerciseDetail(exercise) {
+    For now we intentionally render a designed placeholder.
+  */
+
+  return `
+    <div class="detail-media-placeholder">
+
+      <div class="media-grid"></div>
+
+      <div class="media-corner media-corner-top"></div>
+      <div class="media-corner media-corner-bottom"></div>
+
+      <div class="media-center">
+
+        <div class="media-mark">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+
+        <div class="media-title">
+          VISUAL DEMO
+        </div>
+
+        <div class="media-subtitle">
+          MOTION ASSET PENDING
+        </div>
+
+      </div>
+
+      <div class="media-top-label">
+        REDLINE / MOVEMENT
+      </div>
+
+      <div class="media-bottom-left">
+        ${String(exercise.id).padStart(2, "0")}
+      </div>
+
+      <div class="media-bottom-right">
+        ${exercise.equipment.toUpperCase()}
+      </div>
+
+    </div>
+  `;
+}
+
+
+function openExerciseDetail(card, exercise) {
 
   if (document.querySelector(".detail-overlay")) {
     return;
@@ -506,22 +576,7 @@ function openExerciseDetail(exercise) {
   <div class="detail-ring ring-one"></div>
   <div class="detail-ring ring-two"></div>
 
-  <div class="detail-media-placeholder">
-
-    <div class="media-placeholder-mark">
-      +
-    </div>
-
-    <div class="media-placeholder-info">
-      <span>REDLINE / MOVEMENT</span>
-      <strong>VISUAL DEMO</strong>
-    </div>
-
-    <div class="media-placeholder-status">
-      MEDIA ${String(exercise.id).padStart(2, "0")} / 01
-    </div>
-
-  </div>
+  ${exerciseMedia(exercise)}
 
   <span class="detail-visual-label">
     ${exercise.name.toUpperCase()}
@@ -628,11 +683,11 @@ function openExerciseDetail(exercise) {
 
   document.body.appendChild(overlay);
 
-  animateDetailOpen(overlay);
+  animateDetailOpen(card, overlay);
   attachDetailEvents(overlay);
 }
 
-function animateDetailOpen(overlay) {
+function animateDetailOpen(card, overlay) {
 
   const backdrop =
     overlay.querySelector(".detail-backdrop");
@@ -955,30 +1010,31 @@ function attachEvents() {
   // EXERCISE CARD
   // =======================
 
-document
-  .querySelectorAll(".exercise-card")
-  .forEach((card) => {
+  document
+    .querySelectorAll(".exercise-card")
+    .forEach((card) => {
 
-    card.addEventListener("click", () => {
+      card.addEventListener("click", () => {
 
-      const exerciseId =
-        Number(card.dataset.id);
+        const exerciseId =
+          Number(card.dataset.id);
 
-      const exercise =
-        exercises.find(
-          (item) => item.id === exerciseId
-        );
+        const exercise =
+          exercises.find(
+            (item) => item.id === exerciseId
+          );
 
-      if (!exercise) {
-        return;
-      }
+        if (!exercise) {
+          return;
+        }
 
-      selectedExercise = exercise;
+        selectedExercise = exercise;
 
-      openExerciseDetail(card, exercise);
+        openExerciseDetail(card, exercise);
+      });
+
     });
 
-  });
 
   // =======================
   // PROFILE
