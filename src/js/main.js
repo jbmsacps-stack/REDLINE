@@ -642,9 +642,21 @@ function renderRoutineDetail() {
           ←
         </button>
 
-        <span class="routine-detail-label">
-          ROUTINE
-        </span>
+        <div class="routine-detail-header-actions">
+
+  <span class="routine-detail-label">
+    ROUTINE
+  </span>
+
+  <button
+    class="routine-detail-menu"
+    type="button"
+    aria-label="Routine options"
+  >
+    ⋮
+  </button>
+
+</div>
 
       </header>
 
@@ -678,27 +690,6 @@ function renderRoutineDetail() {
 
 
           <section class="routine-exercise-list">
-
-          <div class="routine-complete-section">
-  <label class="routine-complete-control">
-    <input
-      type="checkbox"
-      class="routine-complete-checkbox"
-      ${workoutSessions.some(
-        session =>
-          session.routineId === activeRoutine.id &&
-          session.date === getLocalDate()
-      ) ? "checked" : ""}
-    >
-
-    <span class="routine-complete-box"></span>
-
-    <span class="routine-complete-text">
-      <strong>ROUTINE COMPLETED</strong>
-      <small>Mark this session as finished</small>
-    </span>
-  </label>
-</div>
 
             ${routineExercises.length
       ? routineExercises.map(
@@ -775,6 +766,7 @@ function renderRoutineDetail() {
   </div>
 
 </article>
+
                     `
       ).join("")
       : `
@@ -789,6 +781,27 @@ function renderRoutineDetail() {
                   </div>
                 `
     }
+
+    <div class="routine-complete-section">
+  <label class="routine-complete-control">
+    <input
+      type="checkbox"
+      class="routine-complete-checkbox"
+      ${workoutSessions.some(
+      session =>
+        session.routineId === activeRoutine.id &&
+        session.date === getLocalDate()
+    ) ? "checked" : ""}
+    >
+
+    <span class="routine-complete-box"></span>
+
+    <span class="routine-complete-text">
+      <strong>ROUTINE COMPLETED</strong>
+      <small>Mark this session as finished</small>
+    </span>
+  </label>
+</div>
 
           </section>
 
@@ -1051,9 +1064,9 @@ function openRoutineExerciseMenu(
 
             closeMenu(() => {
 
-              console.log(
-                "Move exercise:",
-                exercise.name
+              openMoveExerciseSheet(
+                routineExercise,
+                exercise
               );
 
             });
@@ -3520,6 +3533,257 @@ function closeRoutineSheet(overlay) {
     );
 }
 
+function openMoveExerciseSheet(
+  routineExercise,
+  exercise
+) {
+
+  if (!activeRoutine || !routineExercise || !exercise) {
+    return;
+  }
+
+  if (
+    document.querySelector(
+      ".move-exercise-overlay"
+    )
+  ) {
+    return;
+  }
+
+  const currentIndex =
+    activeRoutine.exercises.findIndex(
+      (item) =>
+        item.exerciseId ===
+        routineExercise.exerciseId
+    );
+
+  if (currentIndex === -1) {
+    return;
+  }
+
+  const canMoveUp =
+    currentIndex > 0;
+
+  const canMoveDown =
+    currentIndex <
+    activeRoutine.exercises.length - 1;
+
+  const overlay =
+    document.createElement("div");
+
+  overlay.className =
+    "move-exercise-overlay";
+
+  overlay.innerHTML = `
+    <div class="move-exercise-backdrop"></div>
+
+    <section class="move-exercise-sheet">
+
+      <div class="move-exercise-handle"></div>
+
+      <div class="move-exercise-header">
+
+        <div>
+          <span class="move-exercise-eyebrow">
+            REORDER EXERCISE
+          </span>
+
+          <h2>
+            ${exercise.name}
+          </h2>
+        </div>
+
+        <button
+          class="move-exercise-close"
+          type="button"
+        >
+          ×
+        </button>
+
+      </div>
+
+      <div class="move-exercise-position">
+        POSITION
+        ${String(currentIndex + 1).padStart(2, "0")}
+        / 
+        ${String(activeRoutine.exercises.length).padStart(2, "0")}
+      </div>
+
+      <div class="move-exercise-actions">
+
+        <button
+          class="move-exercise-action"
+          data-direction="up"
+          type="button"
+          ${canMoveUp ? "" : "disabled"}
+        >
+          <span>↑</span>
+          <div>
+            <strong>MOVE UP</strong>
+            <small>Move toward the top</small>
+          </div>
+        </button>
+
+        <button
+          class="move-exercise-action"
+          data-direction="down"
+          type="button"
+          ${canMoveDown ? "" : "disabled"}
+        >
+          <span>↓</span>
+          <div>
+            <strong>MOVE DOWN</strong>
+            <small>Move toward the bottom</small>
+          </div>
+        </button>
+
+      </div>
+
+    </section>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const backdrop =
+    overlay.querySelector(
+      ".move-exercise-backdrop"
+    );
+
+  const sheet =
+    overlay.querySelector(
+      ".move-exercise-sheet"
+    );
+
+  const closeButton =
+    overlay.querySelector(
+      ".move-exercise-close"
+    );
+
+  const closeSheet = () => {
+
+    gsap.timeline({
+      onComplete: () => {
+        overlay.remove();
+      }
+    })
+
+      .to(sheet, {
+        y: "100%",
+        duration: 0.3,
+        ease: "power3.in"
+      })
+
+      .to(
+        backdrop,
+        {
+          opacity: 0,
+          duration: 0.2
+        },
+        "-=0.18"
+      );
+  };
+
+  closeButton.addEventListener(
+    "click",
+    closeSheet
+  );
+
+  backdrop.addEventListener(
+    "click",
+    closeSheet
+  );
+
+  overlay
+    .querySelectorAll(
+      ".move-exercise-action"
+    )
+    .forEach((button) => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const direction =
+            button.dataset.direction;
+
+          const newIndex =
+            direction === "up"
+              ? currentIndex - 1
+              : currentIndex + 1;
+
+          if (
+            newIndex < 0 ||
+            newIndex >=
+            activeRoutine.exercises.length
+          ) {
+            return;
+          }
+
+          const items =
+            activeRoutine.exercises;
+
+          [
+            items[currentIndex],
+            items[newIndex]
+          ] = [
+              items[newIndex],
+              items[currentIndex]
+            ];
+
+          gsap.timeline({
+            onComplete: () => {
+              overlay.remove();
+              renderRoutineDetail();
+            }
+          })
+
+            .to(sheet, {
+              y: "100%",
+              duration: 0.28,
+              ease: "power3.in"
+            })
+
+            .to(
+              backdrop,
+              {
+                opacity: 0,
+                duration: 0.18
+              },
+              "-=0.16"
+            );
+
+        }
+      );
+
+    });
+
+  gsap.set(sheet, {
+    y: "100%"
+  });
+
+  gsap.set(backdrop, {
+    opacity: 0
+  });
+
+  gsap.timeline()
+    .to(
+      backdrop,
+      {
+        opacity: 1,
+        duration: 0.22
+      }
+    )
+    .to(
+      sheet,
+      {
+        y: 0,
+        duration: 0.42,
+        ease: "power4.out"
+      },
+      "-=0.1"
+    );
+}
+
 function attachEvents() {
 
   // =======================
@@ -3836,6 +4100,28 @@ function attachEvents() {
 
     });
 
+    // =======================
+// ROUTINE DETAIL — MENU
+// =======================
+
+const routineDetailMenu =
+  document.querySelector(
+    ".routine-detail-menu"
+  );
+
+routineDetailMenu?.addEventListener(
+  "click",
+  () => {
+
+    if (!activeRoutine) {
+      return;
+    }
+
+    openRoutineMenu(activeRoutine);
+
+  }
+);
+
   // =======================
   // ROUTINE WEIGHT CONTROL
   // =======================
@@ -3937,6 +4223,26 @@ function attachEvents() {
     });
 
   // =======================
+  // ROUTINE DETAIL — BACK
+  // =======================
+
+  const routineBackButton =
+    document.querySelector(
+      ".routine-back-button"
+    );
+
+  routineBackButton?.addEventListener(
+    "click",
+    () => {
+
+      activeRoutine = null;
+
+      renderRoutines();
+
+    }
+  );
+
+  // =======================
   // PROFILE
   // =======================
 
@@ -3979,6 +4285,155 @@ function attachEvents() {
 
     }
   );
+
+  function openRoutineMenu(routine) {
+
+  if (
+    document.querySelector(
+      ".routine-menu-overlay"
+    )
+  ) {
+    return;
+  }
+
+  const overlay =
+    document.createElement("div");
+
+  overlay.className =
+    "routine-menu-overlay";
+
+  overlay.innerHTML = `
+    <div class="routine-menu-backdrop"></div>
+
+    <section class="routine-menu-sheet">
+
+      <div class="routine-menu-handle"></div>
+
+      <div class="routine-menu-header">
+
+        <span class="routine-menu-eyebrow">
+          ROUTINE OPTIONS
+        </span>
+
+        <h2>${routine.name}</h2>
+
+      </div>
+
+      <div class="routine-menu-actions">
+
+        <button
+          class="routine-menu-action"
+          data-action="rename"
+          type="button"
+        >
+          <span>✎</span>
+          <strong>RENAME ROUTINE</strong>
+        </button>
+
+        <button
+          class="routine-menu-action danger"
+          data-action="delete"
+          type="button"
+        >
+          <span>×</span>
+          <strong>DELETE ROUTINE</strong>
+        </button>
+
+      </div>
+
+    </section>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const backdrop =
+    overlay.querySelector(
+      ".routine-menu-backdrop"
+    );
+
+  const sheet =
+    overlay.querySelector(
+      ".routine-menu-sheet"
+    );
+
+  const closeMenu = () => {
+
+    gsap.timeline({
+      onComplete: () => {
+        overlay.remove();
+      }
+    })
+      .to(sheet, {
+        y: "100%",
+        duration: 0.28,
+        ease: "power3.in"
+      })
+      .to(
+        backdrop,
+        {
+          opacity: 0,
+          duration: 0.18
+        },
+        "-=0.16"
+      );
+  };
+
+  backdrop.addEventListener(
+    "click",
+    closeMenu
+  );
+
+  overlay
+    .querySelectorAll(
+      ".routine-menu-action"
+    )
+    .forEach((button) => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const action =
+            button.dataset.action;
+
+          closeMenu();
+
+          if (action === "rename") {
+            openRenameRoutineModal(routine);
+          }
+
+          if (action === "delete") {
+            openDeleteRoutineModal(routine);
+          }
+
+        }
+      );
+
+    });
+
+  gsap.set(sheet, {
+    y: "100%"
+  });
+
+  gsap.set(backdrop, {
+    opacity: 0
+  });
+
+  gsap.timeline()
+    .to(backdrop, {
+      opacity: 1,
+      duration: 0.2
+    })
+    .to(
+      sheet,
+      {
+        y: 0,
+        duration: 0.4,
+        ease: "power4.out"
+      },
+      "-=0.08"
+    );
+}
 
 
   // =======================
