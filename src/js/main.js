@@ -7,31 +7,31 @@ import gsap from "gsap";
 
 const app = document.querySelector("#app");
 
+
+// =========================
+// FILTER STATE
+// =========================
+
 let activeMuscle = "All";
 let activeEquipment = "All";
 let searchTerm = "";
+let selectedExercise = null;
 
-const muscleViews = {
-  front: [
-    "Chest",
-    "Shoulders",
-    "Biceps",
-    "Triceps",
-    "Abs",
-    "Quads",
-  ],
-  back: [
-    "Traps",
-    "Lats",
-    "Rear Delts",
-    "Triceps",
-    "Glutes",
-    "Hamstrings",
-    "Calves",
-  ],
-};
 
-let muscleView = "front";
+// =========================
+// FILTER OPTIONS
+// =========================
+
+const muscles = [
+  "All",
+  "Chest",
+  "Back",
+  "Legs",
+  "Hamstrings",
+  "Shoulders",
+  "Biceps",
+  "Triceps",
+];
 
 const equipment = [
   "All",
@@ -41,13 +41,20 @@ const equipment = [
   "Machine",
 ];
 
+
+// =========================
+// EXERCISE CARD
+// =========================
+
 function exerciseCard(exercise) {
   return `
     <article
       class="exercise-card"
       data-id="${exercise.id}"
     >
+
       <div class="exercise-card-top">
+
         <span class="exercise-type">
           ${exercise.type}
         </span>
@@ -56,18 +63,25 @@ function exerciseCard(exercise) {
           class="equipment-button"
           aria-label="${exercise.equipment}"
           title="${exercise.equipment}"
+          type="button"
         >
           ${equipmentIcon(exercise.equipment)}
         </button>
+
       </div>
 
+
       <div class="exercise-visual">
+
         <span class="visual-letter">
           ${exercise.name.charAt(0)}
         </span>
+
       </div>
 
+
       <div class="exercise-content">
+
         <div class="exercise-meta">
           <span>${exercise.muscle}</span>
           <span>•</span>
@@ -81,10 +95,17 @@ function exerciseCard(exercise) {
         <span class="exercise-equipment">
           ${exercise.equipment}
         </span>
+
       </div>
+
     </article>
   `;
 }
+
+
+// =========================
+// EQUIPMENT ICON
+// =========================
 
 function equipmentIcon(type) {
   const icons = {
@@ -98,444 +119,174 @@ function equipmentIcon(type) {
   return icons[type] || "•";
 }
 
-function muscleMap() {
-  const selected = activeMuscle;
 
-  return `
-    <div class="muscle-filter">
-
-      <div class="muscle-filter-header">
-        <div>
-          <span class="filter-heading">Muscle</span>
-
-          <button
-            class="all-muscles ${selected === "All" ? "active" : ""}"
-            data-muscle="All"
-          >
-            All muscles
-          </button>
-        </div>
-
-        <button
-          class="muscle-collapse"
-          id="muscle-collapse"
-          aria-label="Collapse muscle selector"
-        >
-          ↑
-        </button>
-      </div>
-
-
-      <div class="muscle-filter-body">
-
-        <div class="muscle-view-toggle">
-          <button
-            class="${muscleView === "front" ? "active" : ""}"
-            data-view="front"
-          >
-            Front
-          </button>
-
-          <button
-            class="${muscleView === "back" ? "active" : ""}"
-            data-view="back"
-          >
-            Back
-          </button>
-        </div>
-
-
-        <div class="muscle-map">
-
-          ${
-            muscleView === "front"
-              ? `
-                <svg
-                  class="body-svg"
-                  viewBox="0 0 220 500"
-                  aria-label="Front body muscle map"
-                >
-
-                  <!-- Head -->
-                  <circle
-                    class="body-part"
-                    cx="110"
-                    cy="35"
-                    r="23"
-                  />
-
-                  <!-- Neck -->
-                  <rect
-                    class="body-part"
-                    x="98"
-                    y="55"
-                    width="24"
-                    height="25"
-                    rx="8"
-                  />
-
-                  <!-- Shoulders -->
-                  <path
-                    class="muscle-part ${selected === "Shoulders" ? "selected" : ""}"
-                    data-muscle="Shoulders"
-                    d="M98 76
-                       C80 73 60 82 49 98
-                       L61 123
-                       C75 113 87 108 98 106Z"
-                  />
-
-                  <path
-                    class="muscle-part ${selected === "Shoulders" ? "selected" : ""}"
-                    data-muscle="Shoulders"
-                    d="M122 76
-                       C140 73 160 82 171 98
-                       L159 123
-                       C145 113 133 108 122 106Z"
-                  />
-
-                  <!-- Chest -->
-                  <path
-                    class="muscle-part ${selected === "Chest" ? "selected" : ""}"
-                    data-muscle="Chest"
-                    d="M97 84
-                       C83 84 70 91 66 104
-                       C72 118 86 125 108 126
-                       L108 92Z"
-                  />
-
-                  <path
-                    class="muscle-part ${selected === "Chest" ? "selected" : ""}"
-                    data-muscle="Chest"
-                    d="M123 84
-                       C137 84 150 91 154 104
-                       C148 118 134 125 112 126
-                       L112 92Z"
-                  />
-
-                  <!-- Biceps -->
-                  <path
-                    class="muscle-part ${selected === "Biceps" ? "selected" : ""}"
-                    data-muscle="Biceps"
-                    d="M50 100
-                       C41 110 37 129 42 149
-                       C45 159 54 162 61 153
-                       L66 126Z"
-                  />
-
-                  <path
-                    class="muscle-part ${selected === "Biceps" ? "selected" : ""}"
-                    data-muscle="Biceps"
-                    d="M170 100
-                       C179 110 183 129 178 149
-                       C175 159 166 162 159 153
-                       L154 126Z"
-                  />
-
-                  <!-- Triceps -->
-                  <path
-                    class="muscle-part ${selected === "Triceps" ? "selected" : ""}"
-                    data-muscle="Triceps"
-                    d="M42 110
-                       C34 123 32 143 37 159
-                       C40 168 46 169 50 160
-                       L53 143Z"
-                  />
-
-                  <path
-                    class="muscle-part ${selected === "Triceps" ? "selected" : ""}"
-                    data-muscle="Triceps"
-                    d="M178 110
-                       C186 123 188 143 183 159
-                       C180 168 174 169 170 160
-                       L167 143Z"
-                  />
-
-                  <!-- Abs -->
-                  <rect
-                    class="muscle-part ${selected === "Abs" ? "selected" : ""}"
-                    data-muscle="Abs"
-                    x="92"
-                    y="128"
-                    width="36"
-                    height="83"
-                    rx="12"
-                  />
-
-                  <!-- Quads -->
-                  <path
-                    class="muscle-part ${selected === "Quads" ? "selected" : ""}"
-                    data-muscle="Quads"
-                    d="M90 210
-                       C80 224 76 260 79 302
-                       C82 320 94 328 105 310
-                       L108 213Z"
-                  />
-
-                  <path
-                    class="muscle-part ${selected === "Quads" ? "selected" : ""}"
-                    data-muscle="Quads"
-                    d="M130 210
-                       C140 224 144 260 141 302
-                       C138 320 126 328 115 310
-                       L112 213Z"
-                  />
-
-                  <!-- Lower legs -->
-                  <path
-                    class="body-part"
-                    d="M80 320
-                       L105 320
-                       L101 425
-                       L82 425Z"
-                  />
-
-                  <path
-                    class="body-part"
-                    d="M140 320
-                       L115 320
-                       L119 425
-                       L138 425Z"
-                  />
-
-                </svg>
-              `
-              : `
-                <svg
-                  class="body-svg"
-                  viewBox="0 0 220 500"
-                  aria-label="Back body muscle map"
-                >
-
-                  <!-- Head -->
-                  <circle
-                    class="body-part"
-                    cx="110"
-                    cy="35"
-                    r="23"
-                  />
-
-                  <!-- Neck -->
-                  <rect
-                    class="body-part"
-                    x="98"
-                    y="55"
-                    width="24"
-                    height="25"
-                    rx="8"
-                  />
-
-                  <!-- Rear Delts -->
-                  <path
-                    class="muscle-part ${selected === "Rear Delts" ? "selected" : ""}"
-                    data-muscle="Rear Delts"
-                    d="M98 76
-                       C80 74 62 84 52 99
-                       L63 122
-                       C78 113 88 108 98 106Z"
-                  />
-
-                  <path
-                    class="muscle-part ${selected === "Rear Delts" ? "selected" : ""}"
-                    data-muscle="Rear Delts"
-                    d="M122 76
-                       C140 74 158 84 168 99
-                       L157 122
-                       C142 113 132 108 122 106Z"
-                  />
-
-                  <!-- Traps -->
-                  <path
-                    class="muscle-part ${selected === "Traps" ? "selected" : ""}"
-                    data-muscle="Traps"
-                    d="M99 78
-                       L110 69
-                       L121 78
-                       L133 102
-                       L110 115
-                       L87 102Z"
-                  />
-
-                  <!-- Lats -->
-                  <path
-                    class="muscle-part ${selected === "Lats" ? "selected" : ""}"
-                    data-muscle="Lats"
-                    d="M87 104
-                       C74 114 70 139 79 170
-                       C85 186 96 194 108 196
-                       L108 117Z"
-                  />
-
-                  <path
-                    class="muscle-part ${selected === "Lats" ? "selected" : ""}"
-                    data-muscle="Lats"
-                    d="M133 104
-                       C146 114 150 139 141 170
-                       C135 186 124 194 112 196
-                       L112 117Z"
-                  />
-
-                  <!-- Triceps -->
-                  <path
-                    class="muscle-part ${selected === "Triceps" ? "selected" : ""}"
-                    data-muscle="Triceps"
-                    d="M45 109
-                       C36 124 34 144 39 160
-                       C42 168 48 168 52 159
-                       L55 137Z"
-                  />
-
-                  <path
-                    class="muscle-part ${selected === "Triceps" ? "selected" : ""}"
-                    data-muscle="Triceps"
-                    d="M175 109
-                       C184 124 186 144 181 160
-                       C178 168 172 168 168 159
-                       L165 137Z"
-                  />
-
-                  <!-- Glutes -->
-                  <path
-                    class="muscle-part ${selected === "Glutes" ? "selected" : ""}"
-                    data-muscle="Glutes"
-                    d="M82 192
-                       C76 211 80 238 94 250
-                       C101 256 106 253 110 245
-                       L110 198Z"
-                  />
-
-                  <path
-                    class="muscle-part ${selected === "Glutes" ? "selected" : ""}"
-                    data-muscle="Glutes"
-                    d="M138 192
-                       C144 211 140 238 126 250
-                       C119 256 114 253 110 245
-                       L110 198Z"
-                  />
-
-                  <!-- Hamstrings -->
-                  <path
-                    class="muscle-part ${selected === "Hamstrings" ? "selected" : ""}"
-                    data-muscle="Hamstrings"
-                    d="M87 250
-                       C79 268 79 302 83 320
-                       C87 327 97 327 103 318
-                       L108 253Z"
-                  />
-
-                  <path
-                    class="muscle-part ${selected === "Hamstrings" ? "selected" : ""}"
-                    data-muscle="Hamstrings"
-                    d="M133 250
-                       C141 268 141 302 137 320
-                       C133 327 123 327 117 318
-                       L112 253Z"
-                  />
-
-                  <!-- Calves -->
-                  <path
-                    class="muscle-part ${selected === "Calves" ? "selected" : ""}"
-                    data-muscle="Calves"
-                    d="M83 321
-                       C77 350 80 390 87 418
-                       C93 429 102 425 103 414
-                       L102 326Z"
-                  />
-
-                  <path
-                    class="muscle-part ${selected === "Calves" ? "selected" : ""}"
-                    data-muscle="Calves"
-                    d="M137 321
-                       C143 350 140 390 133 418
-                       C127 429 118 425 117 414
-                       L118 326Z"
-                  />
-
-                </svg>
-              `
-          }
-
-        </div>
-
-        <p class="muscle-map-hint">
-          Tap a muscle to filter exercises
-        </p>
-
-      </div>
-    </div>
-  `;
-}
+// =========================
+// RENDER
+// =========================
 
 function render() {
-  const filteredExercises = exercises.filter((exercise) => {
-    const matchesSearch =
-      exercise.name.toLowerCase().includes(searchTerm) ||
-      exercise.muscle.toLowerCase().includes(searchTerm) ||
-      exercise.equipment.toLowerCase().includes(searchTerm) ||
-      exercise.type.toLowerCase().includes(searchTerm);
 
-    const matchesMuscle =
-      activeMuscle === "All" ||
-      exercise.muscle === activeMuscle;
+  const filteredExercises = exercises.filter(
+    (exercise) => {
 
-    const matchesEquipment =
-      activeEquipment === "All" ||
-      exercise.equipment === activeEquipment;
+      const searchText = [
+        exercise.name,
+        exercise.muscle,
+        exercise.equipment,
+        exercise.type,
+      ]
+        .join(" ")
+        .toLowerCase();
 
-    return (
-      matchesSearch &&
-      matchesMuscle &&
-      matchesEquipment
-    );
-  });
+
+      const matchesSearch =
+        searchText.includes(searchTerm);
+
+
+      const matchesMuscle =
+        activeMuscle === "All" ||
+        exercise.muscle === activeMuscle;
+
+
+      const matchesEquipment =
+        activeEquipment === "All" ||
+        exercise.equipment === activeEquipment;
+
+
+      return (
+        matchesSearch &&
+        matchesMuscle &&
+        matchesEquipment
+      );
+    }
+  );
+
+
+  // =========================
+  // PAGE
+  // =========================
 
   app.innerHTML = `
+
     <div class="app-shell">
 
       <header class="app-header">
-        <a href="#" class="logo">
+
+        <a
+          href="#"
+          class="logo"
+          aria-label="REDLINE home"
+        >
           RED<span>LINE</span>
         </a>
+
 
         <button
           class="profile-button"
           aria-label="Profile"
+          type="button"
         >
           ●
         </button>
+
       </header>
+
 
       <main>
 
+        <!-- =====================
+             PAGE HEADER
+        ====================== -->
+
         <section class="library-heading">
-          <p class="hero-label">Training Library</p>
+
+          <p class="hero-label">
+            Training Library
+          </p>
+
 
           <h1 class="page-title">
+
             FIND YOUR
-            <span>EXERCISE.</span>
+
+            <span>
+              EXERCISE.
+            </span>
+
           </h1>
+
 
           <p class="library-description">
             Browse your movements. Build your system.
           </p>
+
         </section>
 
+
+        <!-- =====================
+             SEARCH + FILTERS
+        ====================== -->
+
         <section class="search-section">
+
+
+          <!-- SEARCH -->
 
           <label
             class="search-box"
             aria-label="Search exercises"
           >
-            <span class="search-icon">⌕</span>
+
+            <span class="search-icon">
+              ⌕
+            </span>
+
 
             <input
               id="exercise-search"
               type="search"
               placeholder="Search exercises, muscles..."
               value="${searchTerm}"
+              autocomplete="off"
             />
+
           </label>
 
-          ${muscleMap()}
+
+          <!-- MUSCLE FILTER -->
+
+          <div class="filter-group">
+
+            <div class="filter-heading">
+              <span>Muscle</span>
+            </div>
+
+
+            <div class="filter-row">
+
+              ${muscles
+      .map(
+        (muscle) => `
+                    <button
+                      class="filter-chip ${activeMuscle === muscle
+            ? "active"
+            : ""
+          }"
+                      data-muscle="${muscle}"
+                      type="button"
+                    >
+                      ${muscle}
+                    </button>
+                  `
+      )
+      .join("")}
+
+            </div>
+
+          </div>
+
+
+          <!-- EQUIPMENT FILTER -->
 
           <div class="filter-group">
 
@@ -543,237 +294,800 @@ function render() {
               <span>Equipment</span>
             </div>
 
+
             <div class="filter-row">
+
               ${equipment
-                .map(
-                  (item) => `
+      .map(
+        (item) => `
                     <button
-                      class="filter-chip ${
-                        activeEquipment === item
-                          ? "active"
-                          : ""
-                      }"
+                      class="filter-chip ${activeEquipment === item
+            ? "active"
+            : ""
+          }"
                       data-equipment="${item}"
+                      type="button"
                     >
                       ${item}
                     </button>
                   `
-                )
-                .join("")}
+      )
+      .join("")}
+
             </div>
 
           </div>
 
+
         </section>
+
+
+        <!-- =====================
+             RESULTS
+        ====================== -->
 
         <section class="library-results">
 
+
           <div class="results-heading">
+
             <span>
-              ${filteredExercises.length} exercises
+              ${filteredExercises.length}
+              ${filteredExercises.length === 1
+      ? "exercise"
+      : "exercises"}
             </span>
+
           </div>
 
+
           <div class="exercise-grid">
-            ${
-              filteredExercises.length
-                ? filteredExercises
-                    .map(exerciseCard)
-                    .join("")
-                : `
+
+            ${filteredExercises.length > 0
+      ? filteredExercises
+        .map(exerciseCard)
+        .join("")
+
+      : `
                   <div class="empty-state">
-                    <div class="empty-state-icon">×</div>
-                    <h2>No exercises found</h2>
+
+                    <div class="empty-state-icon">
+                      ×
+                    </div>
+
+                    <h2>
+                      No exercises found
+                    </h2>
+
                     <p>
                       Try a different search or filter.
                     </p>
+
                   </div>
                 `
-            }
+    }
+
           </div>
+
 
         </section>
 
       </main>
+
     </div>
 
-    <nav class="bottom-nav" aria-label="Main navigation">
 
-      <button class="nav-item active" data-page="workouts">
-        <span class="nav-icon">◈</span>
-        <span class="nav-label">Workouts</span>
+    <!-- =========================
+         BOTTOM NAVIGATION
+    ========================== -->
+
+    <nav
+      class="bottom-nav"
+      aria-label="Main navigation"
+    >
+
+      <button
+        class="nav-item active"
+        data-page="workouts"
+        type="button"
+      >
+        <span class="nav-icon">
+          ◈
+        </span>
+
+        <span class="nav-label">
+          Workouts
+        </span>
       </button>
 
-      <button class="nav-item" data-page="routines">
-        <span class="nav-icon">▣</span>
-        <span class="nav-label">Routines</span>
+
+      <button
+        class="nav-item"
+        data-page="routines"
+        type="button"
+      >
+        <span class="nav-icon">
+          ▣
+        </span>
+
+        <span class="nav-label">
+          Routines
+        </span>
       </button>
 
-      <button class="nav-item" data-page="map">
-        <span class="nav-icon">◎</span>
-        <span class="nav-label">Muscle Map</span>
+
+      <button
+        class="nav-item"
+        data-page="map"
+        type="button"
+      >
+        <span class="nav-icon">
+          ◎
+        </span>
+
+        <span class="nav-label">
+          Muscle Map
+        </span>
       </button>
 
-      <button class="nav-item" data-page="profile">
-        <span class="nav-icon">◉</span>
-        <span class="nav-label">Profile</span>
+
+      <button
+        class="nav-item"
+        data-page="profile"
+        type="button"
+      >
+        <span class="nav-icon">
+          ◉
+        </span>
+
+        <span class="nav-label">
+          Profile
+        </span>
       </button>
 
     </nav>
+
   `;
 
+
+  // Attach all events after DOM update
   attachEvents();
+
+
+  // Animate the newly rendered cards
   animateCards();
 }
 
-function attachEvents() {
-  const search = document.querySelector("#exercise-search");
 
-  search?.addEventListener("input", (event) => {
-    searchTerm = event.target.value
-      .trim()
-      .toLowerCase();
+// =========================
+// EVENTS
+// =========================
 
-    render();
+
+function openExerciseDetail(card, exercise) {
+
+  if (document.querySelector(".detail-overlay")) {
+    return;
+  }
+
+  const overlay =
+    document.createElement("div");
+
+  overlay.className = "detail-overlay";
+
+  overlay.innerHTML = `
+    <div class="detail-backdrop"></div>
+
+    <section
+      class="exercise-detail"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="detail-title"
+    >
+
+      <div class="detail-handle"></div>
+
+      <div class="detail-header">
+
+        <button
+          class="detail-close"
+          type="button"
+          aria-label="Close exercise"
+        >
+          ×
+        </button>
+
+      </div>
+
+      <div class="detail-visual">
+
+  <div class="detail-visual-grid"></div>
+
+  <div class="detail-ring ring-one"></div>
+  <div class="detail-ring ring-two"></div>
+
+  <div class="detail-media-placeholder">
+
+    <div class="media-placeholder-mark">
+      +
+    </div>
+
+    <div class="media-placeholder-info">
+      <span>REDLINE / MOVEMENT</span>
+      <strong>VISUAL DEMO</strong>
+    </div>
+
+    <div class="media-placeholder-status">
+      MEDIA ${String(exercise.id).padStart(2, "0")} / 01
+    </div>
+
+  </div>
+
+  <span class="detail-visual-label">
+    ${exercise.name.toUpperCase()}
+  </span>
+
+</div>
+
+      <div class="detail-content">
+
+        <div class="detail-eyebrow">
+          ${exercise.type}
+        </div>
+
+        <h2
+          id="detail-title"
+          class="detail-title"
+        >
+          ${exercise.name}
+        </h2>
+
+        <div class="detail-meta">
+
+          <span>${exercise.muscle}</span>
+          <span>•</span>
+          <span>${exercise.equipment}</span>
+          <span>•</span>
+          <span>${exercise.difficulty}</span>
+
+        </div>
+
+        <div class="detail-section">
+
+          <div class="detail-section-title">
+            TARGETED MUSCLES
+          </div>
+
+          <div class="muscle-tags">
+
+            <span class="muscle-tag primary">
+              ${exercise.muscle}
+            </span>
+
+            ${exercise.secondaryMuscles
+      .map(
+        (muscle) => `
+                  <span class="muscle-tag">
+                    ${muscle}
+                  </span>
+                `
+      )
+      .join("")}
+
+          </div>
+
+        </div>
+
+        <div class="detail-section">
+
+          <div class="detail-section-title">
+            HOW TO PERFORM
+          </div>
+
+          <ol class="instruction-list">
+
+            ${exercise.instructions
+      .map(
+        (instruction, index) => `
+                  <li class="instruction-item">
+
+                    <span class="instruction-number">
+                      ${String(index + 1).padStart(2, "0")}
+                    </span>
+
+                    <span>
+                      ${instruction}
+                    </span>
+
+                  </li>
+                `
+      )
+      .join("")}
+
+          </ol>
+
+        </div>
+
+        <button
+          class="add-routine-button"
+          type="button"
+        >
+          <span>
+            ADD TO ROUTINE
+          </span>
+
+          <span class="add-routine-arrow">
+            →
+          </span>
+        </button>
+
+      </div>
+
+    </section>
+  `;
+
+  document.body.appendChild(overlay);
+
+  animateDetailOpen(card, overlay);
+  attachDetailEvents(overlay);
+}
+
+function animateDetailOpen(card, overlay) {
+
+  const backdrop =
+    overlay.querySelector(".detail-backdrop");
+
+  const detail =
+    overlay.querySelector(".exercise-detail");
+
+  const visual =
+    overlay.querySelector(".detail-visual");
+
+  const content =
+    overlay.querySelector(".detail-content");
+
+  const mediaPlaceholder =
+    overlay.querySelector(".detail-media-placeholder");
+
+  const detailRings =
+    overlay.querySelectorAll(".detail-ring");
+
+  gsap.set(overlay, {
+    display: "block"
   });
 
+  gsap.set(backdrop, {
+    opacity: 0
+  });
 
-  /* =========================
-     ALL MUSCLES
-  ========================= */
+  gsap.set(detail, {
+    y: "100%"
+  });
 
-  document
-    .querySelector("[data-muscle='All']")
-    ?.addEventListener("click", () => {
-      activeMuscle = "All";
+  gsap.set(mediaPlaceholder, {
+    scale: 0.88,
+    opacity: 0,
+    y: 10
+  });
+
+  gsap.set(visual, {
+    scale: 0.96,
+    opacity: 0
+  });
+
+  gsap.set(content, {
+    opacity: 0,
+    y: 20
+  });
+
+  gsap.set(detailRings, {
+    scale: 0.6,
+    opacity: 0
+  });
+
+  const timeline = gsap.timeline();
+
+  timeline
+    .to(card, {
+      scale: 0.97,
+      duration: 0.12,
+      ease: "power2.out"
+    })
+
+    .to(
+      backdrop,
+      {
+        opacity: 1,
+        duration: 0.28,
+        ease: "power2.out"
+      },
+      "<"
+    )
+
+    .to(
+      detail,
+      {
+        y: 0,
+        duration: 0.55,
+        ease: "power4.out"
+      },
+      "-=0.12"
+    )
+
+    .to(
+      visual,
+      {
+        opacity: 1,
+        scale: 1,
+        duration: 0.45,
+        ease: "power3.out"
+      },
+      "-=0.2"
+    )
+
+    .to(
+      mediaPlaceholder,
+      {
+        opacity: 1,
+        scale: 1,
+        y: 0,
+        duration: 0.5,
+        ease: "back.out(1.4)"
+      },
+      "-=0.28"
+    )
+
+    .to(
+      detailRings,
+      {
+        opacity: 1,
+        scale: 1,
+        duration: 0.65,
+        stagger: 0.08,
+        ease: "power3.out"
+      },
+      "-=0.45"
+    )
+
+    .to(
+      content,
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.4,
+        ease: "power3.out"
+      },
+      "-=0.2"
+    );
+}
+
+function closeExerciseDetail() {
+
+  const overlay =
+    document.querySelector(".detail-overlay");
+
+  if (!overlay) {
+    return;
+  }
+
+  const backdrop =
+    overlay.querySelector(".detail-backdrop");
+
+  const detail =
+    overlay.querySelector(".exercise-detail");
+
+  gsap.timeline({
+    onComplete: () => {
+      overlay.remove();
+      selectedExercise = null;
+    }
+  })
+    .to(detail, {
+      y: "100%",
+      duration: 0.35,
+      ease: "power3.in"
+    })
+    .to(
+      backdrop,
+      {
+        opacity: 0,
+        duration: 0.22
+      },
+      "-=0.2"
+    );
+}
+
+function attachDetailEvents(overlay) {
+
+  const closeButton =
+    overlay.querySelector(".detail-close");
+
+  const backdrop =
+    overlay.querySelector(".detail-backdrop");
+
+  const addButton =
+    overlay.querySelector(".add-routine-button");
+
+  closeButton.addEventListener(
+    "click",
+    closeExerciseDetail
+  );
+
+  backdrop.addEventListener(
+    "click",
+    closeExerciseDetail
+  );
+
+  addButton.addEventListener(
+    "click",
+    () => {
+
+      const buttonText =
+        addButton.querySelector("span");
+
+      buttonText.textContent =
+        "ADDED TO ROUTINE";
+
+      addButton.classList.add("added");
+
+      gsap.fromTo(
+        addButton,
+        {
+          scale: 0.96
+        },
+        {
+          scale: 1,
+          duration: 0.35,
+          ease: "back.out(2)"
+        }
+      );
+    }
+  );
+}
+
+function attachEvents() {
+
+  // =======================
+  // SEARCH
+  // =======================
+
+  const search =
+    document.querySelector("#exercise-search");
+
+
+  search?.addEventListener(
+    "input",
+    (event) => {
+
+      searchTerm =
+        event.target.value
+          .trim()
+          .toLowerCase();
+
+
       render();
-    });
+    }
+  );
 
 
-  /* =========================
-     SVG MUSCLES
-  ========================= */
-
-  document
-    .querySelectorAll(".muscle-part")
-    .forEach((muscle) => {
-      muscle.addEventListener("click", () => {
-        activeMuscle = muscle.dataset.muscle;
-        render();
-      });
-    });
-
-
-  /* =========================
-     FRONT / BACK
-  ========================= */
+  // =======================
+  // MUSCLE FILTER
+  // =======================
 
   document
-    .querySelectorAll("[data-view]")
+    .querySelectorAll("[data-muscle]")
     .forEach((button) => {
-      button.addEventListener("click", () => {
-        muscleView = button.dataset.view;
-        render();
-      });
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          activeMuscle =
+            button.dataset.muscle;
+
+          render();
+        }
+      );
+
     });
 
 
-  /* =========================
-     EQUIPMENT
-  ========================= */
+  // =======================
+  // EQUIPMENT FILTER
+  // =======================
 
   document
     .querySelectorAll("[data-equipment]")
     .forEach((button) => {
-      button.addEventListener("click", () => {
-        activeEquipment = button.dataset.equipment;
-        render();
-      });
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          activeEquipment =
+            button.dataset.equipment;
+
+          render();
+        }
+      );
+
     });
 
 
-  /* =========================
-     EQUIPMENT ANIMATION
-  ========================= */
+  // =======================
+  // EQUIPMENT ICON ANIMATION
+  // =======================
 
   document
     .querySelectorAll(".equipment-button")
     .forEach((button) => {
-      button.addEventListener("click", (event) => {
-        event.stopPropagation();
 
-        gsap.timeline()
-          .to(button, {
-            rotation: 180,
-            scale: 1.18,
-            duration: 0.18,
-            ease: "power2.out",
-          })
-          .to(button, {
-            rotation: 360,
-            scale: 1,
-            duration: 0.35,
-            ease: "back.out(2)",
-          });
-      });
+      button.addEventListener(
+        "click",
+        (event) => {
+
+          // Don't open the exercise card
+          event.stopPropagation();
+
+
+          gsap.timeline()
+            .to(button, {
+              rotation: 180,
+              scale: 1.18,
+              duration: 0.18,
+              ease: "power2.out",
+            })
+
+            .to(button, {
+              rotation: 360,
+              scale: 1,
+              duration: 0.35,
+              ease: "back.out(2)",
+            });
+
+        }
+      );
+
     });
 
 
-  /* =========================
-     EXERCISE CARD
-  ========================= */
+  // =======================
+  // EXERCISE CARD
+  // =======================
+
+document
+  .querySelectorAll(".exercise-card")
+  .forEach((card) => {
+
+    card.addEventListener("click", () => {
+
+      const exerciseId =
+        Number(card.dataset.id);
+
+      const exercise =
+        exercises.find(
+          (item) => item.id === exerciseId
+        );
+
+      if (!exercise) {
+        return;
+      }
+
+      selectedExercise = exercise;
+
+      openExerciseDetail(exercise);
+    });
+
+  });
+
+  // =======================
+  // PROFILE
+  // =======================
+
+  const profileButton =
+    document.querySelector(
+      ".profile-button"
+    );
+
+
+  profileButton?.addEventListener(
+    "click",
+    () => {
+
+      console.log(
+        "Profile clicked"
+      );
+
+    }
+  );
+
+
+  // =======================
+  // NAVIGATION
+  // =======================
 
   document
-    .querySelectorAll(".exercise-card")
-    .forEach((card) => {
-      card.addEventListener("click", () => {
-        console.log(
-          "Selected exercise:",
-          card.dataset.id
-        );
-      });
+    .querySelectorAll(".nav-item")
+    .forEach((button) => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          document
+            .querySelectorAll(".nav-item")
+            .forEach((item) => {
+              item.classList.remove(
+                "active"
+              );
+            });
+
+
+          button.classList.add(
+            "active"
+          );
+
+
+          console.log(
+            "Navigation:",
+            button.dataset.page
+          );
+
+          // Other pages will be implemented
+          // one by one.
+
+        }
+      );
+
     });
 
-
-  /* =========================
-     MUSCLE COLLAPSE
-  ========================= */
-
-  const collapseButton =
-    document.querySelector("#muscle-collapse");
-
-  collapseButton?.addEventListener("click", () => {
-    const body =
-      document.querySelector(".muscle-filter-body");
-
-    body?.classList.toggle("collapsed");
-
-    collapseButton.textContent =
-      body?.classList.contains("collapsed")
-        ? "↓"
-        : "↑";
-  });
 }
 
+
+// =========================
+// CARD ENTRANCE ANIMATION
+// =========================
+
 function animateCards() {
-  const cards = document.querySelectorAll(
-    ".exercise-card"
-  );
+
+  const cards =
+    document.querySelectorAll(
+      ".exercise-card"
+    );
+
+
+  if (!cards.length) {
+    return;
+  }
+
 
   gsap.fromTo(
     cards,
+
     {
       opacity: 0,
       y: 24,
+      scale: 0.98,
     },
+
     {
       opacity: 1,
       y: 0,
+      scale: 1,
+
       duration: 0.5,
+
       stagger: 0.06,
+
       ease: "power3.out",
     }
   );
+
 }
+
+
+// =========================
+// INITIAL RENDER
+// =========================
 
 render();
