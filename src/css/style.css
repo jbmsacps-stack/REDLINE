@@ -5330,3 +5330,185 @@ svg {
 .routine-menu-action.danger > span {
   background: rgba(255, 42, 42, 0.1);
 }
+
+/* =========================================
+   RENAME ROUTINE MODAL
+   ========================================= */
+
+.rename-routine-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.rename-routine-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.rename-routine-modal {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 440px);
+  padding: 26px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(30, 30, 30, 0.98),
+      rgba(16, 16, 16, 0.98)
+    );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 35, 55, 0.03);
+}
+
+.rename-routine-eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.rename-routine-modal h2 {
+  margin: 0 0 22px;
+  font-size: 22px;
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+.rename-routine-input {
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+
+  box-sizing: border-box;
+
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 10px;
+
+  background: rgba(255, 255, 255, 0.045);
+
+  color: #fff;
+
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.rename-routine-input::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.rename-routine-input:focus {
+  border-color: rgba(255, 45, 65, 0.65);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 0 0 3px rgba(255, 45, 65, 0.08),
+    0 0 24px rgba(255, 45, 65, 0.08);
+}
+
+.rename-routine-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.rename-routine-cancel,
+.rename-routine-save {
+  height: 48px;
+  border: 0;
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.rename-routine-cancel {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.035);
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.rename-routine-cancel:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+
+.rename-routine-save {
+  background: #e11d2e;
+  color: #fff;
+  box-shadow:
+    0 10px 28px rgba(225, 29, 46, 0.20);
+}
+
+.rename-routine-save:hover {
+  background: #f12638;
+  transform: translateY(-1px);
+}
+
+.rename-routine-cancel:active,
+.rename-routine-save:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+/* Mobile refinement */
+
+@media (max-width: 480px) {
+
+  .rename-routine-overlay {
+    align-items: flex-end;
+    min-height: 100dvh;
+    padding: 12px;
+  }
+
+  .rename-routine-modal {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+    padding: 22px;
+    border-radius: 16px;
+    margin-bottom: env(safe-area-inset-bottom);
+    overflow-y: auto;
+  }
+
+}
+
+.rename-routine-overlay {
+  min-height: 100dvh;
+}
+
+.rename-routine-modal {
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}

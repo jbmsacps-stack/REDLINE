@@ -4100,27 +4100,27 @@ function attachEvents() {
 
     });
 
-    // =======================
-// ROUTINE DETAIL — MENU
-// =======================
+  // =======================
+  // ROUTINE DETAIL — MENU
+  // =======================
 
-const routineDetailMenu =
-  document.querySelector(
-    ".routine-detail-menu"
-  );
+  const routineDetailMenu =
+    document.querySelector(
+      ".routine-detail-menu"
+    );
 
-routineDetailMenu?.addEventListener(
-  "click",
-  () => {
+  routineDetailMenu?.addEventListener(
+    "click",
+    () => {
 
-    if (!activeRoutine) {
-      return;
+      if (!activeRoutine) {
+        return;
+      }
+
+      openRoutineMenu(activeRoutine);
+
     }
-
-    openRoutineMenu(activeRoutine);
-
-  }
-);
+  );
 
   // =======================
   // ROUTINE WEIGHT CONTROL
@@ -4288,21 +4288,21 @@ routineDetailMenu?.addEventListener(
 
   function openRoutineMenu(routine) {
 
-  if (
-    document.querySelector(
-      ".routine-menu-overlay"
-    )
-  ) {
-    return;
-  }
+    if (
+      document.querySelector(
+        ".routine-menu-overlay"
+      )
+    ) {
+      return;
+    }
 
-  const overlay =
-    document.createElement("div");
+    const overlay =
+      document.createElement("div");
 
-  overlay.className =
-    "routine-menu-overlay";
+    overlay.className =
+      "routine-menu-overlay";
 
-  overlay.innerHTML = `
+    overlay.innerHTML = `
     <div class="routine-menu-backdrop"></div>
 
     <section class="routine-menu-sheet">
@@ -4344,96 +4344,283 @@ routineDetailMenu?.addEventListener(
     </section>
   `;
 
-  document.body.appendChild(overlay);
+    document.body.appendChild(overlay);
 
-  const backdrop =
-    overlay.querySelector(
-      ".routine-menu-backdrop"
+    const backdrop =
+      overlay.querySelector(
+        ".routine-menu-backdrop"
+      );
+
+    const sheet =
+      overlay.querySelector(
+        ".routine-menu-sheet"
+      );
+
+    const closeMenu = () => {
+
+      gsap.timeline({
+        onComplete: () => {
+          overlay.remove();
+        }
+      })
+        .to(sheet, {
+          y: "100%",
+          duration: 0.28,
+          ease: "power3.in"
+        })
+        .to(
+          backdrop,
+          {
+            opacity: 0,
+            duration: 0.18
+          },
+          "-=0.16"
+        );
+    };
+
+    backdrop.addEventListener(
+      "click",
+      closeMenu
     );
 
-  const sheet =
-    overlay.querySelector(
-      ".routine-menu-sheet"
+    overlay
+      .querySelectorAll(
+        ".routine-menu-action"
+      )
+      .forEach((button) => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const action =
+              button.dataset.action;
+
+            closeMenu();
+
+            if (action === "rename") {
+              openRenameRoutineModal(routine);
+            }
+
+            if (action === "delete") {
+              openDeleteRoutineModal(routine);
+            }
+
+          }
+        );
+
+      });
+
+    gsap.set(sheet, {
+      y: "100%"
+    });
+
+    gsap.set(backdrop, {
+      opacity: 0
+    });
+
+    gsap.timeline()
+      .to(backdrop, {
+        opacity: 1,
+        duration: 0.2
+      })
+      .to(
+        sheet,
+        {
+          y: 0,
+          duration: 0.4,
+          ease: "power4.out"
+        },
+        "-=0.08"
+      );
+  }
+
+  function openRenameRoutineModal(routine) {
+
+    const overlay = document.createElement("div");
+
+    overlay.className = "rename-routine-overlay";
+
+    overlay.innerHTML = `
+    <div class="rename-routine-backdrop"></div>
+
+    <section class="rename-routine-modal">
+
+      <span class="rename-routine-eyebrow">
+        ROUTINE SETTINGS
+      </span>
+
+      <h2>Rename your routine.</h2>
+
+      <input
+        class="rename-routine-input"
+        type="text"
+        value="${routine.name}"
+        maxlength="40"
+        autocomplete="off"
+      />
+
+      <div class="rename-routine-actions">
+
+        <button
+          class="rename-routine-cancel"
+          type="button"
+        >
+          CANCEL
+        </button>
+
+        <button
+          class="rename-routine-save"
+          type="button"
+        >
+          SAVE
+        </button>
+
+      </div>
+
+    </section>
+  `;
+
+    document.body.appendChild(overlay);
+
+    const backdrop =
+      overlay.querySelector(
+        ".rename-routine-backdrop"
+      );
+
+    const modal =
+      overlay.querySelector(
+        ".rename-routine-modal"
+      );
+
+    const input =
+      overlay.querySelector(
+        ".rename-routine-input"
+      );
+
+    const cancelButton =
+      overlay.querySelector(
+        ".rename-routine-cancel"
+      );
+
+    const saveButton =
+      overlay.querySelector(
+        ".rename-routine-save"
+      );
+
+    function closeModal() {
+
+      gsap.timeline({
+        onComplete: () => {
+          overlay.remove();
+        }
+      })
+
+        .to(modal, {
+          opacity: 0,
+          y: 18,
+          duration: 0.2,
+          ease: "power2.in"
+        })
+
+        .to(
+          backdrop,
+          {
+            opacity: 0,
+            duration: 0.15
+          },
+          "-=0.1"
+        );
+    }
+
+    function saveRename() {
+
+      const newName =
+        input.value.trim();
+
+      if (!newName) {
+        input.focus();
+        return;
+      }
+
+      routine.name = newName;
+
+      closeModal();
+
+      if (activeRoutine?.id === routine.id) {
+        activeRoutine = routine;
+        renderRoutineDetail();
+      } else {
+        renderRoutines();
+      }
+    }
+
+    cancelButton.addEventListener(
+      "click",
+      closeModal
     );
 
-  const closeMenu = () => {
+    backdrop.addEventListener(
+      "click",
+      closeModal
+    );
+
+    saveButton.addEventListener(
+      "click",
+      saveRename
+    );
+
+    input.addEventListener(
+      "keydown",
+      (event) => {
+
+        if (event.key === "Enter") {
+          saveRename();
+        }
+
+        if (event.key === "Escape") {
+          closeModal();
+        }
+
+      }
+    );
+
+    gsap.set(backdrop, {
+      opacity: 0
+    });
+
+    gsap.set(modal, {
+      opacity: 0,
+      y: 20,
+      scale: 0.97
+    });
 
     gsap.timeline({
       onComplete: () => {
-        overlay.remove();
+        input.focus();
+        input.select();
       }
     })
-      .to(sheet, {
-        y: "100%",
-        duration: 0.28,
-        ease: "power3.in"
+
+      .to(backdrop, {
+        opacity: 1,
+        duration: 0.18,
+        ease: "power2.out"
       })
+
       .to(
-        backdrop,
+        modal,
         {
-          opacity: 0,
-          duration: 0.18
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.3,
+          ease: "back.out(1.2)"
         },
-        "-=0.16"
-      );
-  };
-
-  backdrop.addEventListener(
-    "click",
-    closeMenu
-  );
-
-  overlay
-    .querySelectorAll(
-      ".routine-menu-action"
-    )
-    .forEach((button) => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          const action =
-            button.dataset.action;
-
-          closeMenu();
-
-          if (action === "rename") {
-            openRenameRoutineModal(routine);
-          }
-
-          if (action === "delete") {
-            openDeleteRoutineModal(routine);
-          }
-
-        }
+        "-=0.08"
       );
 
-    });
-
-  gsap.set(sheet, {
-    y: "100%"
-  });
-
-  gsap.set(backdrop, {
-    opacity: 0
-  });
-
-  gsap.timeline()
-    .to(backdrop, {
-      opacity: 1,
-      duration: 0.2
-    })
-    .to(
-      sheet,
-      {
-        y: 0,
-        duration: 0.4,
-        ease: "power4.out"
-      },
-      "-=0.08"
-    );
-}
+  }
 
 
   // =======================
