@@ -36,6 +36,18 @@ let routines = [
   }
 ];
 
+let workoutSessions = [];
+
+function getLocalDate() {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 // =========================
 // FILTER OPTIONS
 // =========================
@@ -597,12 +609,25 @@ function renderRoutineDetail() {
 
   const routineExercises =
     activeRoutine.exercises
-      .map((exerciseId) =>
-        exercises.find(
-          (exercise) =>
-            exercise.id === exerciseId
-        )
-      )
+      .map((routineExercise) => {
+
+        const exercise =
+          exercises.find(
+            (item) =>
+              item.id ===
+              routineExercise.exerciseId
+          );
+
+        if (!exercise) {
+          return null;
+        }
+
+        return {
+          ...exercise,
+          tracking: routineExercise
+        };
+
+      })
       .filter(Boolean);
 
   app.innerHTML = `
@@ -640,8 +665,8 @@ function renderRoutineDetail() {
             <span>
               ${routineExercises.length}
               ${routineExercises.length === 1
-                ? "EXERCISE"
-                : "EXERCISES"}
+      ? "EXERCISE"
+      : "EXERCISES"}
             </span>
 
             <span>•</span>
@@ -654,38 +679,105 @@ function renderRoutineDetail() {
 
           <section class="routine-exercise-list">
 
-            ${
-              routineExercises.length
-                ? routineExercises.map(
-                    (exercise, index) => `
+          <div class="routine-complete-section">
+  <label class="routine-complete-control">
+    <input
+      type="checkbox"
+      class="routine-complete-checkbox"
+      ${workoutSessions.some(
+        session =>
+          session.routineId === activeRoutine.id &&
+          session.date === getLocalDate()
+      ) ? "checked" : ""}
+    >
+
+    <span class="routine-complete-box"></span>
+
+    <span class="routine-complete-text">
+      <strong>ROUTINE COMPLETED</strong>
+      <small>Mark this session as finished</small>
+    </span>
+  </label>
+</div>
+
+            ${routineExercises.length
+      ? routineExercises.map(
+        (exercise, index) => `
                       <article
-                        class="routine-exercise-item"
-                      >
+  class="routine-exercise-item"
+  data-exercise-id="${exercise.id}"
+>
 
-                        <span class="routine-exercise-number">
-                          ${String(index + 1).padStart(2, "0")}
-                        </span>
+  <div class="routine-exercise-main">
 
-                        <div>
-                          <h2>
-                            ${exercise.name}
-                          </h2>
+    <span class="routine-exercise-number">
+      ${String(index + 1).padStart(2, "0")}
+    </span>
 
-                          <span>
-                            ${exercise.muscle}
-                            •
-                            ${exercise.equipment}
-                          </span>
-                        </div>
+    <div class="routine-exercise-info">
 
-                        <span class="routine-exercise-arrow">
-                          →
-                        </span>
+      <h2>
+        ${exercise.name}
+      </h2>
 
-                      </article>
+      <span>
+        ${exercise.muscle}
+        •
+        ${exercise.equipment}
+      </span>
+
+    </div>
+
+    <button
+      class="routine-exercise-menu"
+      type="button"
+      aria-label="Exercise options"
+    >
+      ⋮
+    </button>
+
+  </div>
+
+
+  <div class="routine-exercise-controls">
+
+    <button
+      class="routine-value-button routine-weight-button"
+      type="button"
+      data-control="weight"
+    >
+      <span class="routine-value-icon">
+        🏋
+      </span>
+
+      <span class="routine-value-text">
+        ${exercise.tracking.weight > 0
+            ? `${exercise.tracking.weight} kg`
+            : "— kg"
+          }
+      </span>
+    </button>
+
+
+    <button
+      class="routine-value-button routine-reps-button"
+      type="button"
+      data-control="reps"
+    >
+      <span class="routine-value-text">
+        ${exercise.tracking.reps > 0
+            ? `${exercise.tracking.reps} REPS`
+            : "— REPS"
+          }
+      </span>
+    </button>
+
+  </div>
+
+</article>
                     `
-                  ).join("")
-                : `
+      ).join("")
+      : `
                   <div class="routine-detail-empty">
 
                     <span>NO EXERCISES</span>
@@ -696,18 +788,9 @@ function renderRoutineDetail() {
 
                   </div>
                 `
-            }
+    }
 
           </section>
-
-
-          <button
-            class="start-workout-button"
-            type="button"
-          >
-            <span>START WORKOUT</span>
-            <span>→</span>
-          </button>
 
         </section>
 
@@ -721,6 +804,1421 @@ function renderRoutineDetail() {
   attachEvents();
 
   animateRoutineDetail();
+}
+
+function openRoutineExerciseMenu(
+  routineExercise,
+  exercise
+) {
+
+  if (
+    document.querySelector(
+      ".routine-action-overlay"
+    )
+  ) {
+    return;
+  }
+
+  const overlay =
+    document.createElement("div");
+
+  overlay.className =
+    "routine-action-overlay";
+
+  overlay.innerHTML = `
+
+    <div class="routine-action-backdrop"></div>
+
+    <section
+      class="routine-action-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="routine-action-title"
+    >
+
+      <div class="routine-action-handle"></div>
+
+
+      <header class="routine-action-header">
+
+        <div>
+
+          <span class="routine-action-eyebrow">
+            EXERCISE OPTIONS
+          </span>
+
+          <h2 id="routine-action-title">
+            ${exercise.name}
+          </h2>
+
+        </div>
+
+        <button
+          class="routine-action-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </header>
+
+
+      <div class="routine-action-list">
+
+        <button
+          class="routine-action-item"
+          type="button"
+          data-action="edit"
+        >
+          <span>
+            EDIT TRACKING
+          </span>
+
+          <span>→</span>
+        </button>
+
+
+        <button
+          class="routine-action-item"
+          type="button"
+          data-action="history"
+        >
+          <span>
+            VIEW HISTORY
+          </span>
+
+          <span>→</span>
+        </button>
+
+
+        <button
+          class="routine-action-item"
+          type="button"
+          data-action="move"
+        >
+          <span>
+            MOVE EXERCISE
+          </span>
+
+          <span>→</span>
+        </button>
+
+
+        <button
+          class="routine-action-item danger"
+          type="button"
+          data-action="remove"
+        >
+          <span>
+            REMOVE FROM ROUTINE
+          </span>
+
+          <span>×</span>
+        </button>
+
+      </div>
+
+    </section>
+
+  `;
+
+  document.body.appendChild(
+    overlay
+  );
+
+
+  const backdrop =
+    overlay.querySelector(
+      ".routine-action-backdrop"
+    );
+
+  const sheet =
+    overlay.querySelector(
+      ".routine-action-sheet"
+    );
+
+  const closeButton =
+    overlay.querySelector(
+      ".routine-action-close"
+    );
+
+  function closeMenu(
+    onComplete
+  ) {
+
+    gsap.timeline({
+      onComplete: () => {
+
+        overlay.remove();
+
+        onComplete?.();
+
+      }
+    })
+
+      .to(sheet, {
+        y: "100%",
+        duration: 0.28,
+        ease: "power3.in"
+      })
+
+      .to(
+        backdrop,
+        {
+          opacity: 0,
+          duration: 0.18
+        },
+        "-=0.16"
+      );
+
+  }
+
+
+  closeButton.addEventListener(
+    "click",
+    () => closeMenu()
+  );
+
+  backdrop.addEventListener(
+    "click",
+    () => closeMenu()
+  );
+
+
+  overlay
+    .querySelectorAll(
+      ".routine-action-item"
+    )
+    .forEach((button) => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const action =
+            button.dataset.action;
+
+
+          if (action === "history") {
+
+            closeMenu(() => {
+
+              openRoutineExerciseHistory(
+                routineExercise,
+                exercise
+              );
+
+            });
+
+            return;
+
+          }
+
+
+          if (action === "remove") {
+
+            closeMenu(() => {
+
+              removeRoutineExercise(
+                routineExercise,
+                exercise
+              );
+
+            });
+
+            return;
+
+          }
+
+
+          if (action === "edit") {
+
+            closeMenu(() => {
+
+              openRoutineTrackingEditor(
+                routineExercise,
+                exercise
+              );
+
+            });
+
+            return;
+          }
+
+
+          if (action === "move") {
+
+            closeMenu(() => {
+
+              console.log(
+                "Move exercise:",
+                exercise.name
+              );
+
+            });
+
+          }
+
+        }
+      );
+
+    });
+
+
+  gsap.set(
+    backdrop,
+    {
+      opacity: 0
+    }
+  );
+
+  gsap.set(
+    sheet,
+    {
+      y: "100%"
+    }
+  );
+
+  gsap.timeline()
+
+    .to(
+      backdrop,
+      {
+        opacity: 1,
+        duration: 0.2,
+        ease: "power2.out"
+      }
+    )
+
+    .to(
+      sheet,
+      {
+        y: 0,
+        duration: 0.4,
+        ease: "power4.out"
+      },
+      "-=0.08"
+    );
+
+}
+
+function openRoutineTrackingEditor(
+  routineExercise,
+  exercise
+) {
+
+  if (
+    document.querySelector(
+      ".tracking-editor-overlay"
+    )
+  ) {
+    return;
+  }
+
+  const overlay =
+    document.createElement("div");
+
+  overlay.className =
+    "tracking-editor-overlay";
+
+  overlay.innerHTML = `
+
+    <div class="tracking-editor-backdrop"></div>
+
+    <section
+      class="tracking-editor"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="tracking-editor-title"
+    >
+
+      <div class="tracking-editor-header">
+
+        <div>
+
+          <span class="tracking-editor-eyebrow">
+            EDIT TRACKING
+          </span>
+
+          <h2 id="tracking-editor-title">
+            ${exercise.name}
+          </h2>
+
+        </div>
+
+        <button
+          class="tracking-editor-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <div class="tracking-editor-content">
+
+        <div class="tracking-field">
+
+          <label
+            for="tracking-sets"
+          >
+            SETS
+          </label>
+
+          <input
+            id="tracking-sets"
+            type="number"
+            min="1"
+            max="10"
+            step="1"
+            inputmode="numeric"
+            value="${routineExercise.sets}"
+          />
+
+        </div>
+
+
+        <div class="tracking-field">
+
+          <label
+            for="tracking-notes"
+          >
+            NOTES
+          </label>
+
+          <textarea
+            id="tracking-notes"
+            maxlength="300"
+            placeholder="e.g. Controlled eccentric..."
+          >${routineExercise.notes || ""}</textarea>
+
+        </div>
+
+
+        <div class="tracking-editor-actions">
+
+          <button
+            class="tracking-editor-cancel"
+            type="button"
+          >
+            CANCEL
+          </button>
+
+          <button
+            class="tracking-editor-save"
+            type="button"
+          >
+            SAVE CHANGES
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  `;
+
+  document.body.appendChild(
+    overlay
+  );
+
+
+  const backdrop =
+    overlay.querySelector(
+      ".tracking-editor-backdrop"
+    );
+
+  const modal =
+    overlay.querySelector(
+      ".tracking-editor"
+    );
+
+  const closeButton =
+    overlay.querySelector(
+      ".tracking-editor-close"
+    );
+
+  const cancelButton =
+    overlay.querySelector(
+      ".tracking-editor-cancel"
+    );
+
+  const saveButton =
+    overlay.querySelector(
+      ".tracking-editor-save"
+    );
+
+  const setsInput =
+    overlay.querySelector(
+      "#tracking-sets"
+    );
+
+  const notesInput =
+    overlay.querySelector(
+      "#tracking-notes"
+    );
+
+
+  function closeEditor(
+    onComplete
+  ) {
+
+    gsap.timeline({
+      onComplete: () => {
+
+        overlay.remove();
+
+        onComplete?.();
+
+      }
+    })
+
+      .to(modal, {
+        opacity: 0,
+        y: 14,
+        scale: 0.98,
+        duration: 0.2,
+        ease: "power2.in"
+      })
+
+      .to(
+        backdrop,
+        {
+          opacity: 0,
+          duration: 0.15
+        },
+        "-=0.1"
+      );
+
+  }
+
+
+  closeButton.addEventListener(
+    "click",
+    () => closeEditor()
+  );
+
+  cancelButton.addEventListener(
+    "click",
+    () => closeEditor()
+  );
+
+  backdrop.addEventListener(
+    "click",
+    () => closeEditor()
+  );
+
+
+  saveButton.addEventListener(
+    "click",
+    () => {
+
+      const sets =
+        Number(
+          setsInput.value
+        );
+
+      if (
+        !Number.isInteger(sets) ||
+        sets < 1 ||
+        sets > 10
+      ) {
+
+        gsap.timeline()
+          .to(setsInput, {
+            x: -5,
+            duration: 0.05
+          })
+          .to(setsInput, {
+            x: 5,
+            duration: 0.05
+          })
+          .to(setsInput, {
+            x: 0,
+            duration: 0.07
+          });
+
+        setsInput.focus();
+
+        return;
+      }
+
+
+      routineExercise.sets =
+        sets;
+
+      routineExercise.notes =
+        notesInput.value.trim();
+
+
+      closeEditor(() => {
+
+        renderRoutineDetail();
+
+      });
+
+    }
+  );
+
+
+  gsap.set(
+    backdrop,
+    {
+      opacity: 0
+    }
+  );
+
+  gsap.set(
+    modal,
+    {
+      opacity: 0,
+      y: 22,
+      scale: 0.97
+    }
+  );
+
+
+  gsap.timeline({
+    onComplete: () => {
+      setsInput.focus();
+      setsInput.select();
+    }
+  })
+
+    .to(
+      backdrop,
+      {
+        opacity: 1,
+        duration: 0.2,
+        ease: "power2.out"
+      }
+    )
+
+    .to(
+      modal,
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.32,
+        ease: "back.out(1.25)"
+      },
+      "-=0.08"
+    );
+
+}
+
+function removeRoutineExercise(
+  routineExercise,
+  exercise
+) {
+
+  if (!activeRoutine) {
+    return;
+  }
+
+  activeRoutine.exercises =
+    activeRoutine.exercises.filter(
+      (entry) =>
+        entry.exerciseId !==
+        routineExercise.exerciseId
+    );
+
+  renderRoutineDetail();
+
+}
+
+function openRoutineExerciseHistory(
+  routineExercise,
+  exercise
+) {
+
+  if (
+    document.querySelector(
+      ".routine-history-overlay"
+    )
+  ) {
+    return;
+  }
+
+  const history =
+    routineExercise.history || [];
+
+  const overlay =
+    document.createElement("div");
+
+  overlay.className =
+    "routine-history-overlay";
+
+  overlay.innerHTML = `
+
+    <div class="routine-history-backdrop"></div>
+
+    <section
+      class="routine-history-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="routine-history-title"
+    >
+
+      <div class="routine-history-header">
+
+        <div>
+
+          <span class="routine-history-eyebrow">
+            PERFORMANCE
+          </span>
+
+          <h2 id="routine-history-title">
+            ${exercise.name}
+          </h2>
+
+        </div>
+
+        <button
+          class="routine-history-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <div class="routine-history-content">
+
+        ${history.length
+      ? history
+        .slice()
+        .reverse()
+        .map(
+          (session) => `
+                    <article
+                      class="routine-history-entry"
+                    >
+
+                      <div>
+                        <strong>
+                          ${session.date}
+                        </strong>
+
+                        <span>
+                          ${session.weight} kg
+                        </span>
+                      </div>
+
+                      <span>
+                        ${session.reps.join(" • ")}
+                        REPS
+                      </span>
+
+                    </article>
+                  `
+        )
+        .join("")
+      : `
+                <div
+                  class="routine-history-empty"
+                >
+
+                  <span>
+                    NO WORKOUT HISTORY
+                  </span>
+
+                  <p>
+                    Your previous sessions
+                    will appear here after
+                    you start logging workouts.
+                  </p>
+
+                </div>
+              `
+    }
+
+      </div>
+
+    </section>
+
+  `;
+
+  document.body.appendChild(
+    overlay
+  );
+
+
+  const backdrop =
+    overlay.querySelector(
+      ".routine-history-backdrop"
+    );
+
+  const sheet =
+    overlay.querySelector(
+      ".routine-history-sheet"
+    );
+
+  const closeButton =
+    overlay.querySelector(
+      ".routine-history-close"
+    );
+
+
+  function closeHistory() {
+
+    gsap.timeline({
+      onComplete: () => {
+        overlay.remove();
+      }
+    })
+
+      .to(sheet, {
+        y: "100%",
+        duration: 0.28,
+        ease: "power3.in"
+      })
+
+      .to(
+        backdrop,
+        {
+          opacity: 0,
+          duration: 0.18
+        },
+        "-=0.16"
+      );
+
+  }
+
+
+  closeButton.addEventListener(
+    "click",
+    closeHistory
+  );
+
+  backdrop.addEventListener(
+    "click",
+    closeHistory
+  );
+
+
+  gsap.set(
+    backdrop,
+    {
+      opacity: 0
+    }
+  );
+
+  gsap.set(
+    sheet,
+    {
+      y: "100%"
+    }
+  );
+
+  gsap.timeline()
+
+    .to(
+      backdrop,
+      {
+        opacity: 1,
+        duration: 0.2,
+        ease: "power2.out"
+      }
+    )
+
+    .to(
+      sheet,
+      {
+        y: 0,
+        duration: 0.4,
+        ease: "power4.out"
+      },
+      "-=0.08"
+    );
+
+}
+
+function openWeightEditor(
+  routineExercise
+) {
+
+  if (
+    document.querySelector(
+      ".tracker-editor-overlay"
+    )
+  ) {
+    return;
+  }
+
+  const overlay =
+    document.createElement("div");
+
+  overlay.className =
+    "tracker-editor-overlay";
+
+  overlay.innerHTML = `
+
+    <div class="tracker-editor-backdrop"></div>
+
+    <section
+      class="tracker-editor"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="tracker-editor-title"
+    >
+
+      <div class="tracker-editor-header">
+
+        <div>
+
+          <span class="tracker-editor-eyebrow">
+            TRACKING
+          </span>
+
+          <h2 id="tracker-editor-title">
+            WEIGHT
+          </h2>
+
+        </div>
+
+        <button
+          class="tracker-editor-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <div class="tracker-editor-content">
+
+        <label
+          class="tracker-editor-label"
+          for="tracker-weight-input"
+        >
+          WEIGHT / KG
+        </label>
+
+        <input
+          id="tracker-weight-input"
+          class="tracker-editor-input"
+          type="number"
+          min="0"
+          step="0.5"
+          inputmode="decimal"
+          value="${routineExercise.weight > 0
+      ? routineExercise.weight
+      : ""
+    }"
+          placeholder="0"
+        />
+
+
+        <div class="tracker-editor-actions">
+
+          <button
+            class="tracker-editor-cancel"
+            type="button"
+          >
+            CANCEL
+          </button>
+
+          <button
+            class="tracker-editor-save"
+            type="button"
+          >
+            SAVE WEIGHT
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  `;
+
+  document.body.appendChild(
+    overlay
+  );
+
+  const backdrop =
+    overlay.querySelector(
+      ".tracker-editor-backdrop"
+    );
+
+  const modal =
+    overlay.querySelector(
+      ".tracker-editor"
+    );
+
+  const input =
+    overlay.querySelector(
+      ".tracker-editor-input"
+    );
+
+  const closeButton =
+    overlay.querySelector(
+      ".tracker-editor-close"
+    );
+
+  const cancelButton =
+    overlay.querySelector(
+      ".tracker-editor-cancel"
+    );
+
+  const saveButton =
+    overlay.querySelector(
+      ".tracker-editor-save"
+    );
+
+
+  function closeEditor(
+    onComplete
+  ) {
+
+    gsap.timeline({
+      onComplete: () => {
+
+        overlay.remove();
+
+        onComplete?.();
+
+      }
+    })
+
+      .to(modal, {
+        opacity: 0,
+        y: 14,
+        scale: 0.98,
+        duration: 0.18,
+        ease: "power2.in"
+      })
+
+      .to(
+        backdrop,
+        {
+          opacity: 0,
+          duration: 0.14
+        },
+        "-=0.1"
+      );
+
+  }
+
+
+  closeButton.addEventListener(
+    "click",
+    () => closeEditor()
+  );
+
+  cancelButton.addEventListener(
+    "click",
+    () => closeEditor()
+  );
+
+  backdrop.addEventListener(
+    "click",
+    () => closeEditor()
+  );
+
+
+  saveButton.addEventListener(
+    "click",
+    () => {
+
+      const value =
+        Number(
+          input.value
+        );
+
+      if (
+        !Number.isFinite(value) ||
+        value < 0
+      ) {
+
+        gsap.timeline()
+          .to(input, {
+            x: -5,
+            duration: 0.05
+          })
+          .to(input, {
+            x: 5,
+            duration: 0.05
+          })
+          .to(input, {
+            x: 0,
+            duration: 0.07
+          });
+
+        input.focus();
+
+        return;
+
+      }
+
+
+      routineExercise.weight =
+        value;
+
+      closeEditor(() => {
+        renderRoutineDetail();
+      });
+
+    }
+  );
+
+
+  gsap.set(
+    overlay,
+    {
+      opacity: 1
+    }
+  );
+
+  gsap.set(
+    backdrop,
+    {
+      opacity: 0
+    }
+  );
+
+  gsap.set(
+    modal,
+    {
+      opacity: 0,
+      y: 22,
+      scale: 0.97
+    }
+  );
+
+  gsap.timeline({
+    onComplete: () => {
+
+      input.focus();
+
+      input.select();
+
+    }
+  })
+
+    .to(
+      backdrop,
+      {
+        opacity: 1,
+        duration: 0.2,
+        ease: "power2.out"
+      }
+    )
+
+    .to(
+      modal,
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.32,
+        ease: "back.out(1.25)"
+      },
+      "-=0.08"
+    );
+
+}
+
+function openRepsEditor(
+  routineExercise
+) {
+
+  if (
+    document.querySelector(
+      ".tracker-editor-overlay"
+    )
+  ) {
+    return;
+  }
+
+  const overlay =
+    document.createElement("div");
+
+  overlay.className =
+    "tracker-editor-overlay";
+
+  overlay.innerHTML = `
+
+    <div class="tracker-editor-backdrop"></div>
+
+    <section
+      class="tracker-editor"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="tracker-editor-title"
+    >
+
+      <div class="tracker-editor-header">
+
+        <div>
+
+          <span class="tracker-editor-eyebrow">
+            TRACKING
+          </span>
+
+          <h2 id="tracker-editor-title">
+            REPS
+          </h2>
+
+        </div>
+
+        <button
+          class="tracker-editor-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <div class="tracker-editor-content">
+
+        <label
+          class="tracker-editor-label"
+          for="tracker-reps-input"
+        >
+          REPS
+        </label>
+
+        <input
+          id="tracker-reps-input"
+          class="tracker-editor-input"
+          type="number"
+          min="0"
+          step="1"
+          inputmode="numeric"
+          value="${routineExercise.reps > 0
+      ? routineExercise.reps
+      : ""
+    }"
+          placeholder="0"
+        />
+
+
+        <div class="tracker-editor-actions">
+
+          <button
+            class="tracker-editor-cancel"
+            type="button"
+          >
+            CANCEL
+          </button>
+
+          <button
+            class="tracker-editor-save"
+            type="button"
+          >
+            SAVE REPS
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  `;
+
+  document.body.appendChild(
+    overlay
+  );
+
+
+  const backdrop =
+    overlay.querySelector(
+      ".tracker-editor-backdrop"
+    );
+
+  const modal =
+    overlay.querySelector(
+      ".tracker-editor"
+    );
+
+  const input =
+    overlay.querySelector(
+      ".tracker-editor-input"
+    );
+
+  const closeButton =
+    overlay.querySelector(
+      ".tracker-editor-close"
+    );
+
+  const cancelButton =
+    overlay.querySelector(
+      ".tracker-editor-cancel"
+    );
+
+  const saveButton =
+    overlay.querySelector(
+      ".tracker-editor-save"
+    );
+
+
+  function closeEditor(
+    onComplete
+  ) {
+
+    gsap.timeline({
+      onComplete: () => {
+
+        overlay.remove();
+
+        onComplete?.();
+
+      }
+    })
+
+      .to(modal, {
+        opacity: 0,
+        y: 14,
+        scale: 0.98,
+        duration: 0.18,
+        ease: "power2.in"
+      })
+
+      .to(
+        backdrop,
+        {
+          opacity: 0,
+          duration: 0.14
+        },
+        "-=0.1"
+      );
+
+  }
+
+
+  closeButton.addEventListener(
+    "click",
+    () => closeEditor()
+  );
+
+  cancelButton.addEventListener(
+    "click",
+    () => closeEditor()
+  );
+
+  backdrop.addEventListener(
+    "click",
+    () => closeEditor()
+  );
+
+
+  saveButton.addEventListener(
+    "click",
+    () => {
+
+      const value =
+        Number(
+          input.value
+        );
+
+      if (
+        !Number.isFinite(value) ||
+        value < 0 ||
+        !Number.isInteger(value)
+      ) {
+
+        gsap.timeline()
+          .to(input, {
+            x: -5,
+            duration: 0.05
+          })
+          .to(input, {
+            x: 5,
+            duration: 0.05
+          })
+          .to(input, {
+            x: 0,
+            duration: 0.07
+          });
+
+        input.focus();
+
+        return;
+      }
+
+
+      routineExercise.reps =
+        value;
+
+      closeEditor(() => {
+        renderRoutineDetail();
+      });
+
+    }
+  );
+
+
+  gsap.set(
+    overlay,
+    {
+      opacity: 1
+    }
+  );
+
+  gsap.set(
+    backdrop,
+    {
+      opacity: 0
+    }
+  );
+
+  gsap.set(
+    modal,
+    {
+      opacity: 0,
+      y: 22,
+      scale: 0.97
+    }
+  );
+
+
+  gsap.timeline({
+    onComplete: () => {
+
+      input.focus();
+
+      input.select();
+
+    }
+  })
+
+    .to(
+      backdrop,
+      {
+        opacity: 1,
+        duration: 0.2,
+        ease: "power2.out"
+      }
+    )
+
+    .to(
+      modal,
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.32,
+        ease: "back.out(1.25)"
+      },
+      "-=0.08"
+    );
+
 }
 
 function animateRoutineDetail() {
@@ -1263,8 +2761,9 @@ function openRoutineSheet(exercise, detailButton) {
       .map((routine) => {
 
         const alreadyAdded =
-          routine.exercises.includes(
-            exercise.id
+          routine.exercises.some(
+            (item) =>
+              item.exerciseId === exercise.id
           );
 
         return `
@@ -1483,8 +2982,9 @@ function attachRoutineSheetEvents(
 
 
           const alreadyAdded =
-            routine.exercises.includes(
-              exercise.id
+            routine.exercises.some(
+              (item) =>
+                item.exerciseId === exercise.id
             );
 
 
@@ -1492,8 +2992,8 @@ function attachRoutineSheetEvents(
 
             routine.exercises =
               routine.exercises.filter(
-                (id) =>
-                  id !== exercise.id
+                (item) =>
+                  item.exerciseId !== exercise.id
               );
 
             option.classList.remove(
@@ -1513,9 +3013,13 @@ function attachRoutineSheetEvents(
           }
 
 
-          routine.exercises.push(
-            exercise.id
-          );
+          routine.exercises.push({
+            exerciseId: exercise.id,
+            weight: 0,
+            reps: 0,
+            sets: 3,
+            notes: ""
+          });
 
 
           option.classList.add(
@@ -1831,7 +3335,13 @@ function attachCreateRoutineEvents(
         name,
 
         exercises: exercise
-          ? [exercise.id]
+          ? [{
+            exerciseId: exercise.id,
+            weight: 0,
+            reps: 0,
+            sets: 3,
+            notes: ""
+          }]
           : []
 
       };
@@ -2144,42 +3654,287 @@ function attachEvents() {
       });
 
     });
-// =======================
-// ROUTINE CARD
-// =======================
+  // =======================
+  // ROUTINE CARD
+  // =======================
 
-document
-  .querySelectorAll(".routine-card")
-  .forEach((card) => {
+  document
+    .querySelectorAll(".routine-card")
+    .forEach((card) => {
 
-    card.addEventListener(
-      "click",
-      () => {
+      card.addEventListener(
+        "click",
+        () => {
 
-        const routineId =
-          Number(card.dataset.routineId);
+          const routineId =
+            Number(card.dataset.routineId);
 
-        const routine =
-          routines.find(
-            (item) =>
-              item.id === routineId
+          const routine =
+            routines.find(
+              (item) =>
+                item.id === routineId
+            );
+
+          if (!routine) {
+            return;
+          }
+
+          activeRoutine = routine;
+
+          renderRoutineDetail();
+
+        }
+      );
+
+    });
+
+  const routineCompleteCheckbox = document.querySelector(
+    ".routine-complete-checkbox"
+  );
+
+  routineCompleteCheckbox?.addEventListener("change", (event) => {
+    const today = getLocalDate();
+
+    if (event.target.checked) {
+      const alreadyCompleted = workoutSessions.some(
+        session =>
+          session.routineId === activeRoutine.id &&
+          session.date === today
+      );
+
+      if (!alreadyCompleted) {
+        workoutSessions.push({
+          id: Date.now(),
+          routineId: activeRoutine.id,
+          date: today,
+          completedAt: new Date().toISOString(),
+          exercises: activeRoutine.exercises.map((routineExercise) => ({
+            exerciseId: routineExercise.exerciseId,
+            weight: routineExercise.weight,
+            reps: routineExercise.reps,
+            sets: routineExercise.sets,
+            notes: routineExercise.notes
+          }))
+        });
+      }
+
+      animateRoutineCompletion();
+    } else {
+      workoutSessions = workoutSessions.filter(
+        session =>
+          !(
+            session.routineId === activeRoutine.id &&
+            session.date === today
+          )
+      );
+    }
+  });
+
+  // =======================
+  // ROUTINE EXERCISE → DETAIL
+  // =======================
+
+  document
+    .querySelectorAll(".routine-exercise-item")
+    .forEach((item) => {
+
+      item.addEventListener(
+        "click",
+        (event) => {
+
+          // Ignore tracking controls
+          if (
+            event.target.closest(
+              ".routine-value-button"
+            ) ||
+            event.target.closest(
+              ".routine-exercise-menu"
+            )
+          ) {
+            return;
+          }
+
+          const exerciseId =
+            Number(
+              item.dataset.exerciseId
+            );
+
+          const exercise =
+            exercises.find(
+              (entry) =>
+                entry.id === exerciseId
+            );
+
+          if (!exercise) {
+            return;
+          }
+
+          selectedExercise = exercise;
+
+          openExerciseDetail(
+            item,
+            exercise
           );
 
-        if (!routine) {
-          return;
         }
+      );
 
-        activeRoutine = routine;
+    });
 
-        console.log(
-          "Routine selected:",
-          routine.name
-        );
+  // =======================
+  // ROUTINE EXERCISE MENU
+  // =======================
 
-      }
-    );
+  document
+    .querySelectorAll(".routine-exercise-menu")
+    .forEach((button) => {
 
-  });
+      button.addEventListener(
+        "click",
+        (event) => {
+
+          event.stopPropagation();
+
+          const item =
+            button.closest(
+              ".routine-exercise-item"
+            );
+
+          if (!item || !activeRoutine) {
+            return;
+          }
+
+          const exerciseId =
+            Number(
+              item.dataset.exerciseId
+            );
+
+          const routineExercise =
+            activeRoutine.exercises.find(
+              (entry) =>
+                entry.exerciseId ===
+                exerciseId
+            );
+
+          const exercise =
+            exercises.find(
+              (entry) =>
+                entry.id === exerciseId
+            );
+
+          if (!routineExercise || !exercise) {
+            return;
+          }
+
+          openRoutineExerciseMenu(
+            routineExercise,
+            exercise
+          );
+
+        }
+      );
+
+    });
+
+  // =======================
+  // ROUTINE WEIGHT CONTROL
+  // =======================
+
+  document
+    .querySelectorAll(
+      '.routine-value-button[data-control="weight"]'
+    )
+    .forEach((button) => {
+
+      button.addEventListener(
+        "click",
+        (event) => {
+
+          event.stopPropagation();
+
+          const item =
+            button.closest(
+              ".routine-exercise-item"
+            );
+
+          if (!item) {
+            return;
+          }
+
+          const exerciseId =
+            Number(
+              item.dataset.exerciseId
+            );
+
+          const routineExercise =
+            activeRoutine?.exercises.find(
+              (exercise) =>
+                exercise.exerciseId ===
+                exerciseId
+            );
+
+          if (!routineExercise) {
+            return;
+          }
+
+          openWeightEditor(
+            routineExercise
+          );
+
+        }
+      );
+
+    });
+
+  // =======================
+  // ROUTINE REPS CONTROL
+  // =======================
+
+  document
+    .querySelectorAll(
+      '.routine-value-button[data-control="reps"]'
+    )
+    .forEach((button) => {
+
+      button.addEventListener(
+        "click",
+        (event) => {
+
+          event.stopPropagation();
+
+          const item =
+            button.closest(
+              ".routine-exercise-item"
+            );
+
+          if (!item) {
+            return;
+          }
+
+          const exerciseId =
+            Number(
+              item.dataset.exerciseId
+            );
+
+          const routineExercise =
+            activeRoutine?.exercises.find(
+              (exercise) =>
+                exercise.exerciseId ===
+                exerciseId
+            );
+
+          if (!routineExercise) {
+            return;
+          }
+
+          openRepsEditor(
+            routineExercise
+          );
+
+        }
+      );
+
+    });
 
   // =======================
   // PROFILE
@@ -2318,6 +4073,23 @@ function animateCards() {
 
 }
 
+function animateRoutineCompletion() {
+  const control = document.querySelector(".routine-complete-control");
+
+  if (!control || typeof gsap === "undefined") return;
+
+  gsap.fromTo(
+    control,
+    {
+      scale: 0.96
+    },
+    {
+      scale: 1,
+      duration: 0.45,
+      ease: "back.out(1.7)"
+    }
+  );
+}
 
 // =========================
 // INITIAL RENDER
