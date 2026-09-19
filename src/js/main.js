@@ -464,7 +464,7 @@ function render() {
 // =========================
 
 
-function openExerciseDetail(card, exercise) {
+function openExerciseDetail(exercise) {
 
   if (document.querySelector(".detail-overlay")) {
     return;
@@ -628,11 +628,11 @@ function openExerciseDetail(card, exercise) {
 
   document.body.appendChild(overlay);
 
-  animateDetailOpen(card, overlay);
+  animateDetailOpen(overlay);
   attachDetailEvents(overlay);
 }
 
-function animateDetailOpen(card, overlay) {
+function animateDetailOpen(overlay) {
 
   const backdrop =
     overlay.querySelector(".detail-backdrop");
@@ -975,7 +975,7 @@ document
 
       selectedExercise = exercise;
 
-      openExerciseDetail(exercise);
+      openExerciseDetail(card, exercise);
     });
 
   });
