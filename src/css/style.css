@@ -509,7 +509,6 @@ svg {
   cursor: pointer;
 
   transition:
-    transform 220ms var(--ease-standard),
     border-color 220ms ease,
     box-shadow 220ms ease;
 }
@@ -522,10 +521,6 @@ svg {
 
   box-shadow:
     0 14px 32px rgba(0, 0, 0, 0.24);
-}
-
-.exercise-card:active {
-  transform: scale(0.985);
 }
 
 
@@ -1945,4 +1940,784 @@ svg {
     opacity: 1;
   }
 
+}
+
+/* =========================================================
+   ADD TO ROUTINE — SHEET
+========================================================= */
+
+.routine-sheet-overlay {
+  position: fixed;
+  inset: 0;
+
+  z-index: 120;
+
+  overflow: hidden;
+}
+
+
+/* =========================
+   BACKDROP
+========================= */
+
+.routine-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+
+  background:
+    rgba(0, 0, 0, 0.72);
+
+  backdrop-filter:
+    blur(8px);
+
+  -webkit-backdrop-filter:
+    blur(8px);
+}
+
+
+/* =========================
+   SHEET
+========================= */
+
+.routine-sheet {
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  width: 100%;
+
+  max-height: 82vh;
+
+  overflow-y: auto;
+
+  border-top:
+    1px solid
+    rgba(255,255,255,0.1);
+
+  border-radius:
+    24px
+    24px
+    0
+    0;
+
+  background:
+    linear-gradient(
+      160deg,
+      #1a1a1a,
+      #111111 72%
+    );
+
+  box-shadow:
+    0 -24px 70px
+    rgba(0,0,0,0.55);
+}
+
+
+/* =========================
+   HANDLE
+========================= */
+
+.routine-sheet-handle {
+  position: absolute;
+
+  top: 9px;
+  left: 50%;
+
+  width: 38px;
+  height: 4px;
+
+  transform:
+    translateX(-50%);
+
+  border-radius: 999px;
+
+  background:
+    rgba(255,255,255,0.15);
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.routine-sheet-header {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 18px;
+
+  padding:
+    28px
+    18px
+    18px;
+}
+
+.routine-sheet-eyebrow {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color:
+    var(--color-red);
+
+  font-size: 0.56rem;
+
+  font-weight: 900;
+
+  letter-spacing: 0.15em;
+
+  text-transform: uppercase;
+}
+
+.routine-sheet-header h2 {
+  max-width: 280px;
+
+  margin: 0;
+
+  color:
+    var(--color-text);
+
+  font-size:
+    clamp(
+      1.65rem,
+      7vw,
+      2.3rem
+    );
+
+  font-weight: 900;
+
+  line-height: 0.95;
+
+  letter-spacing: -0.05em;
+}
+
+
+.routine-sheet-close {
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 38px;
+
+  border:
+    1px solid
+    rgba(255,255,255,0.08);
+
+  border-radius: 50%;
+
+  background:
+    rgba(255,255,255,0.03);
+
+  color: #aaa;
+
+  font-size: 1.25rem;
+
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms var(--ease-standard);
+}
+
+.routine-sheet-close:hover {
+  color: white;
+
+  background:
+    rgba(225,29,46,0.12);
+}
+
+.routine-sheet-close:active {
+  transform:
+    scale(0.9);
+}
+
+
+/* =========================
+   CONTENT
+========================= */
+
+.routine-sheet-content {
+  padding:
+    0
+    18px
+    28px;
+}
+
+.routine-sheet-label {
+  margin-bottom: 10px;
+
+  color: #606060;
+
+  font-size: 0.59rem;
+
+  font-weight: 900;
+
+  letter-spacing: 0.15em;
+
+  text-transform: uppercase;
+}
+
+
+/* =========================
+   ROUTINES
+========================= */
+
+.routine-list {
+  display: grid;
+
+  gap: 8px;
+}
+
+.routine-option {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    34px
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 11px;
+
+  min-height: 64px;
+
+  padding:
+    9px
+    12px
+    9px
+    10px;
+
+  border:
+    1px solid
+    rgba(255,255,255,0.06);
+
+  border-radius: 14px;
+
+  background:
+    rgba(255,255,255,0.018);
+
+  text-align: left;
+
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 180ms var(--ease-standard);
+}
+
+.routine-option:hover {
+  border-color:
+    rgba(255,255,255,0.11);
+
+  background:
+    rgba(255,255,255,0.035);
+}
+
+.routine-option:active {
+  transform:
+    scale(0.985);
+}
+
+
+.routine-option.selected {
+  border-color:
+    rgba(225,29,46,0.32);
+
+  background:
+    rgba(225,29,46,0.08);
+}
+
+
+/* =========================
+   INDICATOR
+========================= */
+
+.routine-option-indicator {
+  width: 34px;
+  height: 34px;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    1px solid
+    rgba(255,255,255,0.09);
+
+  border-radius: 10px;
+
+  background:
+    rgba(255,255,255,0.025);
+
+  color:
+    var(--color-red);
+
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.routine-option.selected
+.routine-option-indicator {
+  border-color:
+    rgba(225,29,46,0.45);
+
+  background:
+    rgba(225,29,46,0.14);
+}
+
+
+/* =========================
+   INFO
+========================= */
+
+.routine-option-info {
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.routine-option-info strong {
+  overflow: hidden;
+
+  color: #ddd;
+
+  font-size: 0.76rem;
+
+  font-weight: 800;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+.routine-option-info small {
+  color: #646464;
+
+  font-size: 0.58rem;
+
+  font-weight: 700;
+}
+
+
+.routine-option-arrow {
+  color: #555;
+
+  font-size: 1rem;
+}
+
+
+/* =========================
+   CREATE
+========================= */
+
+.create-routine-button {
+  width: 100%;
+
+  min-height: 56px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+
+  margin-top: 10px;
+
+  padding:
+    0
+    12px;
+
+  border:
+    1px dashed
+    rgba(255,255,255,0.1);
+
+  border-radius: 14px;
+
+  background:
+    transparent;
+
+  color: #8d8d8d;
+
+  font-size: 0.65rem;
+
+  font-weight: 900;
+
+  letter-spacing: 0.1em;
+
+  text-align: left;
+
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.create-routine-button:hover {
+  color: white;
+
+  border-color:
+    rgba(225,29,46,0.4);
+
+  background:
+    rgba(225,29,46,0.04);
+}
+
+.create-routine-plus {
+  width: 34px;
+  height: 34px;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    1px solid
+    rgba(225,29,46,0.25);
+
+  border-radius: 10px;
+
+  color:
+    var(--color-red);
+
+  font-size: 1rem;
+
+  font-weight: 300;
+}
+
+
+@media (min-width: 700px) {
+
+  .routine-sheet {
+    left: 50%;
+    right: auto;
+
+    width:
+      min(
+        580px,
+        calc(100% - 40px)
+      );
+
+    transform:
+      translateX(-50%);
+
+    border:
+      1px solid
+      rgba(255,255,255,0.08);
+
+    border-bottom:
+      0;
+
+    border-radius:
+      24px
+      24px
+      0
+      0;
+  }
+
+}
+
+/* =========================================================
+   CREATE ROUTINE MODAL
+========================================================= */
+
+.create-routine-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+}
+
+.create-routine-backdrop {
+  position: absolute;
+  inset: 0;
+
+  background:
+    rgba(0, 0, 0, 0.76);
+
+  backdrop-filter:
+    blur(10px);
+
+  -webkit-backdrop-filter:
+    blur(10px);
+}
+
+
+.create-routine-modal {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  width:
+    min(
+      520px,
+      calc(100% - 32px)
+    );
+
+  transform:
+    translate(-50%, -50%);
+
+  border:
+    1px solid
+    rgba(255,255,255,0.09);
+
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      155deg,
+      #1a1a1a,
+      #111111
+    );
+
+  box-shadow:
+    0 25px 80px
+    rgba(0,0,0,0.55);
+
+  overflow: hidden;
+}
+
+
+.create-routine-modal-header {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding:
+    24px
+    20px
+    18px;
+}
+
+
+.create-routine-eyebrow {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color:
+    var(--color-red);
+
+  font-size: 0.56rem;
+
+  font-weight: 900;
+
+  letter-spacing: 0.15em;
+
+  text-transform: uppercase;
+}
+
+
+.create-routine-modal-header h2 {
+  max-width: 320px;
+
+  margin: 0;
+
+  color: #f0f0f0;
+
+  font-size:
+    clamp(
+      1.7rem,
+      7vw,
+      2.5rem
+    );
+
+  font-weight: 900;
+
+  line-height: 0.94;
+
+  letter-spacing: -0.055em;
+}
+
+
+.create-routine-close {
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 38px;
+
+  border:
+    1px solid
+    rgba(255,255,255,0.08);
+
+  border-radius: 50%;
+
+  background:
+    rgba(255,255,255,0.025);
+
+  color: #999;
+
+  font-size: 1.25rem;
+
+  transition:
+    transform 180ms var(--ease-standard),
+    background 180ms ease,
+    color 180ms ease;
+}
+
+
+.create-routine-close:hover {
+  color: #fff;
+
+  background:
+    rgba(225,29,46,0.12);
+}
+
+
+.create-routine-close:active {
+  transform:
+    scale(0.9);
+}
+
+
+.create-routine-form {
+  padding:
+    4px
+    20px
+    22px;
+}
+
+
+.routine-input-label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #656565;
+
+  font-size: 0.57rem;
+
+  font-weight: 900;
+
+  letter-spacing: 0.14em;
+
+  text-transform: uppercase;
+}
+
+
+.routine-name-input {
+  width: 100%;
+  height: 52px;
+
+  padding:
+    0
+    14px;
+
+  border:
+    1px solid
+    rgba(255,255,255,0.08);
+
+  border-radius: 13px;
+
+  outline: none;
+
+  background:
+    #0e0e0e;
+
+  color: #f0f0f0;
+
+  font-size: 0.85rem;
+
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+
+.routine-name-input::placeholder {
+  color: #4d4d4d;
+}
+
+
+.routine-name-input:focus {
+  border-color:
+    rgba(225,29,46,0.52);
+
+  background:
+    #101010;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(225,29,46,0.08);
+}
+
+
+.routine-input-help {
+  margin-top: 8px;
+
+  color: #5d5d5d;
+
+  font-size: 0.63rem;
+
+  line-height: 1.4;
+}
+
+
+.routine-create-submit {
+  width: 100%;
+  height: 54px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 20px;
+
+  padding:
+    0
+    16px;
+
+  border:
+    1px solid
+    rgba(225,29,46,0.35);
+
+  border-radius: 13px;
+
+  background:
+    var(--color-red);
+
+  color: #fff;
+
+  font-size: 0.67rem;
+
+  font-weight: 900;
+
+  letter-spacing: 0.1em;
+
+  transition:
+    transform 180ms var(--ease-standard),
+    background 180ms ease;
+}
+
+
+.routine-create-submit:hover {
+  background:
+    var(--color-red-bright);
+}
+
+
+.routine-create-submit:active {
+  transform:
+    scale(0.98);
+}
+
+
+.routine-create-submit span:last-child {
+  font-size: 1.1rem;
 }

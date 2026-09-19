@@ -873,31 +873,825 @@ function attachDetailEvents(overlay) {
     closeExerciseDetail
   );
 
-  addButton.addEventListener(
+  addButton.addEventListener("click", () => {
+
+    openRoutineSheet(
+      selectedExercise,
+      addButton
+    );
+
+  });
+}
+
+function openRoutineSheet(exercise, detailButton) {
+
+  if (!exercise) {
+    return;
+  }
+
+  if (document.querySelector(".routine-sheet-overlay")) {
+    return;
+  }
+
+  const overlay =
+    document.createElement("div");
+
+  overlay.className =
+    "routine-sheet-overlay";
+
+  overlay.innerHTML = `
+
+    <div class="routine-sheet-backdrop"></div>
+
+    <section
+      class="routine-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="routine-sheet-title"
+    >
+
+      <div class="routine-sheet-handle"></div>
+
+
+      <header class="routine-sheet-header">
+
+        <div>
+
+          <span class="routine-sheet-eyebrow">
+            ADD EXERCISE
+          </span>
+
+          <h2 id="routine-sheet-title">
+            ${exercise.name}
+          </h2>
+
+        </div>
+
+        <button
+          class="routine-sheet-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </header>
+
+
+      <div class="routine-sheet-content">
+
+        <div class="routine-sheet-label">
+          YOUR ROUTINES
+        </div>
+
+
+        <div class="routine-list">
+
+          ${routines
+      .map((routine) => {
+
+        const alreadyAdded =
+          routine.exercises.includes(
+            exercise.id
+          );
+
+        return `
+                <button
+                  class="routine-option ${alreadyAdded
+            ? "selected"
+            : ""
+          }"
+                  type="button"
+                  data-routine-id="${routine.id}"
+                >
+
+                  <span class="routine-option-indicator">
+                    ${alreadyAdded ? "✓" : ""}
+                  </span>
+
+                  <span class="routine-option-info">
+
+                    <strong>
+                      ${routine.name}
+                    </strong>
+
+                    <small>
+                      ${routine.exercises.length}
+                      ${routine.exercises.length === 1
+            ? "exercise"
+            : "exercises"
+          }
+                    </small>
+
+                  </span>
+
+                  <span class="routine-option-arrow">
+                    →
+                  </span>
+
+                </button>
+              `;
+      })
+      .join("")}
+
+        </div>
+
+
+        <button
+          class="create-routine-button"
+          type="button"
+        >
+
+          <span class="create-routine-plus">
+            +
+          </span>
+
+          <span>
+            CREATE NEW ROUTINE
+          </span>
+
+        </button>
+
+      </div>
+
+    </section>
+  `;
+
+  document.body.appendChild(overlay);
+
+  animateRoutineSheetOpen(overlay);
+
+  attachRoutineSheetEvents(
+    overlay,
+    exercise,
+    detailButton
+  );
+}
+
+function animateRoutineSheetOpen(overlay) {
+
+  const backdrop =
+    overlay.querySelector(
+      ".routine-sheet-backdrop"
+    );
+
+  const sheet =
+    overlay.querySelector(
+      ".routine-sheet"
+    );
+
+  const options =
+    overlay.querySelectorAll(
+      ".routine-option"
+    );
+
+  const createButton =
+    overlay.querySelector(
+      ".create-routine-button"
+    );
+
+
+  gsap.set(backdrop, {
+    opacity: 0
+  });
+
+  gsap.set(sheet, {
+    y: "100%"
+  });
+
+  gsap.set(options, {
+    opacity: 0,
+    y: 14
+  });
+
+  gsap.set(createButton, {
+    opacity: 0,
+    y: 12
+  });
+
+
+  gsap.timeline()
+
+    .to(backdrop, {
+      opacity: 1,
+      duration: 0.22,
+      ease: "power2.out"
+    })
+
+    .to(
+      sheet,
+      {
+        y: 0,
+        duration: 0.48,
+        ease: "power4.out"
+      },
+      "-=0.08"
+    )
+
+    .to(
+      options,
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.32,
+        stagger: 0.055,
+        ease: "power3.out"
+      },
+      "-=0.18"
+    )
+
+    .to(
+      createButton,
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.28,
+        ease: "power3.out"
+      },
+      "-=0.16"
+    );
+}
+
+function attachRoutineSheetEvents(
+  overlay,
+  exercise,
+  detailButton
+) {
+
+  const closeButton =
+    overlay.querySelector(
+      ".routine-sheet-close"
+    );
+
+  const backdrop =
+    overlay.querySelector(
+      ".routine-sheet-backdrop"
+    );
+
+  const createButton =
+    overlay.querySelector(
+      ".create-routine-button"
+    );
+
+
+  closeButton.addEventListener(
+    "click",
+    () => closeRoutineSheet(overlay)
+  );
+
+
+  backdrop.addEventListener(
+    "click",
+    () => closeRoutineSheet(overlay)
+  );
+
+
+  overlay
+    .querySelectorAll(".routine-option")
+    .forEach((option) => {
+
+      option.addEventListener(
+        "click",
+        () => {
+
+          const routineId =
+            Number(
+              option.dataset.routineId
+            );
+
+          const routine =
+            routines.find(
+              (item) =>
+                item.id === routineId
+            );
+
+          if (!routine) {
+            return;
+          }
+
+
+          const alreadyAdded =
+            routine.exercises.includes(
+              exercise.id
+            );
+
+
+          if (alreadyAdded) {
+
+            routine.exercises =
+              routine.exercises.filter(
+                (id) =>
+                  id !== exercise.id
+              );
+
+            option.classList.remove(
+              "selected"
+            );
+
+            option.querySelector(
+              ".routine-option-indicator"
+            ).textContent = "";
+
+            updateDetailButton(
+              detailButton,
+              false
+            );
+
+            return;
+          }
+
+
+          routine.exercises.push(
+            exercise.id
+          );
+
+
+          option.classList.add(
+            "selected"
+          );
+
+          option.querySelector(
+            ".routine-option-indicator"
+          ).textContent = "✓";
+
+
+          updateDetailButton(
+            detailButton,
+            true
+          );
+
+
+          const check =
+            option.querySelector(
+              ".routine-option-indicator"
+            );
+
+
+          gsap.fromTo(
+            check,
+
+            {
+              scale: 0,
+              rotate: -30
+            },
+
+            {
+              scale: 1,
+              rotate: 0,
+              duration: 0.4,
+              ease: "back.out(2)"
+            }
+          );
+
+        }
+      );
+
+    });
+
+
+  createButton.addEventListener(
     "click",
     () => {
 
-      const buttonText =
-        addButton.querySelector("span");
+      openCreateRoutineModal(
+        exercise,
+        detailButton,
+        overlay
+      );
 
-      buttonText.textContent =
-        "ADDED TO ROUTINE";
+    }
+  );
+}
 
-      addButton.classList.add("added");
+function openCreateRoutineModal(
+  exercise,
+  detailButton,
+  parentSheet
+) {
 
-      gsap.fromTo(
-        addButton,
-        {
-          scale: 0.96
-        },
-        {
-          scale: 1,
-          duration: 0.35,
-          ease: "back.out(2)"
-        }
+  if (
+    document.querySelector(
+      ".create-routine-overlay"
+    )
+  ) {
+    return;
+  }
+
+  const overlay =
+    document.createElement("div");
+
+  overlay.className =
+    "create-routine-overlay";
+
+  overlay.innerHTML = `
+    <div class="create-routine-backdrop"></div>
+
+    <section
+      class="create-routine-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-routine-title"
+    >
+
+      <div class="create-routine-modal-header">
+
+        <div>
+
+          <span class="create-routine-eyebrow">
+            NEW ROUTINE
+          </span>
+
+          <h2 id="create-routine-title">
+            Build your session.
+          </h2>
+
+        </div>
+
+        <button
+          class="create-routine-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <form class="create-routine-form">
+
+        <label
+          class="routine-input-label"
+          for="routine-name"
+        >
+          ROUTINE NAME
+        </label>
+
+        <input
+          id="routine-name"
+          class="routine-name-input"
+          type="text"
+          maxlength="40"
+          autocomplete="off"
+          placeholder="e.g. Push Day"
+        />
+
+        <div class="routine-input-help">
+          Give it a name you'll recognize instantly.
+        </div>
+
+        <button
+          class="routine-create-submit"
+          type="submit"
+        >
+          <span>CREATE ROUTINE</span>
+          <span>→</span>
+        </button>
+
+      </form>
+
+    </section>
+  `;
+
+  document.body.appendChild(overlay);
+
+  animateCreateRoutineOpen(
+    overlay
+  );
+
+  attachCreateRoutineEvents(
+    overlay,
+    exercise,
+    detailButton,
+    parentSheet
+  );
+}
+
+function animateCreateRoutineOpen(
+  overlay
+) {
+
+  const backdrop =
+    overlay.querySelector(
+      ".create-routine-backdrop"
+    );
+
+  const modal =
+    overlay.querySelector(
+      ".create-routine-modal"
+    );
+
+  const input =
+    overlay.querySelector(
+      ".routine-name-input"
+    );
+
+  gsap.set(
+    backdrop,
+    {
+      opacity: 0
+    }
+  );
+
+  gsap.set(
+    modal,
+    {
+      opacity: 0,
+      y: 24,
+      scale: 0.97
+    }
+  );
+
+  gsap.timeline({
+    onComplete: () => {
+      input.focus();
+    }
+  })
+
+  .to(
+    backdrop,
+    {
+      opacity: 1,
+      duration: 0.22,
+      ease: "power2.out"
+    }
+  )
+
+  .to(
+    modal,
+    {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      duration: 0.42,
+      ease: "back.out(1.35)"
+    },
+    "-=0.1"
+  );
+}
+
+function attachCreateRoutineEvents(
+  overlay,
+  exercise,
+  detailButton,
+  parentSheet
+) {
+
+  const closeButton =
+    overlay.querySelector(
+      ".create-routine-close"
+    );
+
+  const backdrop =
+    overlay.querySelector(
+      ".create-routine-backdrop"
+    );
+
+  const form =
+    overlay.querySelector(
+      ".create-routine-form"
+    );
+
+  const input =
+    overlay.querySelector(
+      ".routine-name-input"
+    );
+
+
+  closeButton.addEventListener(
+    "click",
+    () => {
+      closeCreateRoutineModal(
+        overlay
       );
     }
   );
+
+
+  backdrop.addEventListener(
+    "click",
+    () => {
+      closeCreateRoutineModal(
+        overlay
+      );
+    }
+  );
+
+
+  form.addEventListener(
+    "submit",
+    (event) => {
+
+      event.preventDefault();
+
+      const name =
+        input.value.trim();
+
+      if (!name) {
+
+        gsap.timeline()
+
+          .to(input, {
+            x: -6,
+            duration: 0.06
+          })
+
+          .to(input, {
+            x: 6,
+            duration: 0.06
+          })
+
+          .to(input, {
+            x: 0,
+            duration: 0.08
+          });
+
+        input.focus();
+
+        return;
+      }
+
+
+      const newRoutine = {
+
+        id: Date.now(),
+
+        name,
+
+        exercises: [
+          exercise.id
+        ]
+
+      };
+
+
+      routines.push(
+        newRoutine
+      );
+
+
+      updateDetailButton(
+        detailButton,
+        true
+      );
+
+
+      closeCreateRoutineModal(
+        overlay,
+        () => {
+
+          closeRoutineSheet(
+            parentSheet
+          );
+
+        }
+      );
+
+    }
+  );
+}
+
+function closeCreateRoutineModal(
+  overlay,
+  onComplete
+) {
+
+  if (!overlay) {
+    return;
+  }
+
+  const backdrop =
+    overlay.querySelector(
+      ".create-routine-backdrop"
+    );
+
+  const modal =
+    overlay.querySelector(
+      ".create-routine-modal"
+    );
+
+
+  gsap.timeline({
+    onComplete: () => {
+
+      overlay.remove();
+
+      onComplete?.();
+
+    }
+  })
+
+  .to(
+    modal,
+    {
+      opacity: 0,
+      y: 16,
+      scale: 0.98,
+      duration: 0.22,
+      ease: "power2.in"
+    }
+  )
+
+  .to(
+    backdrop,
+    {
+      opacity: 0,
+      duration: 0.16
+    },
+    "-=0.12"
+  );
+}
+
+function updateDetailButton(
+  button,
+  added
+) {
+
+  if (!button) {
+    return;
+  }
+
+  const text =
+    button.querySelector(
+      "span"
+    );
+
+
+  if (added) {
+
+    text.textContent =
+      "ADDED TO ROUTINE";
+
+    button.classList.add(
+      "added"
+    );
+
+  } else {
+
+    text.textContent =
+      "ADD TO ROUTINE";
+
+    button.classList.remove(
+      "added"
+    );
+
+  }
+
+
+  gsap.fromTo(
+    button,
+
+    {
+      scale: 0.96
+    },
+
+    {
+      scale: 1,
+      duration: 0.35,
+      ease: "back.out(2)"
+    }
+  );
+
+}
+
+function closeRoutineSheet(overlay) {
+
+  if (!overlay) {
+    return;
+  }
+
+
+  const backdrop =
+    overlay.querySelector(
+      ".routine-sheet-backdrop"
+    );
+
+  const sheet =
+    overlay.querySelector(
+      ".routine-sheet"
+    );
+
+
+  gsap.timeline({
+    onComplete: () => {
+      overlay.remove();
+    }
+  })
+
+    .to(sheet, {
+      y: "100%",
+      duration: 0.32,
+      ease: "power3.in"
+    })
+
+    .to(
+      backdrop,
+      {
+        opacity: 0,
+        duration: 0.2
+      },
+      "-=0.16"
+    );
 }
 
 function attachEvents() {
