@@ -708,7 +708,7 @@ function animateDetailOpen(card, overlay) {
     overlay.querySelectorAll(".detail-ring");
 
   gsap.set(overlay, {
-    display: "block"
+    autoAlpha: 1
   });
 
   gsap.set(backdrop, {
@@ -1408,26 +1408,26 @@ function animateCreateRoutineOpen(
     }
   })
 
-  .to(
-    backdrop,
-    {
-      opacity: 1,
-      duration: 0.22,
-      ease: "power2.out"
-    }
-  )
+    .to(
+      backdrop,
+      {
+        opacity: 1,
+        duration: 0.22,
+        ease: "power2.out"
+      }
+    )
 
-  .to(
-    modal,
-    {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      duration: 0.42,
-      ease: "back.out(1.35)"
-    },
-    "-=0.1"
-  );
+    .to(
+      modal,
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.42,
+        ease: "back.out(1.35)"
+      },
+      "-=0.1"
+    );
 }
 
 function attachCreateRoutineEvents(
@@ -1581,25 +1581,25 @@ function closeCreateRoutineModal(
     }
   })
 
-  .to(
-    modal,
-    {
-      opacity: 0,
-      y: 16,
-      scale: 0.98,
-      duration: 0.22,
-      ease: "power2.in"
-    }
-  )
+    .to(
+      modal,
+      {
+        opacity: 0,
+        y: 16,
+        scale: 0.98,
+        duration: 0.22,
+        ease: "power2.in"
+      }
+    )
 
-  .to(
-    backdrop,
-    {
-      opacity: 0,
-      duration: 0.16
-    },
-    "-=0.12"
-  );
+    .to(
+      backdrop,
+      {
+        opacity: 0,
+        duration: 0.16
+      },
+      "-=0.12"
+    );
 }
 
 function updateDetailButton(
