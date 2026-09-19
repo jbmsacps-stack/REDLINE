@@ -37,6 +37,7 @@ let routines = [
 ];
 
 let workoutSessions = [];
+let sessionNoteDraft = "";
 
 function getLocalDate() {
   const now = new Date();
@@ -796,6 +797,26 @@ function renderRoutineDetail() {
     }
 
     <div class="routine-complete-section">
+    <div class="routine-session-note">
+
+  <button
+    class="routine-session-note-button"
+    type="button"
+  >
+    <span>＋</span>
+    <span>ADD SESSION NOTE</span>
+  </button>
+
+  ${sessionNoteDraft
+      ? `
+        <span class="routine-session-note-preview">
+          ${sessionNoteDraft}
+        </span>
+      `
+      : ""
+    }
+
+</div>
   <label class="routine-complete-control">
     <input
       type="checkbox"
@@ -830,6 +851,261 @@ function renderRoutineDetail() {
   attachEvents();
 
   animateRoutineDetail();
+}
+
+function openSessionNoteEditor() {
+
+  if (
+    document.querySelector(
+      ".session-note-editor-overlay"
+    )
+  ) {
+    return;
+  }
+
+  const overlay =
+    document.createElement("div");
+
+  overlay.className =
+    "session-note-editor-overlay";
+
+  overlay.innerHTML = `
+
+    <div class="session-note-editor-backdrop"></div>
+
+    <section
+      class="session-note-editor"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="session-note-editor-title"
+    >
+
+      <div class="session-note-editor-header">
+
+        <div>
+
+          <span class="session-note-editor-eyebrow">
+            SESSION NOTE
+          </span>
+
+          <h2 id="session-note-editor-title">
+            TODAY'S TRAINING
+          </h2>
+
+        </div>
+
+        <button
+          class="session-note-editor-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <div class="session-note-editor-content">
+
+        <label
+          class="session-note-editor-label"
+          for="session-note-input"
+        >
+          NOTE
+        </label>
+
+        <textarea
+          id="session-note-input"
+          maxlength="500"
+          placeholder="How did the session feel?"
+        ></textarea>
+
+
+        <div class="session-note-editor-actions">
+
+          <button
+            class="session-note-editor-cancel"
+            type="button"
+          >
+            CANCEL
+          </button>
+
+          <button
+            class="session-note-editor-save"
+            type="button"
+          >
+            SAVE NOTE
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  `;
+
+  document.body.appendChild(overlay);
+
+
+  const backdrop =
+    overlay.querySelector(
+      ".session-note-editor-backdrop"
+    );
+
+  const modal =
+    overlay.querySelector(
+      ".session-note-editor"
+    );
+
+  const input =
+    overlay.querySelector(
+      "#session-note-input"
+    );
+
+  const closeButton =
+    overlay.querySelector(
+      ".session-note-editor-close"
+    );
+
+  const cancelButton =
+    overlay.querySelector(
+      ".session-note-editor-cancel"
+    );
+
+  const saveButton =
+    overlay.querySelector(
+      ".session-note-editor-save"
+    );
+
+
+  input.value = sessionNoteDraft || "";
+
+
+  function closeEditor(
+    onComplete
+  ) {
+
+    gsap.timeline({
+      onComplete: () => {
+
+        overlay.remove();
+
+        onComplete?.();
+
+      }
+    })
+
+      .to(
+        modal,
+        {
+          opacity: 0,
+          y: 14,
+          scale: 0.98,
+          duration: 0.2,
+          ease: "power2.in"
+        }
+      )
+
+      .to(
+        backdrop,
+        {
+          opacity: 0,
+          duration: 0.15
+        },
+        "-=0.1"
+      );
+
+  }
+
+
+  closeButton.addEventListener(
+    "click",
+    () => closeEditor()
+  );
+
+
+  cancelButton.addEventListener(
+    "click",
+    () => closeEditor()
+  );
+
+
+  backdrop.addEventListener(
+    "click",
+    () => closeEditor()
+  );
+
+
+  saveButton.addEventListener(
+    "click",
+    () => {
+
+      sessionNoteDraft =
+        input.value.trim();
+
+      closeEditor(() => {
+
+        renderRoutineDetail();
+
+      });
+
+    }
+  );
+
+
+  gsap.set(
+    backdrop,
+    {
+      opacity: 0
+    }
+  );
+
+
+  gsap.set(
+    modal,
+    {
+      opacity: 0,
+      y: 22,
+      scale: 0.97
+    }
+  );
+
+
+  gsap.timeline({
+    onComplete: () => {
+
+      input.focus();
+
+      input.setSelectionRange(
+        input.value.length,
+        input.value.length
+      );
+
+    }
+  })
+
+    .to(
+      backdrop,
+      {
+        opacity: 1,
+        duration: 0.2,
+        ease: "power2.out"
+      }
+    )
+
+    .to(
+      modal,
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.32,
+        ease: "back.out(1.2)"
+      },
+      "-=0.08"
+    );
+
 }
 
 function openRoutineExerciseMenu(
@@ -1472,7 +1748,29 @@ function openRoutineExerciseHistory(
   }
 
   const history =
-    routineExercise.history || [];
+    workoutSessions
+      .filter(
+        (session) =>
+          session.routineId === activeRoutine?.id
+      )
+      .flatMap(
+        (session) =>
+          session.exercises
+            .filter(
+              (entry) =>
+                entry.exerciseId ===
+                routineExercise.exerciseId
+            )
+            .map(
+              (entry) => ({
+                ...entry,
+                date: session.date,
+                sessionNote: session.note,
+                completedAt:
+                  session.completedAt
+              })
+            )
+      );
 
   const overlay =
     document.createElement("div");
@@ -1525,25 +1823,49 @@ function openRoutineExerciseHistory(
         .map(
           (session) => `
                     <article
-                      class="routine-history-entry"
-                    >
+  class="routine-history-entry"
+>
 
-                      <div>
-                        <strong>
-                          ${session.date}
-                        </strong>
+  <div>
 
-                        <span>
-                          ${session.weight} kg
-                        </span>
-                      </div>
+    <strong>
+      ${session.date}
+    </strong>
 
-                      <span>
-                        ${session.reps.join(" • ")}
-                        REPS
-                      </span>
+    <span>
+      ${session.weight > 0
+              ? `${session.weight} kg`
+              : "BODYWEIGHT"
+            }
+    </span>
 
-                    </article>
+  </div>
+
+  <span>
+    ${session.sets} SETS
+    •
+    ${session.reps} REPS
+  </span>
+
+  ${session.notes
+  ? `
+    <small class="routine-history-note">
+      NOTE — ${session.notes}
+    </small>
+  `
+  : ""
+}
+
+${session.sessionNote
+  ? `
+    <small class="routine-history-note">
+      SESSION NOTE — ${session.sessionNote}
+    </small>
+  `
+  : ""
+}
+
+</article>
                   `
         )
         .join("")
@@ -3985,6 +4307,7 @@ function attachEvents() {
           routineId: activeRoutine.id,
           date: today,
           completedAt: new Date().toISOString(),
+          note: sessionNoteDraft,
           exercises: activeRoutine.exercises.map((routineExercise) => ({
             exerciseId: routineExercise.exerciseId,
             weight: routineExercise.weight,
@@ -4266,15 +4589,11 @@ function attachEvents() {
 
 
   profileButton?.addEventListener(
-    "click",
-    () => {
-
-      console.log(
-        "Profile clicked"
-      );
-
-    }
-  );
+  "click",
+  () => {
+    renderProfile();
+  }
+);
 
 
   // =======================
@@ -4845,6 +5164,18 @@ function attachEvents() {
       );
 
     });
+
+  const sessionNoteButton =
+    document.querySelector(
+      ".routine-session-note-button"
+    );
+
+  sessionNoteButton?.addEventListener(
+    "click",
+    () => {
+      openSessionNoteEditor();
+    }
+  );
 
 }
 
