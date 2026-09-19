@@ -707,17 +707,30 @@ function renderRoutineDetail() {
 
     <div class="routine-exercise-info">
 
-      <h2>
-        ${exercise.name}
-      </h2>
+  <h2>
+    ${exercise.name}
+  </h2>
 
-      <span>
-        ${exercise.muscle}
-        •
-        ${exercise.equipment}
-      </span>
+  <span>
+    ${exercise.muscle}
+    •
+    ${exercise.equipment}
+  </span>
 
-    </div>
+  ${exercise.tracking.notes
+            ? `
+        <div class="routine-exercise-note">
+          <span class="routine-exercise-note-mark">NOTE:</span>
+
+<span class="routine-exercise-note-text">
+  ${exercise.tracking.notes}
+</span>
+        </div>
+      `
+            : ""
+          }
+
+</div>
 
     <button
       class="routine-exercise-menu"
@@ -4616,6 +4629,168 @@ function attachEvents() {
           scale: 1,
           duration: 0.3,
           ease: "back.out(1.2)"
+        },
+        "-=0.08"
+      );
+
+  }
+
+  function openDeleteRoutineModal(routine) {
+
+    const overlay = document.createElement("div");
+
+    overlay.className = "delete-routine-overlay";
+
+    overlay.innerHTML = `
+    <div class="delete-routine-backdrop"></div>
+
+    <section
+      class="delete-routine-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-routine-title"
+    >
+
+      <span class="delete-routine-eyebrow">
+        PERMANENT ACTION
+      </span>
+
+      <h2 id="delete-routine-title">
+        Delete this routine?
+      </h2>
+
+      <p>
+        You're about to delete
+        <strong>${routine.name}</strong>.
+        This action cannot be undone.
+      </p>
+
+      <div class="delete-routine-actions">
+
+        <button
+          class="delete-routine-cancel"
+          type="button"
+        >
+          CANCEL
+        </button>
+
+        <button
+          class="delete-routine-confirm"
+          type="button"
+        >
+          DELETE
+        </button>
+
+      </div>
+
+    </section>
+  `;
+
+    document.body.appendChild(overlay);
+
+    const backdrop =
+      overlay.querySelector(
+        ".delete-routine-backdrop"
+      );
+
+    const modal =
+      overlay.querySelector(
+        ".delete-routine-modal"
+      );
+
+    const cancelButton =
+      overlay.querySelector(
+        ".delete-routine-cancel"
+      );
+
+    const confirmButton =
+      overlay.querySelector(
+        ".delete-routine-confirm"
+      );
+
+    function closeModal() {
+
+      gsap.timeline({
+        onComplete: () => {
+          overlay.remove();
+        }
+      })
+        .to(modal, {
+          opacity: 0,
+          y: 18,
+          scale: 0.97,
+          duration: 0.2,
+          ease: "power2.in"
+        })
+        .to(
+          backdrop,
+          {
+            opacity: 0,
+            duration: 0.15
+          },
+          "-=0.1"
+        );
+    }
+
+    function deleteRoutine() {
+
+      routines = routines.filter(
+        (item) => item.id !== routine.id
+      );
+
+      if (
+        activeRoutine &&
+        activeRoutine.id === routine.id
+      ) {
+        activeRoutine = null;
+      }
+
+      closeModal();
+
+      setTimeout(() => {
+        renderRoutines();
+      }, 220);
+    }
+
+    cancelButton.addEventListener(
+      "click",
+      closeModal
+    );
+
+    backdrop.addEventListener(
+      "click",
+      closeModal
+    );
+
+    confirmButton.addEventListener(
+      "click",
+      deleteRoutine
+    );
+
+    gsap.set(backdrop, {
+      opacity: 0
+    });
+
+    gsap.set(modal, {
+      opacity: 0,
+      y: 20,
+      scale: 0.97
+    });
+
+    gsap.timeline()
+      .to(backdrop, {
+        opacity: 1,
+        duration: 0.18,
+        ease: "power2.out"
+      })
+      .to(
+        modal,
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.3,
+          ease: "back.out(1.15)"
         },
         "-=0.08"
       );

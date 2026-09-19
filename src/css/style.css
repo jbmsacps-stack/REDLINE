@@ -5512,3 +5512,210 @@ svg {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+
+/* =========================================
+   DELETE ROUTINE MODAL
+   ========================================= */
+
+.delete-routine-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+  min-height: 100dvh;
+}
+
+.delete-routine-backdrop {
+  position: absolute;
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.80);
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.delete-routine-modal {
+  position: relative;
+  z-index: 1;
+
+  width: min(100%, 420px);
+
+  padding: 28px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(30, 30, 30, 0.98),
+      rgba(15, 15, 15, 0.98)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.60),
+    0 0 40px rgba(225, 29, 46, 0.04);
+}
+
+.delete-routine-eyebrow {
+  display: block;
+
+  margin-bottom: 9px;
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+
+  color: rgba(255, 80, 95, 0.75);
+}
+
+.delete-routine-modal h2 {
+  margin: 0 0 12px;
+
+  font-size: 23px;
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+
+  color: #fff;
+}
+
+.delete-routine-modal p {
+  margin: 0;
+
+  font-size: 13px;
+  line-height: 1.6;
+
+  color: rgba(255, 255, 255, 0.52);
+}
+
+.delete-routine-modal p strong {
+  color: rgba(255, 255, 255, 0.90);
+  font-weight: 700;
+}
+
+.delete-routine-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+
+  gap: 10px;
+
+  margin-top: 24px;
+}
+
+.delete-routine-cancel,
+.delete-routine-confirm {
+  height: 48px;
+
+  border-radius: 10px;
+  border: 0;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.delete-routine-cancel {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+
+  background: rgba(255, 255, 255, 0.035);
+
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.delete-routine-cancel:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+
+.delete-routine-confirm {
+  background: #a91424;
+  color: #fff;
+
+  box-shadow:
+    0 10px 28px rgba(169, 20, 36, 0.22);
+}
+
+.delete-routine-confirm:hover {
+  background: #c5182b;
+  transform: translateY(-1px);
+}
+
+.delete-routine-cancel:active,
+.delete-routine-confirm:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+
+@media (max-width: 480px) {
+
+  .delete-routine-overlay {
+    align-items: flex-end;
+    padding: 12px;
+  }
+
+  .delete-routine-modal {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+
+    padding: 23px;
+
+    border-radius: 16px;
+
+    margin-bottom: env(safe-area-inset-bottom);
+
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+}
+
+/* =========================================
+   ROUTINE EXERCISE NOTE
+   ========================================= */
+
+.routine-exercise-note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  margin-top: 7px;
+
+  font-size: 11px;
+  line-height: 1.4;
+
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.routine-exercise-note-mark {
+  flex: 0 0 auto;
+
+  color: rgba(255, 255, 255, 0.35);
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.routine-exercise-note-text {
+  overflow: hidden;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
