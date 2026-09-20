@@ -5601,44 +5601,147 @@ function attachEvents() {
     ".routine-complete-checkbox"
   );
 
-  routineCompleteCheckbox?.addEventListener("change", (event) => {
-    const today = getLocalDate();
+  routineCompleteCheckbox?.addEventListener(
+    "change",
+    async (event) => {
 
-    if (event.target.checked) {
-      const alreadyCompleted = workoutSessions.some(
-        session =>
-          session.routineId === activeRoutine.id &&
-          session.date === today
-      );
+      const today = getLocalDate();
 
-      if (!alreadyCompleted) {
+      // =========================
+      // COMPLETE ROUTINE
+      // =========================
+
+      if (event.target.checked) {
+
+        const alreadyCompleted =
+          workoutSessions.some(
+            (session) =>
+              session.routineId === activeRoutine.id &&
+              session.date === today
+          );
+
+        if (alreadyCompleted) {
+          return;
+        }
+
+        // Create workout session
+        const { data: createdSession, error: sessionError } =
+          await supabase
+            .from("workout_sessions")
+            .insert({
+              user_id: clerk.user.id,
+              routine_id: activeRoutine.id,
+              date: today,
+              note: sessionNoteDraft
+            })
+            .select()
+            .single();
+
+        if (sessionError) {
+          console.error(
+            "Failed to save workout session:",
+            sessionError
+          );
+
+          event.target.checked = false;
+          return;
+        }
+
+        // Create session exercises
+        const sessionExercises =
+          activeRoutine.exercises.map(
+            (routineExercise) => ({
+              session_id: createdSession.id,
+              exercise_id: routineExercise.exerciseId,
+              weight: routineExercise.weight,
+              reps: routineExercise.reps,
+              sets: routineExercise.sets,
+              notes: routineExercise.notes || ""
+            })
+          );
+
+        if (sessionExercises.length) {
+
+          const { error: exerciseError } =
+            await supabase
+              .from("workout_session_exercises")
+              .insert(sessionExercises);
+
+          if (exerciseError) {
+
+            console.error(
+              "Failed to save session exercises:",
+              exerciseError
+            );
+
+            // Roll back the session if its exercises failed
+            await supabase
+              .from("workout_sessions")
+              .delete()
+              .eq("id", createdSession.id);
+
+            event.target.checked = false;
+            return;
+          }
+        }
+
+        // Add the successfully saved session to local state
         workoutSessions.push({
-          id: Date.now(),
+          id: createdSession.id,
           routineId: activeRoutine.id,
           date: today,
-          completedAt: new Date().toISOString(),
+          completedAt: createdSession.completed_at,
           note: sessionNoteDraft,
-          exercises: activeRoutine.exercises.map((routineExercise) => ({
-            exerciseId: routineExercise.exerciseId,
-            weight: routineExercise.weight,
-            reps: routineExercise.reps,
-            sets: routineExercise.sets,
-            notes: routineExercise.notes
-          }))
+          exercises: activeRoutine.exercises.map(
+            (routineExercise) => ({
+              exerciseId: routineExercise.exerciseId,
+              weight: routineExercise.weight,
+              reps: routineExercise.reps,
+              sets: routineExercise.sets,
+              notes: routineExercise.notes || ""
+            })
+          )
         });
+
+        animateRoutineCompletion();
+
       }
 
-      animateRoutineCompletion();
-    } else {
-      workoutSessions = workoutSessions.filter(
-        session =>
-          !(
-            session.routineId === activeRoutine.id &&
-            session.date === today
-          )
-      );
+      // =========================
+      // UNCOMPLETE ROUTINE
+      // =========================
+
+      else {
+
+        const { error } = await supabase
+          .from("workout_sessions")
+          .delete()
+          .eq("user_id", clerk.user.id)
+          .eq("routine_id", activeRoutine.id)
+          .eq("date", today);
+
+        if (error) {
+          console.error(
+            "Failed to remove workout session:",
+            error
+          );
+
+          // Put checkbox back if deletion failed
+          event.target.checked = true;
+          return;
+        }
+
+        workoutSessions =
+          workoutSessions.filter(
+            (session) =>
+              !(
+                session.routineId === activeRoutine.id &&
+                session.date === today
+              )
+          );
+      }
     }
-  });
+  );
 
   // =======================
   // ROUTINE EXERCISE → DETAIL
@@ -6576,10 +6679,22 @@ function animateRoutineCompletion() {
 }
 
 
+let lastSignedInState = clerk.isSignedIn;
+
 clerk.addListener(() => {
-  initializeApp();
+
+  const currentSignedInState =
+    clerk.isSignedIn;
+
+  if (
+    currentSignedInState !==
+    lastSignedInState
+  ) {
+    lastSignedInState =
+      currentSignedInState;
+
+    initializeApp();
+  }
 });
 
-
 await initializeApp();
-
