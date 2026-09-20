@@ -5999,3 +5999,1891 @@ svg {
     max-height: 80dvh;
   }
 }
+
+/* =========================
+   PROFILE — ACTIVITY GRID
+========================= */
+
+.profile-screen {
+  width: min(100%, 1100px);
+  margin: 0 auto;
+  padding: 24px 16px 120px;
+}
+
+.profile-title {
+  margin: 8px 0 24px;
+}
+
+.profile-title span {
+  display: block;
+}
+
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.profile-stat {
+  min-height: 92px;
+  padding: 18px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.025);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.profile-stat strong {
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.profile-stat span {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: rgba(255,255,255,0.45);
+  font-weight: 700;
+}
+
+
+/* SECTION */
+
+.profile-section {
+  margin-top: 28px;
+}
+
+.profile-section-heading {
+  margin-bottom: 12px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: rgba(255,255,255,0.42);
+}
+
+
+/* ACTIVITY PANEL */
+
+.profile-activity {
+  border: 1px solid rgba(255,255,255,0.07);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,0.035),
+      rgba(255,255,255,0.012)
+    );
+  padding: 16px;
+}
+
+.profile-activity-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  color: rgba(255,255,255,0.42);
+}
+
+
+/* CALENDAR */
+
+.profile-calendar {
+  display: grid;
+  grid-template-rows: repeat(7, 10px);
+  grid-auto-flow: column;
+  grid-auto-columns: 10px;
+  gap: 4px;
+  width: max-content;
+  min-width: 100%;
+}
+
+.profile-calendar-day {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.055);
+  appearance: none;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease;
+}
+
+.profile-calendar-day:hover {
+  transform: scale(1.35);
+  filter: brightness(1.25);
+}
+
+
+/* ACTIVITY LEVELS */
+
+.profile-calendar-day.level-0,
+.profile-calendar-legend .level-0 {
+  background: rgba(255,255,255,0.055);
+}
+
+.profile-calendar-day.level-1,
+.profile-calendar-legend .level-1 {
+  background: rgba(170, 20, 30, 0.25);
+}
+
+.profile-calendar-day.level-2,
+.profile-calendar-legend .level-2 {
+  background: rgba(200, 25, 35, 0.45);
+}
+
+.profile-calendar-day.level-3,
+.profile-calendar-legend .level-3 {
+  background: rgba(225, 35, 45, 0.68);
+}
+
+.profile-calendar-day.level-4,
+.profile-calendar-legend .level-4 {
+  background: rgb(255, 55, 65);
+  box-shadow:
+    0 0 10px rgba(255, 55, 65, 0.18);
+}
+
+
+/* LEGEND */
+
+.profile-calendar-legend {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 14px;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.35);
+}
+
+.profile-calendar-legend i {
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+
+
+/* MOBILE SCROLL */
+
+.profile-activity {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.profile-activity::-webkit-scrollbar {
+  display: none;
+}
+
+
+/* PERFORMANCE PLACEHOLDER */
+
+.profile-coming-soon {
+  padding: 22px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.02);
+}
+
+.profile-coming-soon span {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.profile-coming-soon p {
+  margin: 0;
+  max-width: 520px;
+  color: rgba(255,255,255,0.45);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+
+@media (min-width: 700px) {
+
+  .profile-screen {
+    padding: 40px 24px 140px;
+  }
+
+  .profile-stats {
+    max-width: 420px;
+  }
+
+  .profile-calendar {
+    grid-template-rows: repeat(7, 11px);
+    grid-auto-columns: 11px;
+    gap: 5px;
+  }
+
+  .profile-calendar-day {
+    width: 11px;
+    height: 11px;
+  }
+
+}
+
+/* =========================
+   PROFILE — REDLINE CALENDAR
+========================= */
+
+.profile-activity {
+  position: relative;
+}
+
+.profile-calendar-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;
+}
+
+.profile-calendar-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+
+.profile-calendar-layout {
+  --cell-size: 11px;
+  --cell-gap: 4px;
+
+  display: flex;
+  align-items: flex-start;
+  width: max-content;
+  min-width: 100%;
+}
+
+
+/* WEEKDAY RAIL */
+
+.profile-calendar-weekday-rail {
+  flex: 0 0 18px;
+
+  display: grid;
+  grid-template-rows:
+    18px
+    repeat(7, var(--cell-size));
+
+  row-gap: var(--cell-gap);
+
+  margin-right: 8px;
+}
+
+.profile-calendar-weekday-rail span {
+  display: flex;
+  align-items: center;
+
+  font-size: 8px;
+  line-height: 1;
+
+  font-weight: 800;
+  letter-spacing: 0.05em;
+
+  color: rgba(255,255,255,0.28);
+}
+
+
+/* CALENDAR AREA */
+
+.profile-calendar-area {
+  position: relative;
+  width: max-content;
+}
+
+
+/* MONTHS */
+
+.profile-calendar-months {
+  position: relative;
+
+  height: 18px;
+
+  width: calc(
+    var(--calendar-columns) *
+    (var(--cell-size) + var(--cell-gap))
+  );
+}
+
+.profile-calendar-months span {
+  position: absolute;
+
+  left: calc(
+    var(--month-week) *
+    (var(--cell-size) + var(--cell-gap))
+  );
+
+  top: 0;
+
+  font-size: 8px;
+  line-height: 1;
+
+  font-weight: 800;
+  letter-spacing: 0.08em;
+
+  color: rgba(255,255,255,0.32);
+
+  white-space: nowrap;
+}
+
+
+/* DAYS */
+
+.profile-calendar {
+  display: grid;
+
+  grid-template-rows:
+    repeat(7, var(--cell-size));
+
+  grid-template-columns:
+    repeat(
+      var(--calendar-columns),
+      var(--cell-size)
+    );
+
+  grid-auto-flow: column;
+
+  gap: var(--cell-gap);
+
+  width: max-content;
+}
+
+
+.profile-calendar-day {
+  width: var(--cell-size);
+  height: var(--cell-size);
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 2px;
+
+  appearance: none;
+
+  background: rgba(255,255,255,0.055);
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease;
+}
+
+.profile-calendar-day:hover {
+  transform: scale(1.35);
+  filter: brightness(1.25);
+}
+
+
+/* ACTIVITY LEVELS */
+
+.profile-calendar-day.level-0,
+.profile-calendar-legend .level-0 {
+  background:
+    rgba(255,255,255,0.055);
+}
+
+.profile-calendar-day.level-1,
+.profile-calendar-legend .level-1 {
+  background:
+    rgba(170,20,30,0.28);
+}
+
+.profile-calendar-day.level-2,
+.profile-calendar-legend .level-2 {
+  background:
+    rgba(200,25,35,0.46);
+}
+
+.profile-calendar-day.level-3,
+.profile-calendar-legend .level-3 {
+  background:
+    rgba(225,35,45,0.68);
+}
+
+.profile-calendar-day.level-4,
+.profile-calendar-legend .level-4 {
+  background:
+    rgb(255,55,65);
+
+  box-shadow:
+    0 0 9px
+    rgba(255,55,65,0.18);
+}
+
+
+/* LEGEND */
+
+.profile-calendar-legend {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  margin-top: 14px;
+
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+
+  color: rgba(255,255,255,0.35);
+}
+
+.profile-calendar-legend i {
+  display: block;
+
+  width: 9px;
+  height: 9px;
+
+  border-radius: 2px;
+}
+
+
+@media (min-width: 700px) {
+
+  .profile-calendar-layout {
+    --cell-size: 12px;
+    --cell-gap: 5px;
+  }
+
+}
+
+/* =========================
+   PROFILE — ACTIVITY CALENDAR
+========================= */
+
+.profile-activity {
+  position: relative;
+  width: 100%;
+}
+
+.profile-calendar-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.profile-calendar-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.profile-calendar-layout {
+  --cell-size: 11px;
+  --cell-gap: 4px;
+
+  display: flex;
+  align-items: flex-start;
+  width: max-content;
+  min-width: 100%;
+}
+
+.profile-calendar-weekday-rail {
+  flex: 0 0 14px;
+
+  display: grid;
+  grid-template-rows:
+    18px repeat(7, var(--cell-size));
+
+  row-gap: var(--cell-gap);
+  margin-right: 7px;
+}
+
+.profile-calendar-weekday-rail span {
+  display: flex;
+  align-items: center;
+
+  font-size: 7px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+
+  color: rgba(255,255,255,0.28);
+}
+
+.profile-calendar-area {
+  position: relative;
+  width: max-content;
+  padding-right: 20px;
+}
+
+.profile-calendar-months {
+  position: relative;
+
+  width: calc(
+    var(--calendar-columns) *
+    (var(--cell-size) + var(--cell-gap))
+  );
+
+  height: 18px;
+}
+
+.profile-calendar-months span {
+  position: absolute;
+
+  left: calc(
+    var(--month-week) *
+    (var(--cell-size) + var(--cell-gap))
+  );
+
+  top: 0;
+
+  font-size: 7px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+
+  color: rgba(255,255,255,0.35);
+
+  white-space: nowrap;
+}
+
+.profile-calendar {
+  display: grid;
+
+  grid-template-rows:
+    repeat(7, var(--cell-size));
+
+  grid-template-columns:
+    repeat(
+      var(--calendar-columns),
+      var(--cell-size)
+    );
+
+  grid-auto-flow: column;
+
+  gap: var(--cell-gap);
+
+  width: max-content;
+}
+
+.profile-calendar-day {
+  width: var(--cell-size);
+  height: var(--cell-size);
+
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+
+  appearance: none;
+
+  background:
+    rgba(255,255,255,0.055);
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease;
+}
+
+.profile-calendar-day:hover {
+  transform: scale(1.35);
+  filter: brightness(1.25);
+}
+
+
+/* ACTIVITY LEVELS */
+
+.profile-calendar-day.level-0,
+.profile-calendar-legend .level-0 {
+  background:
+    rgba(255,255,255,0.055);
+}
+
+.profile-calendar-day.level-1,
+.profile-calendar-legend .level-1 {
+  background:
+    rgba(170,20,30,0.28);
+}
+
+.profile-calendar-day.level-2,
+.profile-calendar-legend .level-2 {
+  background:
+    rgba(200,25,35,0.46);
+}
+
+.profile-calendar-day.level-3,
+.profile-calendar-legend .level-3 {
+  background:
+    rgba(225,35,45,0.68);
+}
+
+.profile-calendar-day.level-4,
+.profile-calendar-legend .level-4 {
+  background:
+    rgb(255,55,65);
+
+  box-shadow:
+    0 0 9px rgba(255,55,65,0.18);
+}
+
+
+/* LEGEND */
+
+.profile-calendar-legend {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  margin-top: 14px;
+
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+
+  color: rgba(255,255,255,0.35);
+}
+
+.profile-calendar-legend i {
+  display: block;
+
+  width: 9px;
+  height: 9px;
+
+  border-radius: 2px;
+}
+
+
+@media (min-width: 700px) {
+
+  .profile-calendar-layout {
+    --cell-size: 12px;
+    --cell-gap: 5px;
+  }
+
+}
+
+/* =========================================================
+   REDLINE — FINAL PROFILE CALENDAR
+========================================================= */
+
+.profile-activity {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+}
+
+
+/* HEADER */
+
+.profile-activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 12px;
+  margin-bottom: 14px;
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+
+  color: rgba(255,255,255,0.42);
+}
+
+
+/* SCROLL AREA */
+
+.profile-calendar-scroll {
+  width: 100%;
+
+  overflow-x: auto;
+  overflow-y: visible;
+
+  scrollbar-width: none;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+.profile-calendar-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+
+/* MAIN LAYOUT */
+
+.profile-calendar-layout {
+  --cell-size: 10px;
+  --cell-gap: 4px;
+
+  display: flex;
+  align-items: flex-start;
+
+  width: max-content;
+
+  min-width: 100%;
+}
+
+
+/* WEEKDAYS */
+
+.profile-calendar-weekday-rail {
+  flex: 0 0 12px;
+
+  display: grid;
+
+  grid-template-rows:
+    18px
+    repeat(7, var(--cell-size));
+
+  row-gap: var(--cell-gap);
+
+  margin-right: 7px;
+}
+
+.profile-calendar-weekday-rail span {
+  display: flex;
+  align-items: center;
+
+  font-size: 7px;
+  line-height: 1;
+
+  font-weight: 800;
+
+  color: rgba(255,255,255,0.27);
+}
+
+
+/* CALENDAR AREA */
+
+.profile-calendar-area {
+  position: relative;
+
+  width: max-content;
+
+  flex: 0 0 auto;
+
+  padding-right: 14px;
+}
+
+
+/* MONTH LABELS */
+
+.profile-calendar-months {
+  position: relative;
+
+  width: calc(
+    var(--calendar-columns) *
+    (var(--cell-size) + var(--cell-gap))
+  );
+
+  height: 18px;
+}
+
+.profile-calendar-months span {
+  position: absolute;
+
+  left: calc(
+    var(--month-position) *
+    (var(--cell-size) + var(--cell-gap))
+  );
+
+  top: 0;
+
+  transform: translateX(-50%);
+
+  font-size: 7px;
+  line-height: 1;
+
+  font-weight: 800;
+
+  letter-spacing: 0.05em;
+
+  color: rgba(255,255,255,0.35);
+
+  white-space: nowrap;
+}
+
+
+/* GRID */
+
+.profile-calendar {
+  display: grid;
+
+  grid-template-rows:
+    repeat(7, var(--cell-size));
+
+  grid-template-columns:
+    repeat(
+      var(--calendar-columns),
+      var(--cell-size)
+    );
+
+  grid-auto-flow: column;
+
+  gap: var(--cell-gap);
+
+  width: max-content;
+
+  min-width: 0;
+}
+
+
+/* CELLS */
+
+.profile-calendar-day {
+  width: var(--cell-size);
+  height: var(--cell-size);
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 2px;
+
+  appearance: none;
+
+  background:
+    rgba(255,255,255,0.055);
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease;
+}
+
+.profile-calendar-day:hover {
+  transform: scale(1.35);
+  filter: brightness(1.25);
+}
+
+
+/* LEVELS */
+
+.profile-calendar-day.level-0,
+.profile-calendar-legend .level-0 {
+  background:
+    rgba(255,255,255,0.055);
+}
+
+.profile-calendar-day.level-1,
+.profile-calendar-legend .level-1 {
+  background:
+    rgba(170,20,30,0.28);
+}
+
+.profile-calendar-day.level-2,
+.profile-calendar-legend .level-2 {
+  background:
+    rgba(200,25,35,0.46);
+}
+
+.profile-calendar-day.level-3,
+.profile-calendar-legend .level-3 {
+  background:
+    rgba(225,35,45,0.68);
+}
+
+.profile-calendar-day.level-4,
+.profile-calendar-legend .level-4 {
+  background:
+    rgb(255,55,65);
+
+  box-shadow:
+    0 0 9px
+    rgba(255,55,65,0.18);
+}
+
+
+/* LEGEND */
+
+.profile-calendar-legend {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  margin-top: 14px;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+
+  color: rgba(255,255,255,0.35);
+}
+
+.profile-calendar-legend i {
+  display: block;
+
+  width: 9px;
+  height: 9px;
+
+  border-radius: 2px;
+}
+
+
+/* DESKTOP */
+
+@media (min-width: 700px) {
+
+  .profile-calendar-layout {
+    --cell-size: 12px;
+    --cell-gap: 5px;
+  }
+
+}
+
+/* =========================================================
+   PROFILE — PERFORMANCE GRAPH
+========================================================= */
+
+.profile-performance {
+  width: 100%;
+
+  border: 1px solid rgba(255,255,255,0.07);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,0.035),
+      rgba(255,255,255,0.012)
+    );
+
+  padding: 16px;
+}
+
+
+/* HEADER */
+
+.profile-performance-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-bottom: 18px;
+}
+
+.profile-performance-kicker {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: rgba(255,255,255,0.35);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+}
+
+.profile-performance-header h2 {
+  margin: 0;
+
+  color: #f1f1f1;
+
+  font-size: 1rem;
+  font-weight: 900;
+
+  line-height: 1;
+
+  letter-spacing: -0.03em;
+}
+
+.profile-performance-total {
+  flex: 0 0 auto;
+
+  padding-top: 2px;
+
+  color: rgba(255,255,255,0.42);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+
+/* CHART */
+
+.profile-frequency-chart {
+  display: flex;
+  align-items: stretch;
+
+  width: 100%;
+
+  min-height: 150px;
+}
+
+
+/* Y AXIS */
+
+.profile-frequency-y-axis {
+  width: 16px;
+  flex: 0 0 16px;
+
+  display: grid;
+
+  grid-template-rows:
+    repeat(4, 1fr);
+
+  padding-bottom: 19px;
+
+  color: rgba(255,255,255,0.23);
+
+  font-size: 7px;
+  font-weight: 800;
+
+  line-height: 1;
+}
+
+.profile-frequency-y-axis span {
+  display: flex;
+  align-items: flex-start;
+}
+
+
+/* MAIN CHART */
+
+.profile-frequency-main {
+  position: relative;
+
+  flex: 1;
+  min-width: 0;
+
+  height: 150px;
+
+  border-bottom:
+    1px solid
+    rgba(255,255,255,0.08);
+
+  background-image:
+    linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.06) 1px,
+      transparent 1px
+    );
+
+  background-size:
+    100% 25%;
+}
+
+
+/* BARS */
+
+.profile-frequency-bars {
+  position: absolute;
+
+  inset: 0;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(8, minmax(0, 1fr));
+
+  align-items: end;
+
+  gap: 8px;
+
+  padding:
+    8px
+    4px
+    0;
+}
+
+.profile-frequency-column {
+  position: relative;
+
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: flex-end;
+
+  min-width: 0;
+}
+
+
+/* BAR */
+
+.profile-frequency-bar {
+  position: relative;
+
+  width: 12px;
+  max-width: 70%;
+
+  height: 100%;
+
+  display: flex;
+  align-items: flex-end;
+
+  justify-content: center;
+}
+
+.profile-frequency-bar span {
+  display: block;
+
+  width: 100%;
+
+  min-height: 2px;
+
+  border-radius: 2px 2px 0 0;
+
+  background:
+    linear-gradient(
+      to top,
+      rgba(225,29,46,0.5),
+      rgb(255,55,65)
+    );
+
+  box-shadow:
+    0 0 12px rgba(255,55,65,0.12);
+
+  transform-origin: bottom;
+
+  transition:
+    height 300ms ease,
+    opacity 200ms ease;
+}
+
+
+/* DATA HEIGHTS */
+
+.profile-frequency-column[data-value="0"]
+.profile-frequency-bar span {
+  height: 2px;
+  opacity: 0.22;
+}
+
+.profile-frequency-column[data-value="1"]
+.profile-frequency-bar span {
+  height: 33%;
+}
+
+.profile-frequency-column[data-value="2"]
+.profile-frequency-bar span {
+  height: 66%;
+}
+
+.profile-frequency-column[data-value="3"]
+.profile-frequency-bar span {
+  height: 100%;
+}
+
+
+/* WEEK LABEL */
+
+.profile-frequency-column small {
+  position: absolute;
+
+  left: 50%;
+  bottom: -18px;
+
+  transform: translateX(-50%);
+
+  color: rgba(255,255,255,0.25);
+
+  font-size: 7px;
+  font-weight: 800;
+
+  letter-spacing: 0.04em;
+
+  white-space: nowrap;
+}
+
+
+/* HOVER */
+
+.profile-frequency-column:hover
+.profile-frequency-bar span {
+  filter: brightness(1.25);
+
+  box-shadow:
+    0 0 16px rgba(255,55,65,0.22);
+}
+
+
+@media (min-width: 700px) {
+
+  .profile-performance {
+    padding: 20px;
+  }
+
+  .profile-frequency-chart {
+    min-height: 180px;
+  }
+
+  .profile-frequency-main {
+    height: 180px;
+  }
+
+  .profile-frequency-bars {
+    gap: 14px;
+  }
+
+  .profile-frequency-bar {
+    width: 14px;
+  }
+
+}
+
+/* PROFILE HEADER */
+
+.profile-back-button {
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 38px;
+
+  padding: 0;
+
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 11px;
+
+  background: rgba(255,255,255,0.035);
+
+  color: #d0d0d0;
+
+  font-size: 1rem;
+  line-height: 1;
+
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.profile-back-button:hover {
+  border-color: rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.07);
+  color: #fff;
+}
+
+.profile-back-button:active {
+  transform: scale(0.94);
+}
+
+
+.profile-header-label {
+  margin-left: auto;
+
+  color: #737373;
+
+  font-size: 0.58rem;
+  font-weight: 900;
+
+  letter-spacing: 0.15em;
+  line-height: 1;
+}
+
+/* =========================================================
+   PROFILE — PERFORMANCE
+========================================================= */
+
+.profile-performance {
+  width: 100%;
+
+  padding: 16px;
+
+  border: 1px solid rgba(255,255,255,0.07);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,0.035),
+      rgba(255,255,255,0.012)
+    );
+}
+
+.profile-performance-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-bottom: 18px;
+}
+
+.profile-performance-kicker {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: rgba(255,255,255,0.35);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+}
+
+.profile-performance-header h2 {
+  margin: 0;
+
+  color: #f1f1f1;
+
+  font-size: 1rem;
+  font-weight: 900;
+
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.profile-performance-total {
+  padding-top: 2px;
+
+  color: rgba(255,255,255,0.42);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+
+/* CHART */
+
+.profile-frequency-chart {
+  display: flex;
+
+  width: 100%;
+  height: 150px;
+}
+
+.profile-frequency-y-axis {
+  width: 16px;
+  flex: 0 0 16px;
+
+  display: grid;
+  grid-template-rows: repeat(4, 1fr);
+
+  padding-bottom: 18px;
+
+  color: rgba(255,255,255,0.22);
+
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.profile-frequency-main {
+  position: relative;
+
+  flex: 1;
+
+  height: 150px;
+
+  border-bottom:
+    1px solid rgba(255,255,255,0.08);
+
+  background-image:
+    linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.055) 1px,
+      transparent 1px
+    );
+
+  background-size: 100% 25%;
+}
+
+.profile-frequency-bars {
+  position: absolute;
+
+  inset: 0;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(8, minmax(0, 1fr));
+
+  align-items: end;
+
+  gap: 8px;
+
+  padding:
+    8px
+    4px
+    0;
+}
+
+.profile-frequency-column {
+  position: relative;
+
+  height: 100%;
+
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  flex-direction: column;
+}
+
+.profile-frequency-bar {
+  width: 12px;
+  height: 100%;
+
+  display: flex;
+  align-items: flex-end;
+}
+
+.profile-frequency-bar span {
+  display: block;
+
+  width: 100%;
+
+  min-height: 2px;
+
+  border-radius:
+    2px
+    2px
+    0
+    0;
+
+  background:
+    linear-gradient(
+      to top,
+      rgba(225,29,46,0.5),
+      rgb(255,55,65)
+    );
+
+  box-shadow:
+    0 0 12px rgba(255,55,65,0.12);
+}
+
+.profile-frequency-column[data-value="0"]
+.profile-frequency-bar span {
+  height: 2px;
+  opacity: 0.2;
+}
+
+.profile-frequency-column[data-value="1"]
+.profile-frequency-bar span {
+  height: 33%;
+}
+
+.profile-frequency-column[data-value="2"]
+.profile-frequency-bar span {
+  height: 66%;
+}
+
+.profile-frequency-column[data-value="3"]
+.profile-frequency-bar span {
+  height: 100%;
+}
+
+.profile-frequency-column small {
+  position: absolute;
+
+  bottom: -17px;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  color: rgba(255,255,255,0.25);
+
+  font-size: 7px;
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+/* =========================================================
+   PROFILE — TRAINING METRICS
+========================================================= */
+
+.profile-metrics-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 8px;
+}
+
+.profile-metric-card {
+  position: relative;
+
+  min-height: 100px;
+
+  padding: 14px;
+
+  border:
+    1px solid
+    rgba(255,255,255,0.07);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,0.035),
+      rgba(255,255,255,0.012)
+    );
+}
+
+.profile-metric-card::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 20px;
+  height: 2px;
+
+  background:
+    rgba(255,55,65,0.6);
+}
+
+.profile-metric-card span {
+  display: block;
+
+  color:
+    rgba(255,255,255,0.32);
+
+  font-size: 7px;
+  font-weight: 900;
+
+  letter-spacing: 0.13em;
+}
+
+.profile-metric-card strong {
+  display: block;
+
+  margin-top: 17px;
+
+  color: #f2f2f2;
+
+  font-size: 1.65rem;
+  font-weight: 900;
+
+  line-height: 1;
+
+  letter-spacing: -0.05em;
+}
+
+.profile-metric-card small {
+  display: block;
+
+  margin-top: 8px;
+
+  color:
+    rgba(255,255,255,0.22);
+
+  font-size: 6px;
+  font-weight: 800;
+
+  letter-spacing: 0.10em;
+}
+
+/* =========================================================
+   PROFILE — GRAPH SHEETS
+========================================================= */
+
+.profile-graph-sheet {
+  width: 100%;
+
+  padding: 16px;
+
+  border: 1px solid rgba(255,255,255,0.07);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,0.035),
+      rgba(255,255,255,0.012)
+    );
+}
+
+.profile-graph-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-bottom: 18px;
+}
+
+.profile-graph-kicker {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: rgba(255,255,255,0.35);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+}
+
+.profile-graph-header h2 {
+  margin: 0;
+
+  color: #f1f1f1;
+
+  font-size: 1rem;
+  font-weight: 900;
+
+  line-height: 1;
+
+  letter-spacing: -0.03em;
+}
+
+.profile-graph-range {
+  padding-top: 2px;
+
+  color: rgba(255,255,255,0.42);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+.profile-volume-chart {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  overflow: visible;
+
+  border-bottom:
+    1px solid
+    rgba(255,255,255,0.08);
+}
+
+.profile-volume-grid {
+  position: absolute;
+
+  inset: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  pointer-events: none;
+}
+
+.profile-volume-grid span {
+  display: block;
+
+  width: 100%;
+  height: 1px;
+
+  background: rgba(255,255,255,0.055);
+}
+
+.profile-volume-bars {
+  position: absolute;
+
+  inset: 0;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(8, minmax(0, 1fr));
+
+  align-items: end;
+
+  gap: 8px;
+
+  padding:
+    8px
+    4px
+    0;
+}
+
+.profile-volume-column {
+  position: relative;
+
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.profile-volume-bar {
+  width: 16px;
+  height: 100%;
+
+  display: flex;
+  align-items: flex-end;
+}
+
+.profile-volume-bar span {
+  display: block;
+
+  width: 100%;
+
+  height: var(--volume-height);
+
+  min-height: 2px;
+
+  border-radius: 3px 3px 0 0;
+
+  background:
+    linear-gradient(
+      to top,
+      rgba(225,29,46,0.5),
+      rgb(255,55,65)
+    );
+
+  box-shadow:
+    0 0 14px
+    rgba(255,55,65,0.12);
+}
+
+.profile-volume-column[data-value="0"]
+.profile-volume-bar span {
+  height: 2px;
+  opacity: 0.18;
+}
+
+.profile-volume-column small {
+  position: absolute;
+
+  bottom: -18px;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  color: rgba(255,255,255,0.25);
+
+  font-size: 7px;
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+/* =========================================================
+   PROFILE — GRAPH TOOLTIP
+========================================================= */
+
+.profile-volume-tooltip {
+  position: absolute;
+
+  left: 50%;
+  bottom: calc(100% + 10px);
+
+  transform: translateX(-50%);
+
+  z-index: 20;
+
+  min-width: 82px;
+
+  padding: 9px 11px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  border: 1px solid rgba(255,255,255,0.09);
+
+  background:
+    rgba(18,18,18,0.96);
+
+  box-shadow:
+    0 10px 28px rgba(0,0,0,0.35);
+
+  pointer-events: none;
+}
+
+.profile-volume-tooltip::after {
+  content: "";
+
+  position: absolute;
+
+  left: 50%;
+  bottom: -5px;
+
+  width: 8px;
+  height: 8px;
+
+  transform: translateX(-50%) rotate(45deg);
+
+  border-right:
+    1px solid rgba(255,255,255,0.09);
+
+  border-bottom:
+    1px solid rgba(255,255,255,0.09);
+
+  background:
+    rgba(18,18,18,0.96);
+}
+
+.profile-volume-tooltip span {
+  color: rgba(255,255,255,0.38);
+
+  font-size: 7px;
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+.profile-volume-tooltip strong {
+  margin-top: 4px;
+
+  color: #f2f2f2;
+
+  font-size: 13px;
+  font-weight: 900;
+
+  line-height: 1;
+}
+
+.profile-volume-tooltip small {
+  margin-top: 4px;
+
+  color: rgba(255,55,65,0.8);
+
+  font-size: 6px;
+  font-weight: 900;
+
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 600px) {
+
+  .profile-graph-sheet {
+    padding: 14px;
+  }
+
+  .profile-volume-chart {
+    height: 145px;
+  }
+
+  .profile-volume-bars {
+    gap: 4px;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  .profile-volume-bar {
+    width: 12px;
+  }
+
+  .profile-volume-column small {
+    font-size: 6px;
+  }
+
+  .profile-volume-tooltip {
+    min-width: 74px;
+    padding: 8px 9px;
+  }
+
+  .profile-volume-tooltip strong {
+    font-size: 12px;
+  }
+
+}

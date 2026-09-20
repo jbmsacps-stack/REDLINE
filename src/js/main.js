@@ -38,6 +38,7 @@ let routines = [
 
 let workoutSessions = [];
 let sessionNoteDraft = "";
+let profileReturnView = "workouts";
 
 function getLocalDate() {
   const now = new Date();
@@ -852,6 +853,995 @@ function renderRoutineDetail() {
 
   animateRoutineDetail();
 }
+
+function openProfile() {
+
+  if (document.querySelector(".routine-detail-page")) {
+    profileReturnView = "routine-detail";
+  } else if (document.querySelector(".routines-screen")) {
+    profileReturnView = "routines";
+  } else {
+    profileReturnView = "workouts";
+  }
+
+  renderProfile();
+}
+
+
+function getActivityLevel(count) {
+
+  if (count >= 3) return 4;
+  if (count === 2) return 3;
+  if (count === 1) return 2;
+
+  return 0;
+}
+
+
+function getActivityCalendar() {
+
+  const activity = {};
+
+  workoutSessions.forEach((session) => {
+    activity[session.date] =
+      (activity[session.date] || 0) + 1;
+  });
+
+
+  const days = [];
+
+  const today = new Date();
+
+  today.setHours(0, 0, 0, 0);
+
+
+  const start = new Date(today);
+
+  start.setDate(
+    today.getDate() - 363
+  );
+
+
+  // Start on Sunday
+  while (start.getDay() !== 0) {
+    start.setDate(
+      start.getDate() - 1
+    );
+  }
+
+
+  const end = new Date(today);
+
+  // End on Saturday
+  while (end.getDay() !== 6) {
+    end.setDate(
+      end.getDate() + 1
+    );
+  }
+
+
+  for (
+    let cursor = new Date(start);
+    cursor <= end;
+    cursor.setDate(
+      cursor.getDate() + 1
+    )
+  ) {
+
+    const year =
+      cursor.getFullYear();
+
+    const month =
+      String(
+        cursor.getMonth() + 1
+      ).padStart(2, "0");
+
+    const day =
+      String(
+        cursor.getDate()
+      ).padStart(2, "0");
+
+
+    const date =
+      `${year}-${month}-${day}`;
+
+
+    days.push({
+
+      date,
+
+      count:
+        activity[date] || 0,
+
+      level:
+        getActivityLevel(
+          activity[date] || 0
+        )
+
+    });
+
+  }
+
+
+  const weekCount =
+    Math.ceil(
+      days.length / 7
+    );
+
+
+  /*
+     Build unique months only.
+     This prevents SEP appearing twice
+     when the calendar starts and ends
+     inside the same month.
+  */
+
+  const monthStarts = [];
+
+  const seenMonths = new Set();
+
+
+  days.forEach((day, index) => {
+
+    const month =
+      day.date.slice(0, 7);
+
+    if (!seenMonths.has(month)) {
+
+      seenMonths.add(month);
+
+      monthStarts.push({
+        month,
+        index
+      });
+
+    }
+
+  });
+
+
+  const monthLabels =
+    monthStarts
+      .slice(-12)
+      .map((entry) => {
+
+        const [year, monthNumber] =
+          entry.month.split("-");
+
+        const label =
+          new Date(
+            Number(year),
+            Number(monthNumber) - 1,
+            1
+          )
+            .toLocaleString(
+              "en-US",
+              {
+                month: "short"
+              }
+            )
+            .toUpperCase();
+
+        const position =
+          Math.floor(
+            entry.index / 7
+          );
+
+        return {
+          label,
+          position
+        };
+
+      });
+
+
+  return {
+    days,
+    weekCount,
+    monthLabels
+  };
+
+}
+
+function getWeeklySessionCounts() {
+
+  const weeks = Array(8).fill(0);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  workoutSessions.forEach((session) => {
+
+    const sessionDate =
+      new Date(`${session.date}T00:00:00`);
+
+    const diff =
+      Math.floor(
+        (today - sessionDate) /
+        (1000 * 60 * 60 * 24)
+      );
+
+    const week =
+      Math.floor(diff / 7);
+
+    if (week >= 0 && week < 8) {
+      weeks[7 - week]++;
+    }
+
+  });
+
+  return weeks;
+}
+
+function getTrainingMetrics() {
+
+  const activeDays =
+    new Set(
+      workoutSessions.map(
+        (session) => session.date
+      )
+    ).size;
+
+  const totalExercises =
+    workoutSessions.reduce(
+      (total, session) =>
+        total + session.exercises.length,
+      0
+    );
+
+  let streak = 0;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const sessionDates =
+    new Set(
+      workoutSessions.map(
+        (session) => session.date
+      )
+    );
+
+  const cursor = new Date(today);
+
+  while (true) {
+
+    const year =
+      cursor.getFullYear();
+
+    const month =
+      String(
+        cursor.getMonth() + 1
+      ).padStart(2, "0");
+
+    const day =
+      String(
+        cursor.getDate()
+      ).padStart(2, "0");
+
+    const date =
+      `${year}-${month}-${day}`;
+
+    if (!sessionDates.has(date)) {
+      break;
+    }
+
+    streak++;
+
+    cursor.setDate(
+      cursor.getDate() - 1
+    );
+  }
+
+  return {
+    activeDays,
+    totalExercises,
+    streak
+  };
+}
+
+function getWeeklyVolume() {
+
+  const weeks = Array(8).fill(0);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  workoutSessions.forEach((session) => {
+
+    const sessionDate =
+      new Date(`${session.date}T00:00:00`);
+
+    const diff =
+      Math.floor(
+        (today - sessionDate) /
+        (1000 * 60 * 60 * 24)
+      );
+
+    const week =
+      Math.floor(diff / 7);
+
+    if (week >= 0 && week < 8) {
+
+      const volume =
+        session.exercises.reduce(
+          (total, exercise) =>
+            total +
+            (
+              Number(exercise.weight) *
+              Number(exercise.reps) *
+              Number(exercise.sets)
+            ),
+          0
+        );
+
+      weeks[7 - week] += volume;
+    }
+  });
+
+  return weeks;
+}
+
+function renderProfile() {
+
+  const app =
+    document.querySelector("#app");
+
+  const completedSessions =
+    workoutSessions.length;
+
+  const totalExercises =
+    workoutSessions.reduce(
+      (total, session) =>
+        total + session.exercises.length,
+      0
+    );
+
+  const calendar =
+    getActivityCalendar();
+
+  const metrics =
+    getTrainingMetrics();
+
+  const weeklyVolume =
+   getWeeklyVolume();
+
+  const maxWeeklyVolume =
+    Math.max(...weeklyVolume, 1);
+
+  app.innerHTML = `
+
+    <div class="app-shell">
+
+      <header class="app-header">
+
+        <button
+          class="profile-back-button"
+          type="button"
+          aria-label="Back"
+        >
+          ←
+        </button>
+
+        <span class="profile-header-label">
+  PROFILE
+</span>
+
+      </header>
+
+
+      <main>
+
+        <section class="profile-screen">
+
+          <span class="section-kicker">
+            REDLINE SYSTEM
+          </span>
+
+
+          <h1 class="profile-title">
+            YOUR
+            <span>TRAINING.</span>
+          </h1>
+
+
+          <div class="profile-stats">
+
+            <article class="profile-stat">
+              <strong>
+                ${completedSessions}
+              </strong>
+
+              <span>
+                SESSIONS
+              </span>
+            </article>
+
+
+            <article class="profile-stat">
+              <strong>
+                ${totalExercises}
+              </strong>
+
+              <span>
+                EXERCISES
+              </span>
+            </article>
+
+          </div>
+
+
+          <section class="profile-section">
+
+            <div class="profile-section-heading">
+              TRAINING ACTIVITY
+            </div>
+
+
+<div class="profile-activity">
+
+  <div class="profile-activity-header">
+
+    <span>
+      LAST 12 MONTHS
+    </span>
+
+    <span>
+      ${completedSessions} SESSIONS
+    </span>
+
+  </div>
+
+
+  <div class="profile-calendar-scroll">
+
+    <div class="profile-calendar-layout">
+
+      <div class="profile-calendar-weekday-rail">
+
+        <span></span>
+        <span>S</span>
+        <span>M</span>
+        <span>T</span>
+        <span>W</span>
+        <span>T</span>
+        <span>F</span>
+        <span>S</span>
+
+      </div>
+
+
+      <div class="profile-calendar-area">
+
+        <div
+          class="profile-calendar-months"
+          style="--calendar-columns: ${calendar.weekCount};"
+        >
+
+          ${calendar.monthLabels
+      .map(
+        (month) => `
+                <span
+                  style="--month-position: ${month.position};"
+                >
+                  ${month.label}
+                </span>
+              `
+      )
+      .join("")
+    }
+
+        </div>
+
+
+        <div
+          class="profile-calendar"
+          style="--calendar-columns: ${calendar.weekCount};"
+        >
+
+          ${calendar.days
+      .map(
+        (day) => `
+                <button
+                  class="profile-calendar-day level-${day.level}"
+                  type="button"
+                  data-date="${day.date}"
+                  aria-label="${day.date}"
+                ></button>
+              `
+      )
+      .join("")
+    }
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="profile-calendar-legend">
+
+    <span>LESS</span>
+
+    <i class="level-0"></i>
+    <i class="level-1"></i>
+    <i class="level-2"></i>
+    <i class="level-3"></i>
+    <i class="level-4"></i>
+
+    <span>MORE</span>
+
+  </div>
+
+</div>
+
+          </section>
+
+
+          <section class="profile-section">
+
+  <div class="profile-section-heading">
+    PERFORMANCE
+  </div>
+
+
+  <div class="profile-performance">
+
+    <div class="profile-performance-header">
+
+      <div>
+        <span class="profile-performance-kicker">
+          TRAINING FREQUENCY
+        </span>
+
+        <h2>
+          LAST 8 WEEKS
+        </h2>
+      </div>
+
+      <span class="profile-performance-total">
+        ${completedSessions}
+        SESSIONS
+      </span>
+
+    </div>
+
+
+    <div class="profile-frequency-chart">
+
+      <div class="profile-frequency-y-axis">
+
+        <span>3</span>
+        <span>2</span>
+        <span>1</span>
+        <span>0</span>
+
+      </div>
+
+
+      <div class="profile-frequency-main">
+
+        <div class="profile-frequency-bars">
+
+          ${getWeeklySessionCounts()
+      .map(
+        (count, index) => `
+                  <div
+                    class="profile-frequency-column"
+                    data-value="${count}"
+                  >
+
+                    <div class="profile-frequency-bar">
+                      <span></span>
+                    </div>
+
+                    <small>
+                      W${index + 1}
+                    </small>
+
+                  </div>
+                `
+      )
+      .join("")
+    }
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+        <section class="profile-section">
+
+  <div class="profile-section-heading">
+    TRAINING METRICS
+  </div>
+
+  <div class="profile-metrics-grid">
+
+    <article class="profile-metric-card">
+
+      <span>ACTIVE DAYS</span>
+
+      <strong>
+        ${metrics.activeDays}
+      </strong>
+
+      <small>
+        TRAINING DAYS
+      </small>
+
+    </article>
+
+
+    <article class="profile-metric-card">
+
+      <span>EXERCISES</span>
+
+      <strong>
+        ${metrics.totalExercises}
+      </strong>
+
+      <small>
+        LOGGED
+      </small>
+
+    </article>
+
+
+    <article class="profile-metric-card">
+
+      <span>CURRENT STREAK</span>
+
+      <strong>
+        ${metrics.streak}
+      </strong>
+
+      <small>
+        DAYS
+      </small>
+
+    </article>
+
+  </div>
+
+</section>
+
+<section class="profile-section">
+
+  <div class="profile-section-heading">
+    GRAPH SHEETS
+  </div>
+
+  <div class="profile-graph-sheet">
+
+    <div class="profile-graph-header">
+
+      <div>
+        <span class="profile-graph-kicker">
+          TRAINING LOAD
+        </span>
+
+        <h2>
+          WEEKLY VOLUME
+        </h2>
+      </div>
+
+      <span class="profile-graph-range">
+        8 WEEKS
+      </span>
+
+    </div>
+
+    <div class="profile-volume-chart">
+
+      <div class="profile-volume-grid">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      <div class="profile-volume-bars">
+
+        ${weeklyVolume
+          .map(
+            (volume, index) => `
+              <div
+                class="profile-volume-column"
+                data-value="${volume}"
+                style="
+                  --volume-height:
+                    ${(volume / maxWeeklyVolume) * 100}%;
+                "
+              >
+                <div class="profile-volume-bar">
+                  <span></span>
+                </div>
+
+                <small>
+                  W${index + 1}
+                </small>
+              </div>
+            `
+          )
+          .join("")}
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+</section>
+
+      </main>
+
+
+      ${renderBottomNav("profile")}
+
+    </div>
+
+  `;
+
+
+  const activityPanel =
+    document.querySelector(
+      ".profile-activity"
+    );
+
+
+  document
+    .querySelectorAll(
+      ".profile-calendar-day"
+    )
+    .forEach((day) => {
+
+      day.addEventListener(
+        "click",
+        () => {
+
+          const existingTooltip =
+            activityPanel.querySelector(
+              ".profile-day-tooltip"
+            );
+
+          existingTooltip?.remove();
+
+
+          const date =
+            day.dataset.date;
+
+
+          const sessions =
+            workoutSessions.filter(
+              (session) =>
+                session.date === date
+            );
+
+
+          const formattedDate =
+            new Date(
+              `${date}T00:00:00`
+            ).toLocaleDateString(
+              "en-US",
+              {
+                month: "short",
+                day: "numeric",
+                year: "numeric"
+              }
+            );
+
+
+          const tooltip =
+            document.createElement(
+              "div"
+            );
+
+          tooltip.className =
+            "profile-day-tooltip";
+
+
+          tooltip.innerHTML = `
+
+          <div class="profile-day-tooltip-date">
+            ${formattedDate}
+          </div>
+
+          ${sessions.length
+              ? `
+                <div class="profile-day-tooltip-count">
+                  ${sessions.length}
+                  ${sessions.length === 1
+                ? "SESSION"
+                : "SESSIONS"}
+                </div>
+
+                <div class="profile-day-tooltip-sessions">
+
+                  ${sessions
+                .map((session) => {
+
+                  const routine =
+                    routines.find(
+                      (item) =>
+                        item.id ===
+                        session.routineId
+                    );
+
+                  return `
+                        <div class="profile-day-tooltip-session">
+
+                          <strong>
+                            ${routine?.name || "TRAINING"}
+                          </strong>
+
+                          <span>
+                            ${session.exercises.length}
+                            EXERCISES
+                          </span>
+
+                        </div>
+                      `;
+
+                })
+                .join("")
+              }
+
+                </div>
+              `
+              : `
+                <div class="profile-day-tooltip-empty">
+                  NO TRAINING
+                </div>
+              `
+            }
+
+        `;
+
+
+          activityPanel.appendChild(
+            tooltip
+          );
+
+
+          const dayRect =
+            day.getBoundingClientRect();
+
+          const panelRect =
+            activityPanel.getBoundingClientRect();
+
+
+          const tooltipWidth = 190;
+
+
+          const left =
+            Math.max(
+              10,
+              Math.min(
+                dayRect.left -
+                panelRect.left +
+                dayRect.width / 2 -
+                tooltipWidth / 2,
+
+                panelRect.width -
+                tooltipWidth -
+                10
+              )
+            );
+
+
+          tooltip.style.left =
+            `${left}px`;
+
+          tooltip.style.top =
+            `${dayRect.bottom -
+            panelRect.top +
+            10
+            }px`;
+
+
+          gsap.fromTo(
+
+            tooltip,
+
+            {
+              opacity: 0,
+              y: -5,
+              scale: 0.96
+            },
+
+            {
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              duration: 0.2,
+              ease: "power2.out"
+            }
+
+          );
+
+        }
+      );
+
+    });
+
+
+animateProfileGraphs();
+
+  document
+    .querySelectorAll(".profile-volume-column")
+    .forEach((column) => {
+
+      column.addEventListener(
+        "click",
+        () => {
+
+          const existingTooltip =
+            document.querySelector(
+              ".profile-volume-tooltip"
+            );
+
+          existingTooltip?.remove();
+
+          const volume =
+            Number(column.dataset.value);
+
+          const week =
+            column.querySelector("small")
+              ?.textContent || "";
+
+          const tooltip =
+            document.createElement("div");
+
+          tooltip.className =
+            "profile-volume-tooltip";
+
+          tooltip.innerHTML = `
+            <span>${week}</span>
+            <strong>
+              ${volume.toLocaleString()}
+            </strong>
+            <small>
+              KG VOLUME
+            </small>
+          `;
+
+          column.appendChild(tooltip);
+
+          gsap.fromTo(
+            tooltip,
+            {
+              opacity: 0,
+              y: 6,
+              scale: 0.94
+            },
+            {
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              duration: 0.2,
+              ease: "power2.out"
+            }
+          );
+
+        }
+      );
+
+    });
+
+attachEvents();
+
+}
+
 
 function openSessionNoteEditor() {
 
@@ -1848,22 +2838,22 @@ function openRoutineExerciseHistory(
   </span>
 
   ${session.notes
-  ? `
+              ? `
     <small class="routine-history-note">
       NOTE — ${session.notes}
     </small>
   `
-  : ""
-}
+              : ""
+            }
 
 ${session.sessionNote
-  ? `
+              ? `
     <small class="routine-history-note">
       SESSION NOTE — ${session.sessionNote}
     </small>
   `
-  : ""
-}
+              : ""
+            }
 
 </article>
                   `
@@ -2566,6 +3556,35 @@ function openRepsEditor(
       },
       "-=0.08"
     );
+
+}
+
+function animateProfileGraphs() {
+
+  const bars =
+    document.querySelectorAll(
+      ".profile-volume-bar span"
+    );
+
+  if (!bars.length) {
+    return;
+  }
+
+  gsap.fromTo(
+    bars,
+    {
+      scaleY: 0,
+      opacity: 0
+    },
+    {
+      scaleY: 1,
+      opacity: 1,
+      duration: 0.6,
+      stagger: 0.08,
+      ease: "power3.out",
+      transformOrigin: "bottom"
+    }
+  );
 
 }
 
@@ -4589,11 +5608,34 @@ function attachEvents() {
 
 
   profileButton?.addEventListener(
-  "click",
-  () => {
-    renderProfile();
-  }
-);
+    "click",
+    () => {
+      openProfile();
+    }
+  );
+
+  const profileBackButton =
+    document.querySelector(
+      ".profile-back-button"
+    );
+
+  profileBackButton?.addEventListener(
+    "click",
+    () => {
+
+      if (profileReturnView === "routine-detail") {
+        renderRoutineDetail();
+        return;
+      }
+
+      if (profileReturnView === "routines") {
+        renderRoutines();
+        return;
+      }
+
+      render();
+    }
+  );
 
 
   // =======================
@@ -5157,6 +6199,11 @@ function attachEvents() {
 
           if (page === "routines") {
             renderRoutines();
+            return;
+          }
+
+          if (page === "profile") {
+            openProfile();
             return;
           }
 
