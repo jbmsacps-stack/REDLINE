@@ -8294,3 +8294,71 @@ svg {
 .appearance-option.active span:last-child {
   color: var(--color-red);
 }
+
+.profile-setting-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.profile-setting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-setting-info strong {
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+}
+
+.profile-setting-info span {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.profile-setting-toggle {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  flex: 0 0 auto;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface-soft);
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.profile-setting-toggle span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.profile-setting-toggle.active {
+  background: var(--color-red);
+  border-color: var(--color-red);
+}
+
+.profile-setting-toggle.active span {
+  transform: translateX(20px);
+  background: #ffffff;
+}

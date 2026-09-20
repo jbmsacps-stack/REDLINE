@@ -79,6 +79,20 @@ async function initializeApp() {
   render();
 }
 
+function applyMotionPreference() {
+
+  if (typeof gsap === "undefined") {
+    return;
+  }
+
+  gsap.globalTimeline.timeScale(
+    reduceMotion ? 100 : 1
+  );
+
+  document.documentElement.dataset.reduceMotion =
+    reduceMotion ? "true" : "false";
+}
+
 
 // =========================
 // FILTER STATE
@@ -89,6 +103,9 @@ let activeEquipment = "All";
 let searchTerm = "";
 let selectedExercise = null;
 let activeRoutine = null;
+
+let reduceMotion =
+  localStorage.getItem("redline-reduce-motion") === "true";
 
 let routines = [
 ];
@@ -1573,8 +1590,8 @@ function renderProfile() {
 
               <span>
   ${completedSessions === 1
-    ? "SESSION"
-    : "SESSIONS"}
+      ? "SESSION"
+      : "SESSIONS"}
 </span>
             </article>
 
@@ -1955,6 +1972,44 @@ ${completedSessions === 1
     </button>
 
   </div>
+
+</section>
+
+<section class="profile-section">
+
+  <div class="profile-section-heading">
+    APP SETTINGS
+  </div>
+
+  <button
+    class="profile-setting-row"
+    data-setting-toggle="reduce-motion"
+    type="button"
+    aria-pressed="${reduceMotion}"
+  >
+
+    <div class="profile-setting-info">
+
+      <strong>
+        REDUCE MOTION
+      </strong>
+
+      <span>
+        ${reduceMotion
+      ? "ENTRANCE & TRANSITION MOTION REDUCED"
+      : "ENTRANCE & TRANSITION MOTION ENABLED"}
+      </span>
+
+    </div>
+
+    <div
+      class="profile-setting-toggle ${reduceMotion ? "active" : ""}"
+      aria-hidden="true"
+    >
+      <span></span>
+    </div>
+
+  </button>
 
 </section>
 
@@ -6753,6 +6808,29 @@ function attachEvents() {
 
     });
 
+  const reduceMotionSetting =
+    document.querySelector(
+      '[data-setting-toggle="reduce-motion"]'
+    );
+
+  reduceMotionSetting?.addEventListener(
+    "click",
+    () => {
+
+      reduceMotion = !reduceMotion;
+
+      localStorage.setItem(
+        "redline-reduce-motion",
+        reduceMotion
+      );
+
+      applyMotionPreference();
+
+      renderProfile();
+
+    }
+  );
+
   const profileSignoutButton =
     document.querySelector(
       ".profile-signout-button"
@@ -6859,5 +6937,7 @@ clerk.addListener(() => {
     initializeApp();
   }
 });
+
+applyMotionPreference();
 
 await initializeApp();
