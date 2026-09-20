@@ -107,6 +107,45 @@ let activeRoutine = null;
 let reduceMotion =
   localStorage.getItem("redline-reduce-motion") === "true";
 
+let weightUnit =
+  localStorage.getItem("redline-weight-unit") || "KG";
+
+const KG_TO_LB = 2.2046226218;
+
+function formatWeight(kg) {
+
+  if (
+    !Number.isFinite(Number(kg)) ||
+    Number(kg) <= 0
+  ) {
+    return `— ${weightUnit.toLowerCase()}`;
+  }
+
+  const value =
+    weightUnit === "LB"
+      ? Number(kg) * KG_TO_LB
+      : Number(kg);
+
+  return `${Number(value.toFixed(1))} ${weightUnit.toLowerCase()}`;
+}
+
+function weightToKg(value) {
+
+  const numericValue =
+    Number(value);
+
+  if (
+    !Number.isFinite(numericValue) ||
+    numericValue < 0
+  ) {
+    return 0;
+  }
+
+  return weightUnit === "LB"
+    ? numericValue / KG_TO_LB
+    : numericValue;
+}
+
 let routines = [
 ];
 
@@ -1094,10 +1133,7 @@ function renderRoutineDetail() {
       </span>
 
       <span class="routine-value-text">
-        ${exercise.tracking.weight > 0
-            ? `${exercise.tracking.weight} kg`
-            : "— kg"
-          }
+        ${formatWeight(exercise.tracking.weight)}
       </span>
     </button>
 
@@ -1511,7 +1547,12 @@ function getWeeklyVolume() {
           0
         );
 
-      weeks[7 - week] += volume;
+      const displayVolume =
+        weightUnit === "LB"
+          ? volume * KG_TO_LB
+          : volume;
+
+      weeks[7 - week] += displayVolume;
     }
   });
 
@@ -2011,6 +2052,43 @@ ${completedSessions === 1
 
   </button>
 
+  <div class="profile-setting-row profile-setting-selector">
+
+    <div class="profile-setting-info">
+
+      <strong>
+        WEIGHT UNIT
+      </strong>
+
+      <span>
+        DISPLAY TRAINING WEIGHTS IN
+        ${weightUnit}
+      </span>
+
+    </div>
+
+    <div class="profile-unit-selector">
+
+      <button
+        class="${weightUnit === "KG" ? "active" : ""}"
+        data-weight-unit="KG"
+        type="button"
+      >
+        KG
+      </button>
+
+      <button
+        class="${weightUnit === "LB" ? "active" : ""}"
+        data-weight-unit="LB"
+        type="button"
+      >
+        LB
+      </button>
+
+    </div>
+
+  </div>
+
 </section>
 
       </main>
@@ -2270,10 +2348,10 @@ ${completedSessions === 1
           tooltip.innerHTML = `
             <span>${week}</span>
             <strong>
-              ${volume.toLocaleString()}
+              ${Number(volume.toFixed(1)).toLocaleString()}
             </strong>
             <small>
-              KG VOLUME
+              ${weightUnit} VOLUME
             </small>
           `;
 
@@ -3290,7 +3368,7 @@ function openRoutineExerciseHistory(
 
     <span>
       ${session.weight > 0
-              ? `${session.weight} kg`
+              ? formatWeight(session.weight)
               : "BODYWEIGHT"
             }
     </span>
@@ -3502,11 +3580,11 @@ function openWeightEditor(
       <div class="tracker-editor-content">
 
         <label
-          class="tracker-editor-label"
-          for="tracker-weight-input"
-        >
-          WEIGHT / KG
-        </label>
+  class="tracker-editor-label"
+  for="tracker-weight-input"
+>
+  WEIGHT / ${weightUnit}
+</label>
 
         <input
           id="tracker-weight-input"
@@ -3516,7 +3594,12 @@ function openWeightEditor(
           step="0.5"
           inputmode="decimal"
           value="${routineExercise.weight > 0
-      ? routineExercise.weight
+      ? weightUnit === "LB"
+        ? Number(
+          (routineExercise.weight * KG_TO_LB)
+            .toFixed(1)
+        )
+        : routineExercise.weight
       : ""
     }"
           placeholder="0"
@@ -3668,7 +3751,7 @@ function openWeightEditor(
 
 
       routineExercise.weight =
-        value;
+        weightToKg(value);
 
       syncRoutineToSupabase(activeRoutine);
 
@@ -6830,6 +6913,67 @@ function attachEvents() {
 
     }
   );
+
+  document
+  .querySelectorAll("[data-weight-unit]")
+  .forEach((button) => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        const newUnit =
+          button.dataset.weightUnit;
+
+        if (newUnit === weightUnit) {
+          return;
+        }
+
+        weightUnit = newUnit;
+
+        localStorage.setItem(
+          "redline-weight-unit",
+          weightUnit
+        );
+
+        // Update active button
+        document
+          .querySelectorAll("[data-weight-unit]")
+          .forEach((unitButton) => {
+            unitButton.classList.toggle(
+              "active",
+              unitButton.dataset.weightUnit === weightUnit
+            );
+          });
+
+        // Update description text
+        const unitDescription =
+          document.querySelector(
+            ".profile-setting-selector .profile-setting-info span"
+          );
+
+        if (unitDescription) {
+          unitDescription.textContent =
+            `DISPLAY TRAINING WEIGHTS IN ${weightUnit}`;
+        }
+
+        // Animate the clicked button
+        gsap.fromTo(
+          button,
+          {
+            scale: 0.90
+          },
+          {
+            scale: 1,
+            duration: 1,
+            ease: "back.out(2)"
+          }
+        );
+
+      }
+    );
+
+  });
 
   const profileSignoutButton =
     document.querySelector(

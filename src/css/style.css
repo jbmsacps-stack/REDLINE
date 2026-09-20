@@ -8362,3 +8362,54 @@ svg {
   transform: translateX(20px);
   background: #ffffff;
 }
+
+.profile-setting-selector {
+  cursor: default;
+}
+
+.profile-unit-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface-soft);
+}
+
+.profile-unit-selector button {
+  min-width: 44px;
+  height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.profile-unit-selector button.active {
+  background: var(--color-red);
+  color: #ffffff;
+}
+
+.profile-unit-selector button:hover:not(.active) {
+  color: var(--color-text);
+}
+
+@media (max-width: 600px) {
+
+  .profile-setting-selector {
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .profile-unit-selector {
+    margin-left: auto;
+  }
+
+}
