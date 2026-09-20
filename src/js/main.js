@@ -1,11 +1,82 @@
 import "../css/variables.css";
 import "../css/reset.css";
 import "../css/style.css";
+import { Clerk } from "@clerk/clerk-js";
+import { createClerkSupabaseClient } from "./supabase.js";
+
+const app = document.querySelector("#app");
 
 import { exercises } from "./data.js";
 import gsap from "gsap";
 
-const app = document.querySelector("#app");
+
+const publishableKey =
+  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+if (!publishableKey) {
+  throw new Error(
+    "Missing VITE_CLERK_PUBLISHABLE_KEY"
+  );
+}
+
+const clerkDomain =
+  atob(publishableKey.split("_")[2]).slice(0, -1);
+
+await new Promise((resolve, reject) => {
+
+  const script =
+    document.createElement("script");
+
+  script.src =
+    `https://${clerkDomain}/npm/@clerk/ui@1/dist/ui.browser.js`;
+
+  script.async = true;
+  script.crossOrigin = "anonymous";
+
+  script.onload = resolve;
+
+  script.onerror = () =>
+    reject(
+      new Error(
+        "Failed to load Clerk UI bundle"
+      )
+    );
+
+  document.head.appendChild(script);
+});
+
+const clerk =
+  new Clerk(publishableKey);
+
+await clerk.load({
+  ui: {
+    ClerkUI:
+      window.__internal_ClerkUICtor
+  }
+});
+
+const supabase =
+  createClerkSupabaseClient(clerk);
+
+async function initializeApp() {
+
+  if (!clerk.isSignedIn) {
+
+    app.innerHTML = `
+      <div id="clerk-sign-in"></div>
+    `;
+
+    clerk.mountSignIn(
+      document.querySelector("#clerk-sign-in")
+    );
+
+    return;
+  }
+
+  await loadRoutinesFromSupabase();
+
+  render();
+}
 
 
 // =========================
@@ -19,22 +90,209 @@ let selectedExercise = null;
 let activeRoutine = null;
 
 let routines = [
-  {
-    id: 1,
-    name: "Push Day",
-    exercises: []
-  },
-  {
-    id: 2,
-    name: "Pull Day",
-    exercises: []
-  },
-  {
-    id: 3,
-    name: "Leg Destroyer",
-    exercises: []
-  }
 ];
+
+async function loadRoutinesFromSupabase() {
+
+  const userId = clerk.user?.id;
+
+  if (!userId) {
+    console.warn("No Clerk user is signed in.");
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("routines")
+    .select(`
+      id,
+      name,
+      created_at,
+      routine_exercises (
+        id,
+        exercise_id,
+        order_index,
+        sets,
+        reps,
+        weight,
+        notes
+      )
+    `)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("Failed to load routines:", error);
+    return;
+  }
+
+  /*
+   * First-time migration:
+   * If this Clerk account has no routines yet,
+   * save the routines currently in memory.
+   */
+  if (!data.length && routines.length) {
+
+    for (const routine of routines) {
+
+      const { data: createdRoutine, error: routineError } =
+        await supabase
+          .from("routines")
+          .insert({
+            user_id: userId,
+            name: routine.name
+          })
+          .select()
+          .single();
+
+      if (routineError) {
+        console.error(
+          "Failed to create routine:",
+          routineError
+        );
+        continue;
+      }
+
+      if (routine.exercises.length) {
+
+        const exerciseRows =
+          routine.exercises.map(
+            (exercise, index) => ({
+              routine_id: createdRoutine.id,
+              exercise_id: exercise.exerciseId,
+              order_index: index,
+              sets: exercise.sets,
+              reps: exercise.reps,
+              weight: exercise.weight,
+              notes: exercise.notes
+            })
+          );
+
+        const { error: exerciseError } =
+          await supabase
+            .from("routine_exercises")
+            .insert(exerciseRows);
+
+        if (exerciseError) {
+          console.error(
+            "Failed to save routine exercises:",
+            exerciseError
+          );
+        }
+      }
+    }
+
+    /*
+     * Load again so routines now contain
+     * their real Supabase IDs.
+     */
+    return loadRoutinesFromSupabase();
+  }
+
+  routines = data.map((routine) => ({
+    id: routine.id,
+    name: routine.name,
+
+    exercises:
+      (routine.routine_exercises || [])
+        .sort(
+          (a, b) =>
+            a.order_index - b.order_index
+        )
+        .map((exercise) => ({
+          exerciseId: exercise.exercise_id,
+          weight: Number(exercise.weight),
+          reps: exercise.reps,
+          sets: exercise.sets,
+          notes: exercise.notes || ""
+        }))
+  }));
+
+  console.log(
+    "REDLINE routines loaded:",
+    routines
+  );
+}
+
+async function syncRoutineToSupabase(routine) {
+
+  if (!routine?.id) {
+    return;
+  }
+
+  const { error: routineError } =
+    await supabase
+      .from("routines")
+      .update({
+        name: routine.name
+      })
+      .eq("id", routine.id)
+      .eq("user_id", clerk.user.id);
+
+  if (routineError) {
+    console.error(
+      "Failed to update routine:",
+      routineError
+    );
+
+    return;
+  }
+
+
+  const { error: deleteError } =
+    await supabase
+      .from("routine_exercises")
+      .delete()
+      .eq("routine_id", routine.id);
+
+  if (deleteError) {
+    console.error(
+      "Failed to clear routine exercises:",
+      deleteError
+    );
+
+    return;
+  }
+
+
+  if (!routine.exercises.length) {
+    return;
+  }
+
+
+  const exerciseRows =
+    routine.exercises.map(
+      (exercise, index) => ({
+        routine_id: routine.id,
+        exercise_id: exercise.exerciseId,
+        order_index: index,
+        sets: exercise.sets,
+        reps: exercise.reps,
+        weight: exercise.weight,
+        notes: exercise.notes || ""
+      })
+    );
+
+
+  const { error: exerciseError } =
+    await supabase
+      .from("routine_exercises")
+      .insert(exerciseRows);
+
+
+  if (exerciseError) {
+    console.error(
+      "Failed to save routine exercises:",
+      exerciseError
+    );
+
+    return;
+  }
+
+
+  console.log(
+    "Routine synced:",
+    routine.name
+  );
+}
 
 let workoutSessions = [];
 let sessionNoteDraft = "";
@@ -1203,7 +1461,7 @@ function renderProfile() {
     getTrainingMetrics();
 
   const weeklyVolume =
-   getWeeklyVolume();
+    getWeeklyVolume();
 
   const maxWeeklyVolume =
     Math.max(...weeklyVolume, 1);
@@ -1551,8 +1809,8 @@ function renderProfile() {
       <div class="profile-volume-bars">
 
         ${weeklyVolume
-          .map(
-            (volume, index) => `
+      .map(
+        (volume, index) => `
               <div
                 class="profile-volume-column"
                 data-value="${volume}"
@@ -1570,8 +1828,8 @@ function renderProfile() {
                 </small>
               </div>
             `
-          )
-          .join("")}
+      )
+      .join("")}
 
       </div>
 
@@ -1775,7 +2033,7 @@ function renderProfile() {
     });
 
 
-animateProfileGraphs();
+  animateProfileGraphs();
 
   document
     .querySelectorAll(".profile-volume-column")
@@ -1838,7 +2096,7 @@ animateProfileGraphs();
 
     });
 
-attachEvents();
+  attachEvents();
 
 }
 
@@ -2646,6 +2904,8 @@ function openRoutineTrackingEditor(
       routineExercise.notes =
         notesInput.value.trim();
 
+      syncRoutineToSupabase(activeRoutine);
+
 
       closeEditor(() => {
 
@@ -2719,6 +2979,8 @@ function removeRoutineExercise(
         entry.exerciseId !==
         routineExercise.exerciseId
     );
+
+  syncRoutineToSupabase(activeRoutine);
 
   renderRoutineDetail();
 
@@ -3204,6 +3466,8 @@ function openWeightEditor(
       routineExercise.weight =
         value;
 
+      syncRoutineToSupabase(activeRoutine);
+
       closeEditor(() => {
         renderRoutineDetail();
       });
@@ -3493,6 +3757,8 @@ function openRepsEditor(
 
       routineExercise.reps =
         value;
+
+      syncRoutineToSupabase(activeRoutine);
 
       closeEditor(() => {
         renderRoutineDetail();
@@ -4363,6 +4629,8 @@ function attachRoutineSheetEvents(
                   item.exerciseId !== exercise.id
               );
 
+            syncRoutineToSupabase(routine);
+
             option.classList.remove(
               "selected"
             );
@@ -4387,6 +4655,8 @@ function attachRoutineSheetEvents(
             sets: 3,
             notes: ""
           });
+
+          syncRoutineToSupabase(routine);
 
 
           option.classList.add(
@@ -4663,7 +4933,7 @@ function attachCreateRoutineEvents(
 
   form.addEventListener(
     "submit",
-    (event) => {
+    async (event) => {
 
       event.preventDefault();
 
@@ -4695,11 +4965,32 @@ function attachCreateRoutineEvents(
       }
 
 
+      const { data: createdRoutine, error } =
+        await supabase
+          .from("routines")
+          .insert({
+            user_id: clerk.user.id,
+            name
+          })
+          .select()
+          .single();
+
+
+      if (error) {
+
+        console.error(
+          "Failed to create routine:",
+          error
+        );
+
+        return;
+      }
+
       const newRoutine = {
 
-        id: Date.now(),
+        id: createdRoutine.id,
 
-        name,
+        name: createdRoutine.name,
 
         exercises: exercise
           ? [{
@@ -5919,6 +6210,8 @@ function attachEvents() {
 
       routine.name = newName;
 
+      syncRoutineToSupabase(routine);
+
       closeModal();
 
       if (activeRoutine?.id === routine.id) {
@@ -6094,10 +6387,6 @@ function attachEvents() {
     }
 
     function deleteRoutine() {
-
-      routines = routines.filter(
-        (item) => item.id !== routine.id
-      );
 
       if (
         activeRoutine &&
@@ -6286,8 +6575,11 @@ function animateRoutineCompletion() {
   );
 }
 
-// =========================
-// INITIAL RENDER
-// =========================
 
-render();
+clerk.addListener(() => {
+  initializeApp();
+});
+
+
+await initializeApp();
+
