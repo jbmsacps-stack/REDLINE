@@ -2091,6 +2091,38 @@ ${completedSessions === 1
 
 </section>
 
+<section class="profile-section">
+
+  <div class="profile-section-heading">
+    DATA
+  </div>
+
+  <button
+    class="profile-setting-row profile-danger-setting"
+    data-setting-action="delete-history"
+    type="button"
+  >
+
+    <div class="profile-setting-info">
+
+      <strong>
+        DELETE HISTORY
+      </strong>
+
+      <span>
+        PERMANENTLY REMOVE ALL RECORDED WORKOUT HISTORY
+      </span>
+
+    </div>
+
+    <span class="profile-setting-action">
+      →
+    </span>
+
+  </button>
+
+</section>
+
       </main>
 
 
@@ -5716,6 +5748,218 @@ function openMoveExerciseSheet(
     );
 }
 
+function openDeleteHistoryModal() {
+
+  if (
+    document.querySelector(
+      ".delete-history-overlay"
+    )
+  ) {
+    return;
+  }
+
+  const overlay =
+    document.createElement("div");
+
+  overlay.className =
+    "delete-history-overlay";
+
+  overlay.innerHTML = `
+
+    <div class="delete-history-backdrop"></div>
+
+    <section
+      class="delete-history-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-history-title"
+    >
+
+      <span class="delete-history-eyebrow">
+        PERMANENT ACTION
+      </span>
+
+      <h2 id="delete-history-title">
+        Delete your training history?
+      </h2>
+
+      <p>
+        This will permanently remove all
+        recorded workout sessions and
+        training history from your account.
+        Your routines will not be affected.
+      </p>
+
+      <div class="delete-history-actions">
+
+        <button
+          class="delete-history-cancel"
+          type="button"
+        >
+          CANCEL
+        </button>
+
+        <button
+          class="delete-history-confirm"
+          type="button"
+        >
+          DELETE HISTORY
+        </button>
+
+      </div>
+
+    </section>
+
+  `;
+
+  document.body.appendChild(overlay);
+
+  const backdrop =
+    overlay.querySelector(
+      ".delete-history-backdrop"
+    );
+
+  const modal =
+    overlay.querySelector(
+      ".delete-history-modal"
+    );
+
+  const cancelButton =
+    overlay.querySelector(
+      ".delete-history-cancel"
+    );
+
+  const confirmButton =
+    overlay.querySelector(
+      ".delete-history-confirm"
+    );
+
+  function closeModal() {
+
+    gsap.timeline({
+      onComplete: () => {
+        overlay.remove();
+      }
+    })
+
+      .to(
+        modal,
+        {
+          opacity: 0,
+          y: 18,
+          scale: 0.97,
+          duration: 0.2,
+          ease: "power2.in"
+        }
+      )
+
+      .to(
+        backdrop,
+        {
+          opacity: 0,
+          duration: 0.15
+        },
+        "-=0.1"
+      );
+
+  }
+
+  async function deleteHistory() {
+
+    confirmButton.disabled = true;
+    confirmButton.textContent = "DELETING...";
+
+    const {
+      error
+    } = await supabase
+      .from("workout_sessions")
+      .delete()
+      .eq(
+        "user_id",
+        clerk.user.id
+      );
+
+    if (error) {
+
+      console.error(
+        "Failed to delete workout history:",
+        error
+      );
+
+      confirmButton.disabled = false;
+      confirmButton.textContent =
+        "DELETE HISTORY";
+
+      return;
+
+    }
+
+    workoutSessions = [];
+
+    closeModal();
+
+    setTimeout(() => {
+      renderProfile();
+    }, 220);
+
+  }
+
+  cancelButton.addEventListener(
+    "click",
+    closeModal
+  );
+
+  backdrop.addEventListener(
+    "click",
+    closeModal
+  );
+
+  confirmButton.addEventListener(
+    "click",
+    deleteHistory
+  );
+
+  gsap.set(
+    backdrop,
+    {
+      opacity: 0
+    }
+  );
+
+  gsap.set(
+    modal,
+    {
+      opacity: 0,
+      y: 20,
+      scale: 0.97
+    }
+  );
+
+  gsap.timeline()
+
+    .to(
+      backdrop,
+      {
+        opacity: 1,
+        duration: 0.18,
+        ease: "power2.out"
+      }
+    )
+
+    .to(
+      modal,
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.3,
+        ease: "back.out(1.15)"
+      },
+      "-=0.08"
+    );
+
+}
+
 function attachEvents() {
 
   // =======================
@@ -6915,65 +7159,77 @@ function attachEvents() {
   );
 
   document
-  .querySelectorAll("[data-weight-unit]")
-  .forEach((button) => {
+    .querySelectorAll("[data-weight-unit]")
+    .forEach((button) => {
 
-    button.addEventListener(
-      "click",
-      () => {
+      button.addEventListener(
+        "click",
+        () => {
 
-        const newUnit =
-          button.dataset.weightUnit;
+          const newUnit =
+            button.dataset.weightUnit;
 
-        if (newUnit === weightUnit) {
-          return;
-        }
+          if (newUnit === weightUnit) {
+            return;
+          }
 
-        weightUnit = newUnit;
+          weightUnit = newUnit;
 
-        localStorage.setItem(
-          "redline-weight-unit",
-          weightUnit
-        );
-
-        // Update active button
-        document
-          .querySelectorAll("[data-weight-unit]")
-          .forEach((unitButton) => {
-            unitButton.classList.toggle(
-              "active",
-              unitButton.dataset.weightUnit === weightUnit
-            );
-          });
-
-        // Update description text
-        const unitDescription =
-          document.querySelector(
-            ".profile-setting-selector .profile-setting-info span"
+          localStorage.setItem(
+            "redline-weight-unit",
+            weightUnit
           );
 
-        if (unitDescription) {
-          unitDescription.textContent =
-            `DISPLAY TRAINING WEIGHTS IN ${weightUnit}`;
-        }
+          // Update active button
+          document
+            .querySelectorAll("[data-weight-unit]")
+            .forEach((unitButton) => {
+              unitButton.classList.toggle(
+                "active",
+                unitButton.dataset.weightUnit === weightUnit
+              );
+            });
 
-        // Animate the clicked button
-        gsap.fromTo(
-          button,
-          {
-            scale: 0.90
-          },
-          {
-            scale: 1,
-            duration: 1,
-            ease: "back.out(2)"
+          // Update description text
+          const unitDescription =
+            document.querySelector(
+              ".profile-setting-selector .profile-setting-info span"
+            );
+
+          if (unitDescription) {
+            unitDescription.textContent =
+              `DISPLAY TRAINING WEIGHTS IN ${weightUnit}`;
           }
-        );
 
-      }
+          // Animate the clicked button
+          gsap.fromTo(
+            button,
+            {
+              scale: 0.90
+            },
+            {
+              scale: 1,
+              duration: 1,
+              ease: "back.out(2)"
+            }
+          );
+
+        }
+      );
+
+    });
+
+  const deleteHistorySetting =
+    document.querySelector(
+      '[data-setting-action="delete-history"]'
     );
 
-  });
+  deleteHistorySetting?.addEventListener(
+    "click",
+    () => {
+      openDeleteHistoryModal();
+    }
+  );
 
   const profileSignoutButton =
     document.querySelector(
