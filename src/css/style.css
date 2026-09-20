@@ -7887,3 +7887,200 @@ svg {
   }
 
 }
+
+/* =========================
+   ACTIVITY DAY TOOLTIP
+========================= */
+
+.profile-activity {
+  position: relative;
+}
+
+.profile-day-tooltip {
+  position: absolute;
+
+  width: 190px;
+  padding: 14px;
+
+  background: #101010;
+  border: 1px solid #2a2a2a;
+
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.45);
+
+  z-index: 20;
+
+  font-family: inherit;
+}
+
+.profile-day-tooltip-date {
+  margin-bottom: 8px;
+
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.1;
+
+  color: #f2f2f2;
+}
+
+.profile-day-tooltip-count {
+  margin-bottom: 12px;
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+
+  color: #777;
+}
+
+.profile-day-tooltip-sessions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-day-tooltip-session {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  padding-top: 9px;
+
+  border-top: 1px solid #252525;
+}
+
+.profile-day-tooltip-session strong {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+
+  color: #f2f2f2;
+}
+
+.profile-day-tooltip-session span {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+
+  color: #777;
+}
+
+.profile-day-tooltip-empty {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+
+  color: #666;
+}
+
+/* =========================
+   PROFILE ACCOUNT
+========================= */
+
+.profile-account-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 18px;
+
+  border: 1px solid #252525;
+  background: #101010;
+}
+
+.profile-account-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  min-width: 0;
+}
+
+.profile-account-avatar {
+  width: 42px;
+  height: 42px;
+
+  flex: 0 0 42px;
+
+  display: grid;
+  place-items: center;
+
+  overflow: hidden;
+
+  border: 1px solid #2d2d2d;
+  background: #181818;
+
+  font-size: 14px;
+  color: #777;
+}
+
+.profile-account-avatar img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.profile-account-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  min-width: 0;
+}
+
+.profile-account-details strong {
+  overflow: hidden;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  color: #f2f2f2;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-account-details span {
+  overflow: hidden;
+
+  font-size: 10px;
+  letter-spacing: 0.04em;
+
+  color: #707070;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-signout-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 9px 11px;
+
+  border: 1px solid #2b2b2b;
+  background: transparent;
+
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+
+  color: #aaa;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.profile-signout-button:hover {
+  border-color: #444;
+  color: #fff;
+  background: #181818;
+}

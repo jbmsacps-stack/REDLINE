@@ -74,6 +74,7 @@ async function initializeApp() {
   }
 
   await loadRoutinesFromSupabase();
+  await loadWorkoutSessionsFromSupabase();
 
   render();
 }
@@ -297,6 +298,67 @@ async function syncRoutineToSupabase(routine) {
 let workoutSessions = [];
 let sessionNoteDraft = "";
 let profileReturnView = "workouts";
+
+async function loadWorkoutSessionsFromSupabase() {
+
+  const userId = clerk.user?.id;
+
+  if (!userId) {
+    console.warn("No Clerk user is signed in.");
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("workout_sessions")
+    .select(`
+      id,
+      routine_id,
+      date,
+      completed_at,
+      note,
+      workout_session_exercises (
+        id,
+        exercise_id,
+        weight,
+        reps,
+        sets,
+        notes
+      )
+    `)
+    .eq("user_id", userId)
+    .order("date", { ascending: true });
+
+  if (error) {
+    console.error(
+      "Failed to load workout sessions:",
+      error
+    );
+    return;
+  }
+
+  workoutSessions = data.map((session) => ({
+    id: session.id,
+    routineId: session.routine_id,
+    date: session.date,
+    completedAt: session.completed_at,
+    note: session.note || "",
+
+    exercises:
+      (session.workout_session_exercises || [])
+        .map((exercise) => ({
+          exerciseId: exercise.exercise_id,
+          weight: Number(exercise.weight),
+          reps: exercise.reps,
+          sets: exercise.sets,
+          notes: exercise.notes || ""
+        }))
+  }));
+
+  console.log(
+    "REDLINE workout sessions loaded:",
+    workoutSessions
+  );
+}
 
 function getLocalDate() {
   const now = new Date();
@@ -1510,8 +1572,10 @@ function renderProfile() {
               </strong>
 
               <span>
-                SESSIONS
-              </span>
+  ${completedSessions === 1
+    ? "SESSION"
+    : "SESSIONS"}
+</span>
             </article>
 
 
@@ -1544,7 +1608,10 @@ function renderProfile() {
     </span>
 
     <span>
-      ${completedSessions} SESSIONS
+      ${completedSessions}
+${completedSessions === 1
+      ? "SESSION"
+      : "SESSIONS"}
     </span>
 
   </div>
@@ -1660,9 +1727,11 @@ function renderProfile() {
       </div>
 
       <span class="profile-performance-total">
-        ${completedSessions}
-        SESSIONS
-      </span>
+  ${completedSessions}
+  ${completedSessions === 1
+      ? "SESSION"
+      : "SESSIONS"}
+</span>
 
     </div>
 
@@ -1838,6 +1907,54 @@ function renderProfile() {
   </div>
 
 </section>
+
+</section>
+
+<section class="profile-section">
+
+  <div class="profile-section-heading">
+    ACCOUNT
+  </div>
+
+  <div class="profile-account-card">
+
+    <div class="profile-account-info">
+
+      <div class="profile-account-avatar">
+        ${clerk.user?.imageUrl
+      ? `<img
+                src="${clerk.user.imageUrl}"
+                alt=""
+              >`
+      : "●"
+    }
+      </div>
+
+      <div class="profile-account-details">
+
+        <strong>
+          ${clerk.user?.fullName || "REDLINE USER"}
+        </strong>
+
+        <span>
+          ${clerk.user?.primaryEmailAddress
+      ?.emailAddress || "NO EMAIL"
+    }
+        </span>
+
+      </div>
+
+    </div>
+
+    <button
+      class="profile-signout-button"
+      type="button"
+    >
+      <span>SIGN OUT</span>
+      <span>→</span>
+    </button>
+
+  </div>
 
 </section>
 
@@ -2031,6 +2148,38 @@ function renderProfile() {
       );
 
     });
+
+  document.addEventListener(
+    "click",
+    (event) => {
+
+      const tooltip =
+        document.querySelector(
+          ".profile-day-tooltip"
+        );
+
+      if (!tooltip) {
+        return;
+      }
+
+      if (
+        tooltip.contains(event.target)
+      ) {
+        return;
+      }
+
+      if (
+        event.target.closest(
+          ".profile-calendar-day"
+        )
+      ) {
+        return;
+      }
+
+      tooltip.remove();
+
+    }
+  );
 
 
   animateProfileGraphs();
@@ -6603,6 +6752,20 @@ function attachEvents() {
       );
 
     });
+
+  const profileSignoutButton =
+    document.querySelector(
+      ".profile-signout-button"
+    );
+
+  profileSignoutButton?.addEventListener(
+    "click",
+    async () => {
+
+      await clerk.signOut();
+
+    }
+  );
 
   const sessionNoteButton =
     document.querySelector(
