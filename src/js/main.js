@@ -77,6 +77,9 @@ async function initializeApp() {
   await loadWorkoutSessionsFromSupabase();
 
   render();
+
+  // Sync account settings in the background
+  loadUserSettingsFromSupabase();
 }
 
 function applyMotionPreference() {
@@ -109,6 +112,104 @@ let reduceMotion =
 
 let weightUnit =
   localStorage.getItem("redline-weight-unit") || "KG";
+
+async function loadUserSettingsFromSupabase() {
+
+  const userId = clerk.user?.id;
+
+  if (!userId) {
+    return;
+  }
+
+  const {
+    data,
+    error
+  } = await supabase
+    .from("user_settings")
+    .select(`
+      reduce_motion,
+      weight_unit
+    `)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+
+    console.error(
+      "Failed to load user settings:",
+      error
+    );
+
+    return;
+  }
+
+  // First login / no settings row yet
+  if (!data) {
+
+    await syncUserSettingsToSupabase();
+
+    return;
+  }
+
+  // Supabase is the source of truth
+  reduceMotion =
+    data.reduce_motion === true;
+
+  weightUnit =
+    data.weight_unit === "LB"
+      ? "LB"
+      : "KG";
+
+  // Refresh local cache
+  localStorage.setItem(
+    "redline-reduce-motion",
+    reduceMotion
+  );
+
+  localStorage.setItem(
+    "redline-weight-unit",
+    weightUnit
+  );
+
+  applyMotionPreference();
+
+}
+
+
+async function syncUserSettingsToSupabase() {
+
+  const userId = clerk.user?.id;
+
+  if (!userId) {
+    return;
+  }
+
+  const {
+    error
+  } = await supabase
+    .from("user_settings")
+    .upsert(
+      {
+        user_id: userId,
+        reduce_motion: reduceMotion,
+        weight_unit: weightUnit,
+        updated_at: new Date().toISOString()
+      },
+      {
+        onConflict: "user_id"
+      }
+    );
+
+  if (error) {
+
+    console.error(
+      "Failed to save user settings:",
+      error
+    );
+
+  }
+
+}
 
 const KG_TO_LB = 2.2046226218;
 
@@ -594,7 +695,13 @@ function render() {
           aria-label="Profile"
           type="button"
         >
-          ●
+          ${clerk.user?.imageUrl
+  ? `<img
+      src="${clerk.user.imageUrl}"
+      alt=""
+    >`
+  : "●"
+}
         </button>
 
       </header>
@@ -876,7 +983,13 @@ function renderRoutines() {
           aria-label="Profile"
           type="button"
         >
-          ●
+          ${clerk.user?.imageUrl
+  ? `<img
+      src="${clerk.user.imageUrl}"
+      alt=""
+    >`
+  : "●"
+}
         </button>
 
       </header>
@@ -7142,7 +7255,7 @@ function attachEvents() {
 
   reduceMotionSetting?.addEventListener(
     "click",
-    () => {
+    async () => {
 
       reduceMotion = !reduceMotion;
 
@@ -7150,6 +7263,8 @@ function attachEvents() {
         "redline-reduce-motion",
         reduceMotion
       );
+
+      await syncUserSettingsToSupabase();
 
       applyMotionPreference();
 
@@ -7164,7 +7279,7 @@ function attachEvents() {
 
       button.addEventListener(
         "click",
-        () => {
+        async () => {
 
           const newUnit =
             button.dataset.weightUnit;
@@ -7179,6 +7294,8 @@ function attachEvents() {
             "redline-weight-unit",
             weightUnit
           );
+
+          syncUserSettingsToSupabase();
 
           // Update active button
           document
