@@ -1049,15 +1049,17 @@ function renderMuscleMap() {
 
           <div class="muscle-map-stage">
 
-            <div class="muscle-map-model">
+  <div class="muscle-map-model">
 
-              <span class="muscle-map-placeholder">
-                ANATOMY
-              </span>
+    <img
+      src="/assets/muscle-map/front/base.webp"
+      alt="Front-view anatomical muscle map"
+      draggable="false"
+    >
 
-            </div>
+  </div>
 
-          </div>
+</div>
 
 
           <div class="muscle-map-controls">
