@@ -8613,3 +8613,244 @@ svg {
   box-shadow:
     0 0 0 3px rgba(225, 29, 46, 0.18);
 }
+
+/* =========================================================
+   MUSCLE MAP — FOUNDATION
+========================================================= */
+
+.muscle-map-screen {
+  position: relative;
+
+  width: 100%;
+  min-width: 0;
+
+  padding-bottom: 20px;
+}
+
+
+.muscle-map-heading {
+  padding-top: 10px;
+}
+
+
+.muscle-map-heading h1 {
+  margin: 7px 0 0;
+
+  color: var(--color-text);
+
+  font-size:
+    clamp(
+      2.55rem,
+      13vw,
+      4rem
+    );
+
+  font-weight: 900;
+
+  line-height: 0.88;
+  letter-spacing: -0.07em;
+}
+
+
+.muscle-map-heading p {
+  margin: 10px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.65rem;
+  font-weight: 700;
+
+  letter-spacing: 0.12em;
+
+  text-transform: uppercase;
+}
+
+
+.muscle-map-view-toggle {
+  width: 100%;
+  max-width: 280px;
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  margin: 24px auto 0;
+
+  padding: 3px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+
+  background: var(--color-surface);
+}
+
+
+.muscle-map-view-toggle button {
+  min-height: 42px;
+
+  border-radius: 999px;
+
+  background: transparent;
+  color: #696969;
+
+  font-size: 0.65rem;
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+
+  transition:
+    background 180ms var(--ease-standard),
+    color 180ms ease;
+}
+
+
+.muscle-map-view-toggle button.active {
+  background: rgba(225, 29, 46, 0.12);
+
+  color: var(--color-text);
+}
+
+
+.muscle-map-stage {
+  position: relative;
+
+  width: 100%;
+  height: min(62vh, 560px);
+
+  margin-top: 10px;
+
+  display: grid;
+  place-items: center;
+
+  overflow: hidden;
+}
+
+
+.muscle-map-model {
+  width: min(72vw, 300px);
+  aspect-ratio: 0.46;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 45%;
+
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(255, 255, 255, 0.035),
+      transparent 65%
+    );
+
+  color: #303030;
+
+  user-select: none;
+}
+
+
+.muscle-map-placeholder {
+  font-size: 0.6rem;
+  font-weight: 800;
+
+  letter-spacing: 0.2em;
+
+  writing-mode: vertical-rl;
+
+  opacity: 0.8;
+}
+
+
+.muscle-map-controls {
+  display: grid;
+
+  gap: 10px;
+
+  margin-top: 4px;
+}
+
+
+.muscle-map-mode-toggle,
+.muscle-map-layer-toggle {
+  display: grid;
+
+  width: 100%;
+
+  padding: 3px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+
+  background: var(--color-surface);
+}
+
+
+.muscle-map-mode-toggle {
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+}
+
+
+.muscle-map-layer-toggle {
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  max-width: 220px;
+
+  margin: 0 auto;
+}
+
+
+.muscle-map-mode-toggle button,
+.muscle-map-layer-toggle button {
+  min-height: 38px;
+
+  border-radius: 999px;
+
+  background: transparent;
+  color: #666;
+
+  font-size: 0.58rem;
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+
+  transition:
+    background 180ms var(--ease-standard),
+    color 180ms ease;
+}
+
+
+.muscle-map-mode-toggle button.active,
+.muscle-map-layer-toggle button.active {
+  background: rgba(225, 29, 46, 0.11);
+
+  color: #fff;
+}
+
+
+.muscle-map-empty-state {
+  margin-top: 22px;
+
+  text-align: center;
+}
+
+
+.muscle-map-empty-state span {
+  color: #777;
+
+  font-size: 0.58rem;
+  font-weight: 900;
+
+  letter-spacing: 0.18em;
+}
+
+
+.muscle-map-empty-state p {
+  max-width: 280px;
+
+  margin: 7px auto 0;
+
+  color: #4f4f4f;
+
+  font-size: 0.7rem;
+  line-height: 1.45;
+}

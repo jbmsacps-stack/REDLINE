@@ -696,12 +696,12 @@ function render() {
           type="button"
         >
           ${clerk.user?.imageUrl
-  ? `<img
+      ? `<img
       src="${clerk.user.imageUrl}"
       alt=""
     >`
-  : "●"
-}
+      : "●"
+    }
         </button>
 
       </header>
@@ -960,6 +960,195 @@ function renderBottomNav(activePage = "workouts") {
   `;
 }
 
+// =========================================================
+// MUSCLE MAP
+// =========================================================
+
+function renderMuscleMap() {
+
+  const app = document.querySelector("#app");
+
+  app.innerHTML = `
+
+    <div class="app-shell muscle-map-shell">
+
+      <header class="app-header">
+
+        <a
+          href="#"
+          class="logo"
+          aria-label="REDLINE home"
+        >
+          RED<span>LINE</span>
+        </a>
+
+        <button
+          class="profile-button"
+          aria-label="Profile"
+          type="button"
+        >
+          ${clerk.user?.imageUrl
+            ? `<img
+                src="${clerk.user.imageUrl}"
+                alt=""
+              >`
+            : "●"
+          }
+        </button>
+
+      </header>
+
+
+      <main>
+
+        <section
+          class="muscle-map-screen"
+          aria-labelledby="muscle-map-title"
+        >
+
+          <div class="muscle-map-heading">
+
+            <span class="section-kicker">
+              EXPLORE YOUR BODY
+            </span>
+
+            <h1 id="muscle-map-title">
+              MUSCLE MAP
+            </h1>
+
+            <p>
+              TAP A MUSCLE TO EXPLORE
+            </p>
+
+          </div>
+
+
+          <div
+            class="muscle-map-view-toggle"
+            role="group"
+            aria-label="Anatomy view"
+          >
+
+            <button
+              class="active"
+              type="button"
+              aria-pressed="true"
+            >
+              FRONT
+            </button>
+
+            <button
+              type="button"
+              aria-pressed="false"
+            >
+              BACK
+            </button>
+
+          </div>
+
+
+          <div class="muscle-map-stage">
+
+            <div class="muscle-map-model">
+
+              <span class="muscle-map-placeholder">
+                ANATOMY
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="muscle-map-controls">
+
+            <div
+              class="muscle-map-mode-toggle"
+              role="tablist"
+              aria-label="Muscle map mode"
+            >
+
+              <button
+                class="active"
+                type="button"
+                role="tab"
+                aria-selected="true"
+              >
+                ANATOMY
+              </button>
+
+              <button
+                type="button"
+                role="tab"
+                aria-selected="false"
+              >
+                ACTIVITY
+              </button>
+
+              <button
+                type="button"
+                role="tab"
+                aria-selected="false"
+              >
+                SYNERGY
+              </button>
+
+            </div>
+
+
+            <div
+              class="muscle-map-layer-toggle"
+              role="group"
+              aria-label="Anatomy depth"
+            >
+
+              <button
+                class="active"
+                type="button"
+                aria-pressed="true"
+              >
+                SURFACE
+              </button>
+
+              <button
+                type="button"
+                aria-pressed="false"
+              >
+                DEEP
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <div class="muscle-map-empty-state">
+
+            <span>
+              SELECT A MUSCLE
+            </span>
+
+            <p>
+              Explore exercises, anatomy and training data.
+            </p>
+
+          </div>
+
+        </section>
+
+      </main>
+
+    </div>
+
+
+    ${renderBottomNav("map")}
+
+  `;
+
+  attachEvents();
+
+}
+
 function renderRoutines() {
 
   const app = document.querySelector("#app");
@@ -984,12 +1173,12 @@ function renderRoutines() {
           type="button"
         >
           ${clerk.user?.imageUrl
-  ? `<img
+      ? `<img
       src="${clerk.user.imageUrl}"
       alt=""
     >`
-  : "●"
-}
+      : "●"
+    }
         </button>
 
       </header>
@@ -1056,8 +1245,8 @@ function renderRoutines() {
                   <span>
                     ${routine.exercises.length}
                     ${routine.exercises.length === 1
-      ? "EXERCISE"
-      : "EXERCISES"}
+        ? "EXERCISE"
+        : "EXERCISES"}
                   </span>
 
                   <span>•</span>
@@ -7235,6 +7424,11 @@ function attachEvents() {
 
           if (page === "routines") {
             renderRoutines();
+            return;
+          }
+
+          if (page === "map") {
+            renderMuscleMap();
             return;
           }
 
