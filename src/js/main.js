@@ -74,6 +74,7 @@ async function initializeApp() {
   }
 
   loadRoutinesFromCache();
+  loadWorkoutSessionsFromCache();
 
   render();
 
@@ -509,6 +510,57 @@ let workoutSessions = [];
 let sessionNoteDraft = "";
 let profileReturnView = "workouts";
 
+function loadWorkoutSessionsFromCache() {
+  try {
+    const cached = localStorage.getItem(
+      "redline-workout-sessions-cache"
+    );
+
+    if (!cached) {
+      return;
+    }
+
+    const parsed = JSON.parse(cached);
+
+    if (!Array.isArray(parsed)) {
+      return;
+    }
+
+    workoutSessions = parsed;
+
+    console.log(
+      "REDLINE workout sessions restored from cache:",
+      workoutSessions
+    );
+
+  } catch (error) {
+
+    console.warn(
+      "Failed to restore workout session cache:",
+      error
+    );
+
+    localStorage.removeItem(
+      "redline-workout-sessions-cache"
+    );
+
+  }
+}
+
+function saveWorkoutSessionsToCache() {
+  try {
+    localStorage.setItem(
+      "redline-workout-sessions-cache",
+      JSON.stringify(workoutSessions)
+    );
+  } catch (error) {
+    console.warn(
+      "Failed to save workout session cache:",
+      error
+    );
+  }
+}
+
 async function loadWorkoutSessionsFromSupabase() {
 
   const userId = clerk.user?.id;
@@ -567,6 +619,11 @@ async function loadWorkoutSessionsFromSupabase() {
   console.log(
     "REDLINE workout sessions loaded:",
     workoutSessions
+  );
+
+  localStorage.setItem(
+    "redline-workout-sessions-cache",
+    JSON.stringify(workoutSessions)
   );
 }
 
@@ -6590,6 +6647,8 @@ function attachEvents() {
             })
           )
         });
+
+        saveWorkoutSessionsToCache();
 
         animateRoutineCompletion();
 
