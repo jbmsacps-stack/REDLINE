@@ -78,10 +78,7 @@ async function initializeApp() {
 
   render();
 
-  Promise.all([
-    loadRoutinesFromSupabase(),
-    loadWorkoutSessionsFromSupabase()
-  ]).then(() => {
+  loadRoutinesFromSupabase().then(() => {
     render();
   });
 
@@ -346,6 +343,7 @@ async function loadRoutinesFromSupabase() {
         notes
       )
     `)
+    .eq("user_id", userId)
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -416,6 +414,9 @@ async function loadRoutinesFromSupabase() {
     return loadRoutinesFromSupabase();
   }
 
+  const previousRoutines =
+    JSON.stringify(routines);
+
   routines = data.map((routine) => ({
     id: routine.id,
     name: routine.name,
@@ -440,10 +441,12 @@ async function loadRoutinesFromSupabase() {
     routines
   );
 
-  localStorage.setItem(
-    getUserCacheKey("routines"),
-    JSON.stringify(routines)
-  );
+  const nextRoutines =
+    JSON.stringify(routines);
+
+  if (nextRoutines !== previousRoutines) {
+    saveRoutinesToCache();
+  }
 }
 
 async function syncRoutineToSupabase(routine) {
@@ -488,6 +491,7 @@ async function syncRoutineToSupabase(routine) {
 
 
   if (!routine.exercises.length) {
+    saveRoutinesToCache();
     return;
   }
 
@@ -520,6 +524,8 @@ async function syncRoutineToSupabase(routine) {
 
     return;
   }
+
+  saveRoutinesToCache();
 
 
   console.log(
@@ -610,7 +616,7 @@ async function loadWorkoutSessionsFromSupabase() {
       )
     `)
     .eq("user_id", userId)
-    .order("date", { ascending: true });
+    .order("date", { ascending: false });
 
   if (error) {
     console.error(
@@ -5763,6 +5769,8 @@ function attachCreateRoutineEvents(
       routines.push(
         newRoutine
       );
+
+      saveRoutinesToCache();
 
 
       updateDetailButton(
