@@ -73,8 +73,10 @@ async function initializeApp() {
     return;
   }
 
-  await loadRoutinesFromSupabase();
-  await loadWorkoutSessionsFromSupabase();
+  await Promise.all([
+    loadRoutinesFromSupabase(),
+    loadWorkoutSessionsFromSupabase()
+  ]);
 
   render();
 
@@ -367,6 +369,11 @@ async function loadRoutinesFromSupabase() {
   console.log(
     "REDLINE routines loaded:",
     routines
+  );
+
+  localStorage.setItem(
+    "redline-routines-cache",
+    JSON.stringify(routines)
   );
 }
 
@@ -988,12 +995,12 @@ function renderMuscleMap() {
           type="button"
         >
           ${clerk.user?.imageUrl
-            ? `<img
+      ? `<img
                 src="${clerk.user.imageUrl}"
                 alt=""
               >`
-            : "●"
-          }
+      : "●"
+    }
         </button>
 
       </header>
