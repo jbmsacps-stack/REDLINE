@@ -8667,6 +8667,8 @@ svg {
 
 
 .muscle-map-view-toggle {
+  position: relative;
+
   width: 100%;
   max-width: 280px;
 
@@ -8674,17 +8676,47 @@ svg {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 
   margin: 24px auto 0;
-
   padding: 3px;
 
   border: 1px solid var(--color-border);
   border-radius: 999px;
 
   background: var(--color-surface);
+
+  isolation: isolate;
 }
 
+/* Sliding active pill */
+.muscle-map-view-toggle::before {
+  content: "";
+
+  position: absolute;
+  top: 3px;
+  left: 3px;
+
+  width: calc(50% - 3px);
+  height: calc(100% - 6px);
+
+  border-radius: 999px;
+
+  background: rgba(225, 29, 46, 0.12);
+
+  transform: translateX(0);
+  transition:
+    transform 220ms cubic-bezier(.22, 1, .36, 1);
+
+  z-index: 0;
+}
+
+/* Move pill to BACK */
+.muscle-map-view-toggle:has(.muscle-view-back.active)::before {
+  transform: translateX(100%);
+}
 
 .muscle-map-view-toggle button {
+  position: relative;
+  z-index: 1;
+
   min-height: 37px;
 
   border-radius: 999px;
@@ -8694,19 +8726,20 @@ svg {
 
   font-size: 0.65rem;
   font-weight: 800;
-
   letter-spacing: 0.12em;
 
   transition:
-    background 180ms var(--ease-standard),
-    color 180ms ease;
+    color 180ms ease,
+    transform 140ms ease;
 }
 
-
 .muscle-map-view-toggle button.active {
-  background: rgba(225, 29, 46, 0.12);
-
+  background: transparent;
   color: var(--color-text);
+}
+
+.muscle-map-view-toggle button:active {
+  transform: scale(0.96);
 }
 
 

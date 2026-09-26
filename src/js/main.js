@@ -798,6 +798,19 @@ function equipmentIcon(type) {
 
 function render() {
 
+  const selectedMuscle =
+    sessionStorage.getItem("redlineSelectedMuscle");
+
+  if (selectedMuscle) {
+    activeMuscle = selectedMuscle;
+    activeEquipment = "All";
+    searchTerm = "";
+
+    sessionStorage.removeItem(
+      "redlineSelectedMuscle"
+    );
+  }
+
   const filteredExercises = exercises.filter(
     (exercise) => {
 
@@ -1175,7 +1188,7 @@ const MUSCLE_MASKS = {
 
     quads: {
       name: "Quads",
-      exerciseMuscle: "Quadriceps",
+      exerciseMuscle: "Legs",
       mask: "/assets/muscle-map/front/masks/quads.png",
     },
 
@@ -1187,7 +1200,7 @@ const MUSCLE_MASKS = {
 
     calves: {
       name: "Calves",
-      exerciseMuscle: "Calves",
+      exerciseMuscle: "Legs",
       mask: "/assets/muscle-map/front/masks/calves.png",
     },
   },
@@ -1195,7 +1208,7 @@ const MUSCLE_MASKS = {
   back: {
     traps: {
       name: "Traps",
-      exerciseMuscle: "Traps",
+      exerciseMuscle: "Back",
       mask: "/assets/muscle-map/back/masks/traps.png",
     },
 
@@ -1207,7 +1220,7 @@ const MUSCLE_MASKS = {
 
     lats: {
       name: "Lats",
-      exerciseMuscle: "Lats",
+      exerciseMuscle: "Back",
       mask: "/assets/muscle-map/back/masks/lats.png",
     },
 
@@ -1219,7 +1232,7 @@ const MUSCLE_MASKS = {
 
     forearms: {
       name: "Forearms",
-      exerciseMuscle: "Forearms",
+      exerciseMuscle: "All",
       mask: "/assets/muscle-map/back/masks/forearms.png",
     },
 
@@ -1653,11 +1666,22 @@ function showMusclePanel(muscle) {
   );
 
   card.addEventListener("click", () => {
-    console.log(
-      `Open exercises for: ${muscle.name}`
+
+    sessionStorage.setItem(
+      "redlineSelectedMuscle",
+      muscle.exerciseMuscle || "All"
     );
 
-    // Exercise screen will be connected here next.
+    panel.classList.remove("is-visible");
+
+    const workoutNav =
+      document.querySelector(
+        '[data-page="workouts"]'
+      );
+
+    if (workoutNav) {
+      workoutNav.click();
+    }
   });
 }
 
@@ -1920,17 +1944,14 @@ function renderMuscleMap() {
 
       // Animate current body out
       await gsap.to(muscleStage, {
-        opacity: 0,
+        opacity: 1,
         rotateY: side === "back" ? -10 : 10,
         scale: 0.98,
         duration: 0.16,
         ease: "power2.in"
       });
 
-      // Actually change anatomy
-      await muscleMap.setSide(side);
-
-      // Update buttons
+      // Update the toggle immediately
       frontButton.classList.toggle(
         "active",
         side === "front"
@@ -1940,6 +1961,9 @@ function renderMuscleMap() {
         "active",
         side === "back"
       );
+
+      // Then change anatomy
+      await muscleMap.setSide(side);
 
       // ===============================
       // ANATOMY / ACTIVITY / SYNERGY
