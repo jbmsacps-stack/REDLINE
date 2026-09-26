@@ -8893,143 +8893,371 @@ svg {
 
 
 /* =========================
-   MUSCLE INFORMATION SHEET
+   COMPACT MUSCLE CARD
 ========================= */
 
-.muscle-selection-panel {
+/* =========================================================
+   MUSCLE SELECTION CARD
+========================================================= */
 
+.muscle-selection-panel {
   position: fixed;
 
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 50%;
+  bottom: 18px;
 
   z-index: 1000;
 
-  padding:
-    10px
-    20px
-    calc(20px + env(safe-area-inset-bottom));
-
-  background:
-    rgba(10, 10, 10, 0.98);
-
-  border-top:
-    1px solid
-    rgba(255, 255, 255, 0.08);
-
-  border-radius:
-    20px 20px 0 0;
+  width: min(
+    300px,
+    calc(100vw - 32px)
+  );
 
   transform:
-    translateY(105%);
+    translate(-50%, calc(100% + 24px));
 
   transition:
-    transform 280ms
+    transform 220ms
     cubic-bezier(.2,.8,.2,1);
+
+  pointer-events: none;
 }
 
 .muscle-selection-panel.is-visible {
-  transform: translateY(0);
+  transform:
+    translate(-50%, 0);
+
+  pointer-events: auto;
 }
 
-.muscle-panel-handle {
 
-  width: 38px;
-  height: 4px;
+/* CARD */
 
-  margin:
-    0 auto 18px;
-
-  border-radius: 999px;
-
-  background: #3a3a3a;
-}
-
-.muscle-panel-kicker {
-
-  display: block;
-
-  margin-bottom: 7px;
-
-  color: #707070;
-
-  font-size: 9px;
-  font-weight: 700;
-
-  letter-spacing: .16em;
-}
-
-.muscle-panel-content h2 {
-
-  margin: 0 0 8px;
-
-  color: #fff;
-
-  font-size: 28px;
-  line-height: 1;
-}
-
-.muscle-panel-content p {
-
-  margin: 0 0 20px;
-
-  color: #858585;
-
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.muscle-panel-exercises {
-
+.muscle-selection-card {
   width: 100%;
 
-  padding: 14px 16px;
+  min-height: 66px;
 
-  border: 0;
-  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-  background: #fff;
+  gap: 16px;
 
-  color: #000;
+  padding:
+    11px
+    14px;
 
-  font-size: 10px;
-  font-weight: 800;
+  border:
+    1px solid
+    rgba(255,255,255,0.09);
 
-  letter-spacing: .08em;
+  border-radius: 12px;
+
+  background:
+    rgba(13,13,13,0.97);
+
+  color: var(--color-text);
+
+  box-shadow:
+    0 12px 35px
+    rgba(0,0,0,0.4);
+
+  text-align: left;
 
   cursor: pointer;
+
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease;
 }
+
+
+/* PRESS */
+
+.muscle-selection-card:active {
+  transform: scale(0.98);
+
+  background:
+    rgba(25,25,25,0.98);
+}
+
+
+/* TEXT */
+
+.muscle-selection-copy {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+.muscle-selection-kicker {
+  color: #666;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  line-height: 1;
+
+  letter-spacing: 0.14em;
+}
+
+.muscle-selection-name {
+  color: #fff;
+
+  font-size: 16px;
+  font-weight: 800;
+
+  line-height: 1.15;
+
+  letter-spacing: -0.02em;
+}
+
+.muscle-selection-meta {
+  overflow: hidden;
+
+  color: #777;
+
+  font-size: 9px;
+
+  line-height: 1.2;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* ARROW */
+
+.muscle-selection-arrow {
+  flex: 0 0 auto;
+
+  display: grid;
+  place-items: center;
+
+  width: 30px;
+  height: 30px;
+
+  border:
+    1px solid
+    rgba(255,255,255,0.08);
+
+  border-radius: 8px;
+
+  color: #aaa;
+
+  font-size: 15px;
+
+  transition:
+    transform 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.muscle-selection-card:active
+.muscle-selection-arrow {
+  transform: translateX(2px);
+
+  background: rgba(255,255,255,0.08);
+
+  color: #fff;
+}
+
+
+/* DESKTOP */
 
 @media (min-width: 768px) {
 
   .muscle-selection-panel {
-
     left: auto;
     right: 24px;
     bottom: 24px;
 
-    width:
-      min(
-        400px,
-        calc(100vw - 48px)
-      );
-
-    border:
-      1px solid
-      rgba(255, 255, 255, 0.08);
-
-    border-radius: 16px;
+    width: 280px;
 
     transform:
-      translateY(
-        calc(100% + 40px)
-      );
+      translateY(calc(100% + 24px));
   }
 
   .muscle-selection-panel.is-visible {
-
     transform:
       translateY(0);
   }
+}
+
+.muscle-selection-panel.is-visible {
+  transform: translate(-50%, 0);
+}
+
+
+/* small handle */
+
+.muscle-panel-handle {
+  display: none;
+}
+
+
+/* content */
+
+.muscle-panel-kicker {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #707070;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: .14em;
+}
+
+.muscle-panel-content h2 {
+  margin: 0 30px 5px 0;
+
+  color: #fff;
+
+  font-size: 18px;
+  line-height: 1;
+}
+
+.muscle-panel-content p {
+  margin: 0 0 9px;
+
+  color: #777;
+
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+
+/* button */
+
+.muscle-panel-exercises {
+  width: 100%;
+
+  min-height: 36px;
+  padding: 8px 10px;
+
+  border: 0;
+  border-radius: 8px;
+
+  background: #fff;
+  color: #000;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: .07em;
+
+  cursor: pointer;
+}
+
+.muscle-panel-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  background: #171717;
+  color: #a4a4a4;
+
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.muscle-panel-close:hover,
+.muscle-panel-close:focus-visible {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.muscle-panel-close:focus-visible,
+.muscle-panel-exercises:focus-visible {
+  outline: 2px solid var(--color-red);
+  outline-offset: 2px;
+}
+
+
+/* desktop */
+
+@media (min-width: 768px) {
+
+  .muscle-selection-panel {
+    left: auto;
+    right: 24px;
+    bottom: 24px;
+
+    width: 280px;
+
+    transform:
+      translateY(calc(100% + 30px));
+  }
+
+  .muscle-selection-panel.is-visible {
+    transform: translateY(0);
+  }
+}
+
+.view-toggle {
+    position: relative;
+    display: flex;
+    width: 100%;
+    padding: 4px;
+    border: 1px solid #292929;
+    border-radius: 999px;
+    background: #151515;
+    overflow: hidden;
+}
+
+.view-toggle::before {
+    content: "";
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    border-radius: 999px;
+    background: #35171a;
+    transition: transform 0.3s cubic-bezier(.22, 1, .36, 1);
+}
+
+.view-toggle.back-active::before {
+    transform: translateX(100%);
+}
+
+.view-btn {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    height: 52px;
+    border: 0;
+    background: transparent;
+    color: #777;
+    font-weight: 800;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition:
+        color 0.25s ease,
+        transform 0.2s ease;
+}
+
+.view-btn.active {
+    color: white;
+}
+
+.view-btn:active {
+    transform: scale(0.96);
 }

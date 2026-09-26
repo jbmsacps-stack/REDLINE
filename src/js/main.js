@@ -4,6 +4,8 @@ import "../css/style.css";
 import { Clerk } from "@clerk/clerk-js";
 import { createClerkSupabaseClient } from "./supabase.js";
 
+import { EXERCISES } from "./exerciseData.js";
+
 const app = document.querySelector("#app");
 
 import { exercises } from "./data.js";
@@ -110,6 +112,29 @@ let activeEquipment = "All";
 let searchTerm = "";
 let selectedExercise = null;
 let activeRoutine = null;
+
+const viewToggle = document.getElementById("viewToggle");
+const viewButtons = document.querySelectorAll(".view-btn");
+
+viewButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const view = button.dataset.view;
+
+    viewButtons.forEach((btn) => {
+      btn.classList.toggle("active", btn === button);
+    });
+
+    viewToggle.classList.toggle(
+      "back-active",
+      view === "back"
+    );
+
+    // Your existing muscle-map function
+    if (typeof setMuscleView === "function") {
+      setMuscleView(view);
+    }
+  });
+});
 
 let reduceMotion =
   localStorage.getItem("redline-reduce-motion") === "true";
@@ -1102,13 +1127,126 @@ const MUSCLE_MASKS = {
   front: {
     chest: {
       name: "Chest",
+      exerciseMuscle: "Chest",
       mask: "/assets/muscle-map/front/masks/chest.png",
-      description:
-        "The chest is primarily composed of the pectoralis major and pectoralis minor."
-    }
+    },
+
+    shoulders: {
+      name: "Shoulders",
+      exerciseMuscle: "Shoulders",
+      mask: "/assets/muscle-map/front/masks/shoulders.png",
+    },
+
+    biceps: {
+      name: "Biceps",
+      exerciseMuscle: "Biceps",
+      mask: "/assets/muscle-map/front/masks/biceps.png",
+    },
+
+    triceps: {
+      name: "Triceps",
+      exerciseMuscle: "Triceps",
+      mask: "/assets/muscle-map/front/masks/triceps.png",
+    },
+
+    forearms: {
+      name: "Forearms",
+      exerciseMuscle: "Forearms",
+      mask: "/assets/muscle-map/front/masks/forearms.png",
+    },
+
+    abs: {
+      name: "Abs",
+      exerciseMuscle: "Abs",
+      mask: "/assets/muscle-map/front/masks/abs.png",
+    },
+
+    obliques: {
+      name: "Obliques",
+      exerciseMuscle: "Obliques",
+      mask: "/assets/muscle-map/front/masks/obliques.png",
+    },
+
+    serratus: {
+      name: "Serratus",
+      exerciseMuscle: "Serratus",
+      mask: "/assets/muscle-map/front/masks/serratus.png",
+    },
+
+    quads: {
+      name: "Quads",
+      exerciseMuscle: "Quadriceps",
+      mask: "/assets/muscle-map/front/masks/quads.png",
+    },
+
+    adductors: {
+      name: "Adductors",
+      exerciseMuscle: "Adductors",
+      mask: "/assets/muscle-map/front/masks/adductors.png",
+    },
+
+    calves: {
+      name: "Calves",
+      exerciseMuscle: "Calves",
+      mask: "/assets/muscle-map/front/masks/calves.png",
+    },
   },
 
-  back: {}
+  back: {
+    traps: {
+      name: "Traps",
+      exerciseMuscle: "Traps",
+      mask: "/assets/muscle-map/back/masks/traps.png",
+    },
+
+    rearDelts: {
+      name: "Rear Delts",
+      exerciseMuscle: "Shoulders",
+      mask: "/assets/muscle-map/back/masks/rear-delts.png",
+    },
+
+    lats: {
+      name: "Lats",
+      exerciseMuscle: "Lats",
+      mask: "/assets/muscle-map/back/masks/lats.png",
+    },
+
+    triceps: {
+      name: "Triceps",
+      exerciseMuscle: "Triceps",
+      mask: "/assets/muscle-map/back/masks/triceps.png",
+    },
+
+    forearms: {
+      name: "Forearms",
+      exerciseMuscle: "Forearms",
+      mask: "/assets/muscle-map/back/masks/forearms.png",
+    },
+
+    lowerBack: {
+      name: "Lower Back",
+      exerciseMuscle: "Lower Back",
+      mask: "/assets/muscle-map/back/masks/lower-back.png",
+    },
+
+    glutes: {
+      name: "Glutes",
+      exerciseMuscle: "Glutes",
+      mask: "/assets/muscle-map/back/masks/glutes.png",
+    },
+
+    hamstrings: {
+      name: "Hamstrings",
+      exerciseMuscle: "Hamstrings",
+      mask: "/assets/muscle-map/back/masks/hamstrings.png",
+    },
+
+    calves: {
+      name: "Calves",
+      exerciseMuscle: "Calves",
+      mask: "/assets/muscle-map/back/masks/calves.png",
+    },
+  },
 };
 
 
@@ -1137,6 +1275,29 @@ class MuscleMaskMap {
     this.init();
   }
 
+  async setSide(side) {
+
+    if (this.side === side) return;
+
+    this.side = side;
+
+    this.selectedMuscle = null;
+
+    this.masks = {};
+
+    this.clearSelection();
+
+    this.image.src =
+      side === "front"
+        ? "/assets/muscle-map/front/base.webp"
+        : "/assets/muscle-map/back/base.png";
+
+    await this.waitForImage();
+
+    this.resize();
+
+    await this.loadMasks();
+  }
 
   async init() {
 
@@ -1195,49 +1356,49 @@ class MuscleMaskMap {
 
 
   async loadMasks() {
-
     const muscles = MUSCLE_MASKS[this.side];
 
     this.masks = {};
 
-    for (const [id, muscle] of Object.entries(muscles)) {
+    const entries = Object.entries(muscles);
 
-      const image = new Image();
+    await Promise.all(
+      entries.map(async ([id, muscle]) => {
+        const image = new Image();
 
-      image.src = muscle.mask;
+        image.src = muscle.mask;
 
-      await new Promise((resolve, reject) => {
-
-        image.onload = resolve;
-        image.onerror = reject;
-
-      });
-
-      const maskCanvas =
-        document.createElement("canvas");
-
-      maskCanvas.width = this.canvas.width;
-      maskCanvas.height = this.canvas.height;
-
-      const maskCtx =
-        maskCanvas.getContext("2d", {
-          willReadFrequently: true
+        await new Promise((resolve, reject) => {
+          image.onload = resolve;
+          image.onerror = reject;
         });
 
-      maskCtx.drawImage(
-        image,
-        0,
-        0,
-        maskCanvas.width,
-        maskCanvas.height
-      );
+        const maskCanvas =
+          document.createElement("canvas");
 
-      this.masks[id] = {
-        ...muscle,
-        canvas: maskCanvas,
-        ctx: maskCtx
-      };
-    }
+        maskCanvas.width = this.canvas.width;
+        maskCanvas.height = this.canvas.height;
+
+        const maskCtx =
+          maskCanvas.getContext("2d", {
+            willReadFrequently: true,
+          });
+
+        maskCtx.drawImage(
+          image,
+          0,
+          0,
+          maskCanvas.width,
+          maskCanvas.height
+        );
+
+        this.masks[id] = {
+          ...muscle,
+          canvas: maskCanvas,
+          ctx: maskCtx,
+        };
+      })
+    );
   }
 
 
@@ -1280,8 +1441,7 @@ class MuscleMaskMap {
 
   handlePointer(event) {
 
-    const point =
-      this.getPoint(event);
+    const point = this.getPoint(event);
 
     for (const [id, muscle] of Object.entries(this.masks)) {
 
@@ -1298,6 +1458,28 @@ class MuscleMaskMap {
         return;
       }
     }
+
+    this.clearSelection();
+  }
+
+  clearSelection() {
+
+    this.selectedMuscle = null;
+
+    this.ctx.clearRect(
+      0,
+      0,
+      this.canvas.width,
+      this.canvas.height
+    );
+
+    const panel = document.querySelector(
+      ".muscle-selection-panel"
+    );
+
+    if (panel) {
+      panel.classList.remove("is-visible");
+    }
   }
 
 
@@ -1306,6 +1488,7 @@ class MuscleMaskMap {
     this.selectedMuscle = {
       id,
       name: muscle.name,
+      exerciseMuscle: muscle.exerciseMuscle,
       description: muscle.description
     };
 
@@ -1381,55 +1564,100 @@ class MuscleMaskMap {
   }
 }
 
-function showMusclePanel(muscle) {
+document.addEventListener("pointerdown", (event) => {
 
-  let panel =
-    document.querySelector(
-      ".muscle-selection-panel"
-    );
+  const panel = document.querySelector(
+    ".muscle-selection-panel"
+  );
+
+  if (!panel) return;
+
+  if (
+    panel.classList.contains("is-visible") &&
+    !panel.contains(event.target) &&
+    !event.target.closest(".muscle-map-canvas")
+  ) {
+
+    panel.classList.remove("is-visible");
+
+    const canvas =
+      document.querySelector(".muscle-map-canvas");
+
+    if (canvas) {
+
+      const model =
+        canvas.closest(".muscle-map-model");
+
+      if (model?.muscleMapInstance) {
+        model.muscleMapInstance.clearSelection();
+      }
+    }
+  }
+
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+
+  const panel = document.querySelector(".muscle-selection-panel.is-visible");
+  if (!panel) return;
+
+  const model = document
+    .querySelector(".muscle-map-canvas")
+    ?.closest(".muscle-map-model");
+
+  model?.muscleMapInstance?.clearSelection();
+});
+
+function showMusclePanel(muscle) {
+  let panel = document.querySelector(".muscle-selection-panel");
 
   if (!panel) {
-
-    panel =
-      document.createElement("aside");
-
-    panel.className =
-      "muscle-selection-panel";
+    panel = document.createElement("aside");
+    panel.className = "muscle-selection-panel";
 
     document.body.appendChild(panel);
   }
 
   panel.innerHTML = `
+    <button
+      class="muscle-selection-card"
+      type="button"
+      data-muscle="${muscle.id}"
+      aria-label="View ${muscle.name} exercises"
+    >
+      <div class="muscle-selection-copy">
+        <span class="muscle-selection-kicker">
+          SELECTED
+        </span>
 
-    <div class="muscle-panel-handle"></div>
+        <strong class="muscle-selection-name">
+          ${muscle.name}
+        </strong>
 
-    <div class="muscle-panel-content">
+        <span class="muscle-selection-meta">
+          ${muscle.exerciseMuscle || muscle.name}
+        </span>
+      </div>
 
-      <span class="muscle-panel-kicker">
-        SELECTED MUSCLE
+      <span class="muscle-selection-arrow" aria-hidden="true">
+        →
       </span>
-
-      <h2>
-        ${muscle.name}
-      </h2>
-
-      <p>
-        ${muscle.description}
-      </p>
-
-      <button
-        type="button"
-        class="muscle-panel-exercises"
-        data-muscle="${muscle.id}"
-      >
-        VIEW ${muscle.name.toUpperCase()} EXERCISES
-      </button>
-
-    </div>
+    </button>
   `;
 
-  requestAnimationFrame(() => {
-    panel.classList.add("is-visible");
+  panel.classList.add("is-visible");
+
+  const card = panel.querySelector(
+    ".muscle-selection-card"
+  );
+
+  card.addEventListener("click", () => {
+    console.log(
+      `Open exercises for: ${muscle.name}`
+    );
+
+    // Exercise screen will be connected here next.
   });
 }
 
@@ -1497,27 +1725,26 @@ function renderMuscleMap() {
 
 
           <div
-            class="muscle-map-view-toggle"
-            role="group"
-            aria-label="Anatomy view"
-          >
+  class="muscle-map-view-toggle"
+  role="group"
+  aria-label="Anatomy view"
+>
+  <button
+    class="muscle-view-front active"
+    type="button"
+    aria-pressed="true"
+  >
+    FRONT
+  </button>
 
-            <button
-              class="active"
-              type="button"
-              aria-pressed="true"
-            >
-              FRONT
-            </button>
-
-            <button
-              type="button"
-              aria-pressed="false"
-            >
-              BACK
-            </button>
-
-          </div>
+  <button
+    class="muscle-view-back"
+    type="button"
+    aria-pressed="false"
+  >
+    BACK
+  </button>
+</div>
 
 
           <div class="muscle-map-stage">
@@ -1663,7 +1890,153 @@ function renderMuscleMap() {
     );
 
   if (muscleModel) {
-    new MuscleMaskMap(muscleModel);
+    const muscleMap =
+      new MuscleMaskMap(muscleModel);
+
+    muscleModel.muscleMapInstance =
+      muscleMap;
+
+    const frontButton =
+      document.querySelector(".muscle-view-front");
+
+    const backButton =
+      document.querySelector(".muscle-view-back");
+
+    const muscleStage =
+      document.querySelector(".muscle-map-model");
+
+
+    async function switchMuscleSide(side) {
+      if (!muscleMap || muscleMap.side === side) return;
+
+      // Small press animation
+      gsap.to(side === "front" ? frontButton : backButton, {
+        scale: 0.96,
+        duration: 0.08,
+        yoyo: true,
+        repeat: 1,
+        ease: "power2.out"
+      });
+
+      // Animate current body out
+      await gsap.to(muscleStage, {
+        opacity: 0,
+        rotateY: side === "back" ? -10 : 10,
+        scale: 0.98,
+        duration: 0.16,
+        ease: "power2.in"
+      });
+
+      // Actually change anatomy
+      await muscleMap.setSide(side);
+
+      // Update buttons
+      frontButton.classList.toggle(
+        "active",
+        side === "front"
+      );
+
+      backButton.classList.toggle(
+        "active",
+        side === "back"
+      );
+
+      // ===============================
+      // ANATOMY / ACTIVITY / SYNERGY
+      // ===============================
+
+      const modeButtons = document.querySelectorAll(
+        ".muscle-map-mode-toggle button"
+      );
+
+      modeButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+
+          // Remove active state from all 3
+          modeButtons.forEach((btn) => {
+            btn.classList.remove("active");
+            btn.setAttribute("aria-selected", "false");
+          });
+
+          // Activate clicked button
+          button.classList.add("active");
+          button.setAttribute("aria-selected", "true");
+
+          // Get selected mode
+          const mode = button.textContent
+            .trim()
+            .toLowerCase();
+
+          console.log("Muscle Map mode:", mode);
+        });
+      });
+
+      // ===============================
+      // SURFACE / DEEP
+      // ===============================
+
+      const layerButtons = document.querySelectorAll(
+        ".muscle-map-layer-toggle button"
+      );
+
+      layerButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+
+          // Remove active state from both
+          layerButtons.forEach((btn) => {
+            btn.classList.remove("active");
+            btn.setAttribute("aria-pressed", "false");
+          });
+
+          // Activate clicked button
+          button.classList.add("active");
+          button.setAttribute("aria-pressed", "true");
+
+          const layer = button.textContent
+            .trim()
+            .toLowerCase();
+
+          console.log("Muscle layer:", layer);
+        });
+      });
+
+      frontButton.setAttribute(
+        "aria-pressed",
+        side === "front" ? "true" : "false"
+      );
+
+      backButton.setAttribute(
+        "aria-pressed",
+        side === "back" ? "true" : "false"
+      );
+
+      // Animate new body in
+      gsap.fromTo(
+        muscleStage,
+        {
+          opacity: 0,
+          rotateY: side === "back" ? 10 : -10,
+          scale: 0.98
+        },
+        {
+          opacity: 1,
+          rotateY: 0,
+          scale: 1,
+          duration: 0.28,
+          ease: "power2.out"
+        }
+      );
+    }
+
+
+    frontButton?.addEventListener("click", () => {
+      switchMuscleSide("front");
+    });
+
+
+    backButton?.addEventListener("click", () => {
+      switchMuscleSide("back");
+    });
   }
 
 }
