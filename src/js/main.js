@@ -1098,6 +1098,341 @@ function renderBottomNav(activePage = "workouts") {
   `;
 }
 
+const MUSCLE_MASKS = {
+  front: {
+    chest: {
+      name: "Chest",
+      mask: "/assets/muscle-map/front/masks/chest.png",
+      description:
+        "The chest is primarily composed of the pectoralis major and pectoralis minor."
+    }
+  },
+
+  back: {}
+};
+
+
+class MuscleMaskMap {
+
+  constructor(model) {
+
+    this.model = model;
+    this.image = model.querySelector("img");
+    this.canvas = model.querySelector(".muscle-map-canvas");
+
+    this.ctx = this.canvas.getContext("2d", {
+      willReadFrequently: true
+    });
+
+    this.maskCanvas = document.createElement("canvas");
+
+    this.maskCtx = this.maskCanvas.getContext("2d", {
+      willReadFrequently: true
+    });
+
+    this.side = "front";
+    this.masks = {};
+    this.selectedMuscle = null;
+
+    this.init();
+  }
+
+
+  async init() {
+
+    await this.waitForImage();
+
+    this.resize();
+
+    await this.loadMasks();
+
+    this.canvas.addEventListener(
+      "pointerup",
+      (event) => this.handlePointer(event)
+    );
+
+    window.addEventListener(
+      "resize",
+      () => this.resize()
+    );
+  }
+
+
+  waitForImage() {
+
+    return new Promise((resolve) => {
+
+      if (this.image.complete) {
+        resolve();
+        return;
+      }
+
+      this.image.addEventListener(
+        "load",
+        resolve,
+        { once: true }
+      );
+
+    });
+  }
+
+
+  resize() {
+
+    const width = this.image.naturalWidth;
+    const height = this.image.naturalHeight;
+
+    if (!width || !height) return;
+
+    this.canvas.width = width;
+    this.canvas.height = height;
+
+    this.maskCanvas.width = width;
+    this.maskCanvas.height = height;
+
+    this.renderSelection();
+  }
+
+
+  async loadMasks() {
+
+    const muscles = MUSCLE_MASKS[this.side];
+
+    this.masks = {};
+
+    for (const [id, muscle] of Object.entries(muscles)) {
+
+      const image = new Image();
+
+      image.src = muscle.mask;
+
+      await new Promise((resolve, reject) => {
+
+        image.onload = resolve;
+        image.onerror = reject;
+
+      });
+
+      const maskCanvas =
+        document.createElement("canvas");
+
+      maskCanvas.width = this.canvas.width;
+      maskCanvas.height = this.canvas.height;
+
+      const maskCtx =
+        maskCanvas.getContext("2d", {
+          willReadFrequently: true
+        });
+
+      maskCtx.drawImage(
+        image,
+        0,
+        0,
+        maskCanvas.width,
+        maskCanvas.height
+      );
+
+      this.masks[id] = {
+        ...muscle,
+        canvas: maskCanvas,
+        ctx: maskCtx
+      };
+    }
+  }
+
+
+  getPoint(event) {
+
+    const rect =
+      this.canvas.getBoundingClientRect();
+
+    return {
+      x: Math.floor(
+        (event.clientX - rect.left) *
+        (this.canvas.width / rect.width)
+      ),
+
+      y: Math.floor(
+        (event.clientY - rect.top) *
+        (this.canvas.height / rect.height)
+      )
+    };
+  }
+
+
+  isWhite(mask, x, y) {
+
+    const pixel =
+      mask.ctx.getImageData(
+        x,
+        y,
+        1,
+        1
+      ).data;
+
+    return (
+      pixel[0] > 220 &&
+      pixel[1] > 220 &&
+      pixel[2] > 220
+    );
+  }
+
+
+  handlePointer(event) {
+
+    const point =
+      this.getPoint(event);
+
+    for (const [id, muscle] of Object.entries(this.masks)) {
+
+      if (
+        this.isWhite(
+          muscle,
+          point.x,
+          point.y
+        )
+      ) {
+
+        this.select(id, muscle);
+
+        return;
+      }
+    }
+  }
+
+
+  select(id, muscle) {
+
+    this.selectedMuscle = {
+      id,
+      name: muscle.name,
+      description: muscle.description
+    };
+
+    this.renderSelection();
+
+    showMusclePanel(
+      this.selectedMuscle
+    );
+  }
+
+
+  renderSelection() {
+
+    this.ctx.clearRect(
+      0,
+      0,
+      this.canvas.width,
+      this.canvas.height
+    );
+
+    if (!this.selectedMuscle) return;
+
+    const muscle =
+      this.masks[
+      this.selectedMuscle.id
+      ];
+
+    if (!muscle) return;
+
+    const maskData =
+      muscle.ctx.getImageData(
+        0,
+        0,
+        this.canvas.width,
+        this.canvas.height
+      );
+
+    const pixels =
+      maskData.data;
+
+    for (
+      let i = 0;
+      i < pixels.length;
+      i += 4
+    ) {
+
+      const r = pixels[i];
+      const g = pixels[i + 1];
+      const b = pixels[i + 2];
+
+      if (
+        r > 220 &&
+        g > 220 &&
+        b > 220
+      ) {
+
+        pixels[i] = 210;
+        pixels[i + 1] = 25;
+        pixels[i + 2] = 25;
+        pixels[i + 3] = 115;
+
+      } else {
+
+        pixels[i + 3] = 0;
+      }
+    }
+
+    this.ctx.putImageData(
+      maskData,
+      0,
+      0
+    );
+  }
+}
+
+function showMusclePanel(muscle) {
+
+  let panel =
+    document.querySelector(
+      ".muscle-selection-panel"
+    );
+
+  if (!panel) {
+
+    panel =
+      document.createElement("aside");
+
+    panel.className =
+      "muscle-selection-panel";
+
+    document.body.appendChild(panel);
+  }
+
+  panel.innerHTML = `
+
+    <div class="muscle-panel-handle"></div>
+
+    <div class="muscle-panel-content">
+
+      <span class="muscle-panel-kicker">
+        SELECTED MUSCLE
+      </span>
+
+      <h2>
+        ${muscle.name}
+      </h2>
+
+      <p>
+        ${muscle.description}
+      </p>
+
+      <button
+        type="button"
+        class="muscle-panel-exercises"
+        data-muscle="${muscle.id}"
+      >
+        VIEW ${muscle.name.toUpperCase()} EXERCISES
+      </button>
+
+    </div>
+  `;
+
+  requestAnimationFrame(() => {
+    panel.classList.add("is-visible");
+  });
+}
+
 // =========================================================
 // MUSCLE MAP
 // =========================================================
@@ -1189,13 +1524,48 @@ function renderMuscleMap() {
 
   <div class="muscle-map-model">
 
-    <img
-      src="/assets/muscle-map/front/base.webp"
-      alt="Front-view anatomical muscle map"
-      draggable="false"
-    >
+  <img
+    src="/assets/muscle-map/front/base.webp"
+    alt="Front-view anatomical muscle map"
+    draggable="false"
+  >
 
-  </div>
+  <canvas
+  class="muscle-map-canvas"
+  aria-label="Interactive muscle map"
+></canvas>
+    <path
+      class="muscle-region"
+      data-muscle="chest"
+      d="
+        M500 284
+        C466 276 422 284 381 308
+        C353 324 339 351 343 374
+        C347 398 369 414 401 421
+        C435 429 469 417 489 396
+        C500 384 504 363 501 341
+        C498 319 499 298 500 284
+        Z
+      "
+    />
+
+    <path
+      class="muscle-region"
+      data-muscle="chest"
+      d="
+        M524 284
+        C558 276 602 284 643 308
+        C671 324 685 351 681 374
+        C677 398 655 414 623 421
+        C589 429 555 417 535 396
+        C524 384 520 363 523 341
+        C526 319 525 298 524 284
+        Z
+      "
+    />
+  </svg>
+
+</div>
 
 </div>
 
@@ -1286,6 +1656,15 @@ function renderMuscleMap() {
   `;
 
   attachEvents();
+
+  const muscleModel =
+    document.querySelector(
+      ".muscle-map-model"
+    );
+
+  if (muscleModel) {
+    new MuscleMaskMap(muscleModel);
+  }
 
 }
 
