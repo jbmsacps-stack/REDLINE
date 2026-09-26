@@ -8685,7 +8685,7 @@ svg {
 
 
 .muscle-map-view-toggle button {
-  min-height: 42px;
+  min-height: 37px;
 
   border-radius: 999px;
 
@@ -8862,3 +8862,4 @@ svg {
   font-size: 0.7rem;
   line-height: 1.45;
 }
+

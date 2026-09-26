@@ -2408,8 +2408,6 @@ ${completedSessions === 1
 
 </section>
 
-</section>
-
 <section class="profile-section">
 
   <div class="profile-section-heading">
