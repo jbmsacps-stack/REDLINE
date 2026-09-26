@@ -78,12 +78,12 @@ async function initializeApp() {
 
   render();
 
-  await Promise.all([
+  Promise.all([
     loadRoutinesFromSupabase(),
     loadWorkoutSessionsFromSupabase()
-  ]);
-
-  render();
+  ]).then(() => {
+    render();
+  });
 
   // Sync account settings in the background
   loadUserSettingsFromSupabase();
@@ -254,8 +254,30 @@ function weightToKg(value) {
     : numericValue;
 }
 
+function getUserCacheKey(type) {
+  const userId = clerk.user?.id;
+
+  return userId
+    ? `redline-${type}-cache-${userId}`
+    : `redline-${type}-cache`;
+}
+
 let routines = [
 ];
+
+function saveRoutinesToCache() {
+  try {
+    localStorage.setItem(
+      getUserCacheKey("routines"),
+      JSON.stringify(routines)
+    );
+  } catch (error) {
+    console.warn(
+      "Failed to save routine cache:",
+      error
+    );
+  }
+}
 
 function loadRoutinesFromCache() {
 
@@ -263,7 +285,7 @@ function loadRoutinesFromCache() {
 
     const cached =
       localStorage.getItem(
-        "redline-routines-cache"
+        getUserCacheKey("routines")
       );
 
     if (!cached) {
@@ -292,7 +314,7 @@ function loadRoutinesFromCache() {
     );
 
     localStorage.removeItem(
-      "redline-routines-cache"
+      getUserCacheKey("routines")
     );
 
   }
@@ -419,7 +441,7 @@ async function loadRoutinesFromSupabase() {
   );
 
   localStorage.setItem(
-    "redline-routines-cache",
+    getUserCacheKey("routines"),
     JSON.stringify(routines)
   );
 }
@@ -513,7 +535,7 @@ let profileReturnView = "workouts";
 function loadWorkoutSessionsFromCache() {
   try {
     const cached = localStorage.getItem(
-      "redline-workout-sessions-cache"
+      getUserCacheKey("workout-sessions")
     );
 
     if (!cached) {
@@ -541,7 +563,7 @@ function loadWorkoutSessionsFromCache() {
     );
 
     localStorage.removeItem(
-      "redline-workout-sessions-cache"
+      getUserCacheKey("workout-sessions")
     );
 
   }
@@ -550,7 +572,7 @@ function loadWorkoutSessionsFromCache() {
 function saveWorkoutSessionsToCache() {
   try {
     localStorage.setItem(
-      "redline-workout-sessions-cache",
+      getUserCacheKey("workout-sessions"),
       JSON.stringify(workoutSessions)
     );
   } catch (error) {
@@ -622,7 +644,7 @@ async function loadWorkoutSessionsFromSupabase() {
   );
 
   localStorage.setItem(
-    "redline-workout-sessions-cache",
+    getUserCacheKey("workout-sessions"),
     JSON.stringify(workoutSessions)
   );
 }
@@ -6310,6 +6332,8 @@ function openDeleteHistoryModal() {
 
     workoutSessions = [];
 
+    saveWorkoutSessionsToCache();
+
     closeModal();
 
     setTimeout(() => {
@@ -6686,6 +6710,8 @@ function attachEvents() {
                 session.date === today
               )
           );
+
+        saveWorkoutSessionsToCache();
       }
     }
   );
