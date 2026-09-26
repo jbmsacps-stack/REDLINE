@@ -80,7 +80,10 @@ async function initializeApp() {
 
   render();
 
-  loadRoutinesFromSupabase().then(() => {
+  Promise.allSettled([
+    loadRoutinesFromSupabase(),
+    loadWorkoutSessionsFromSupabase()
+  ]).then(() => {
     render();
   });
 
@@ -112,29 +115,6 @@ let activeEquipment = "All";
 let searchTerm = "";
 let selectedExercise = null;
 let activeRoutine = null;
-
-const viewToggle = document.getElementById("viewToggle");
-const viewButtons = document.querySelectorAll(".view-btn");
-
-viewButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    const view = button.dataset.view;
-
-    viewButtons.forEach((btn) => {
-      btn.classList.toggle("active", btn === button);
-    });
-
-    viewToggle.classList.toggle(
-      "back-active",
-      view === "back"
-    );
-
-    // Your existing muscle-map function
-    if (typeof setMuscleView === "function") {
-      setMuscleView(view);
-    }
-  });
-});
 
 let reduceMotion =
   localStorage.getItem("redline-reduce-motion") === "true";
@@ -1136,71 +1116,92 @@ function renderBottomNav(activePage = "workouts") {
   `;
 }
 
+// Anatomical region ID -> category used by exercises and workout filters.
+// null means the library has no matching category yet; handoff falls back to All.
+const MUSCLE_EXERCISE_CATEGORIES = Object.freeze({
+  chest: "Chest",
+  shoulders: "Shoulders",
+  biceps: "Biceps",
+  triceps: "Triceps",
+  forearms: null,
+  abs: null,
+  obliques: null,
+  serratus: null,
+  quads: "Legs",
+  adductors: null,
+  calves: "Legs",
+  traps: "Back",
+  rearDelts: "Shoulders",
+  lats: "Back",
+  lowerBack: "Back",
+  glutes: "Legs",
+  hamstrings: "Hamstrings",
+});
+
+function getExerciseCategoryForMuscle(muscleId) {
+  return Object.hasOwn(MUSCLE_EXERCISE_CATEGORIES, muscleId)
+    ? MUSCLE_EXERCISE_CATEGORIES[muscleId]
+    : null;
+}
+
+const EXERCISE_MUSCLE_CATEGORIES = new Set(
+  Object.values(MUSCLE_EXERCISE_CATEGORIES).filter(Boolean)
+);
+
 const MUSCLE_MASKS = {
   front: {
     chest: {
       name: "Chest",
-      exerciseMuscle: "Chest",
       mask: "/assets/muscle-map/front/masks/chest.png",
     },
 
     shoulders: {
       name: "Shoulders",
-      exerciseMuscle: "Shoulders",
       mask: "/assets/muscle-map/front/masks/shoulders.png",
     },
 
     biceps: {
       name: "Biceps",
-      exerciseMuscle: "Biceps",
       mask: "/assets/muscle-map/front/masks/biceps.png",
     },
 
     triceps: {
       name: "Triceps",
-      exerciseMuscle: "Triceps",
       mask: "/assets/muscle-map/front/masks/triceps.png",
     },
 
     forearms: {
       name: "Forearms",
-      exerciseMuscle: "Forearms",
       mask: "/assets/muscle-map/front/masks/forearms.png",
     },
 
     abs: {
       name: "Abs",
-      exerciseMuscle: "Abs",
       mask: "/assets/muscle-map/front/masks/abs.png",
     },
 
     obliques: {
       name: "Obliques",
-      exerciseMuscle: "Obliques",
       mask: "/assets/muscle-map/front/masks/obliques.png",
     },
 
     serratus: {
       name: "Serratus",
-      exerciseMuscle: "Serratus",
       mask: "/assets/muscle-map/front/masks/serratus.png",
     },
 
     quads: {
       name: "Quads",
-      exerciseMuscle: "Legs",
       mask: "/assets/muscle-map/front/masks/quads.png",
     },
 
     adductors: {
       name: "Adductors",
-      exerciseMuscle: "Adductors",
       mask: "/assets/muscle-map/front/masks/adductors.png",
     },
 
     calves: {
       name: "Calves",
-      exerciseMuscle: "Legs",
       mask: "/assets/muscle-map/front/masks/calves.png",
     },
   },
@@ -1208,55 +1209,46 @@ const MUSCLE_MASKS = {
   back: {
     traps: {
       name: "Traps",
-      exerciseMuscle: "Back",
       mask: "/assets/muscle-map/back/masks/traps.png",
     },
 
     rearDelts: {
       name: "Rear Delts",
-      exerciseMuscle: "Shoulders",
       mask: "/assets/muscle-map/back/masks/rear-delts.png",
     },
 
     lats: {
       name: "Lats",
-      exerciseMuscle: "Back",
       mask: "/assets/muscle-map/back/masks/lats.png",
     },
 
     triceps: {
       name: "Triceps",
-      exerciseMuscle: "Triceps",
       mask: "/assets/muscle-map/back/masks/triceps.png",
     },
 
     forearms: {
       name: "Forearms",
-      exerciseMuscle: "All",
       mask: "/assets/muscle-map/back/masks/forearms.png",
     },
 
     lowerBack: {
       name: "Lower Back",
-      exerciseMuscle: "Lower Back",
       mask: "/assets/muscle-map/back/masks/lower-back.png",
     },
 
     glutes: {
       name: "Glutes",
-      exerciseMuscle: "Glutes",
       mask: "/assets/muscle-map/back/masks/glutes.png",
     },
 
     hamstrings: {
       name: "Hamstrings",
-      exerciseMuscle: "Hamstrings",
       mask: "/assets/muscle-map/back/masks/hamstrings.png",
     },
 
     calves: {
       name: "Calves",
-      exerciseMuscle: "Calves",
       mask: "/assets/muscle-map/back/masks/calves.png",
     },
   },
@@ -1282,8 +1274,11 @@ class MuscleMaskMap {
     });
 
     this.side = "front";
+    this.mode = "anatomy";
+    this.layer = "surface";
     this.masks = {};
     this.selectedMuscle = null;
+    this.ready = false;
 
     this.init();
   }
@@ -1293,42 +1288,38 @@ class MuscleMaskMap {
     if (this.side === side) return;
 
     this.side = side;
-
     this.selectedMuscle = null;
-
     this.masks = {};
-
-    this.clearSelection();
+    this.hideSelectionPanel();
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     this.image.src =
       side === "front"
         ? "/assets/muscle-map/front/base.webp"
         : "/assets/muscle-map/back/base.png";
+    this.image.alt = `${side === "front" ? "Front" : "Back"}-view anatomical muscle map`;
 
     await this.waitForImage();
-
-    this.resize();
-
+    this.resize(false);
     await this.loadMasks();
+    this.updateAccessibleMuscles();
+    this.renderMode();
   }
 
   async init() {
 
     await this.waitForImage();
-
     this.resize();
-
     await this.loadMasks();
+    this.ready = true;
+    this.updateAccessibleMuscles();
+    this.renderMode();
 
     this.canvas.addEventListener(
       "pointerup",
       (event) => this.handlePointer(event)
     );
 
-    window.addEventListener(
-      "resize",
-      () => this.resize()
-    );
   }
 
 
@@ -1351,20 +1342,30 @@ class MuscleMaskMap {
   }
 
 
-  resize() {
+  resize(reloadMasks = true) {
 
     const width = this.image.naturalWidth;
     const height = this.image.naturalHeight;
 
     if (!width || !height) return;
 
+    const dimensionsChanged =
+      this.canvas.width !== width ||
+      this.canvas.height !== height;
+
+    if (!dimensionsChanged) {
+      this.renderMode();
+      return;
+    }
+
     this.canvas.width = width;
     this.canvas.height = height;
-
     this.maskCanvas.width = width;
     this.maskCanvas.height = height;
 
-    this.renderSelection();
+    if (this.ready && reloadMasks) {
+      this.loadMasks().then(() => this.renderMode());
+    }
   }
 
 
@@ -1372,46 +1373,109 @@ class MuscleMaskMap {
     const muscles = MUSCLE_MASKS[this.side];
 
     this.masks = {};
+    const width = this.canvas.width;
+    const height = this.canvas.height;
 
-    const entries = Object.entries(muscles);
+    this.maskCanvas.width = width;
+    this.maskCanvas.height = height;
 
-    await Promise.all(
-      entries.map(async ([id, muscle]) => {
-        const image = new Image();
+    for (const [id, muscle] of Object.entries(muscles)) {
+      const image = new Image();
 
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = reject;
         image.src = muscle.mask;
+      });
 
-        await new Promise((resolve, reject) => {
-          image.onload = resolve;
-          image.onerror = reject;
-        });
+      this.maskCtx.clearRect(0, 0, width, height);
+      this.maskCtx.drawImage(image, 0, 0, width, height);
 
-        const maskCanvas =
-          document.createElement("canvas");
+      // Keep only a compact hit map in memory; use a tinted canvas for overlays.
+      const imageData = this.maskCtx.getImageData(
+        0,
+        0,
+        width,
+        height
+      );
 
-        maskCanvas.width = this.canvas.width;
-        maskCanvas.height = this.canvas.height;
+      const hitMap = new Uint8Array(width * height);
 
-        const maskCtx =
-          maskCanvas.getContext("2d", {
-            willReadFrequently: true,
-          });
+      // Detect whether the mask uses white-on-dark or black-on-light.
+      // This makes the loader work with either mask style.
+      let brightPixels = 0;
+      let darkPixels = 0;
 
-        maskCtx.drawImage(
-          image,
-          0,
-          0,
-          maskCanvas.width,
-          maskCanvas.height
-        );
+      for (
+        let i = 0;
+        i < imageData.data.length;
+        i += 4
+      ) {
+        const r = imageData.data[i];
+        const g = imageData.data[i + 1];
+        const b = imageData.data[i + 2];
+        const a = imageData.data[i + 3];
 
-        this.masks[id] = {
-          ...muscle,
-          canvas: maskCanvas,
-          ctx: maskCtx,
-        };
-      })
-    );
+        if (a === 0) continue;
+
+        const brightness = (r + g + b) / 3;
+
+        if (brightness > 220) {
+          brightPixels++;
+        }
+
+        if (brightness < 35) {
+          darkPixels++;
+        }
+      }
+
+      const useBrightForeground =
+        brightPixels <= darkPixels;
+
+      for (
+        let i = 0, pixel = 0;
+        i < imageData.data.length;
+        i += 4, pixel++
+      ) {
+        const r = imageData.data[i];
+        const g = imageData.data[i + 1];
+        const b = imageData.data[i + 2];
+        const a = imageData.data[i + 3];
+
+        const brightness = (r + g + b) / 3;
+
+        const isMaskPixel =
+          a > 0 &&
+          (
+            useBrightForeground
+              ? brightness > 180
+              : brightness < 100
+          );
+
+        if (isMaskPixel) {
+          hitMap[pixel] = 1;
+
+          imageData.data[i] = 225;
+          imageData.data[i + 1] = 29;
+          imageData.data[i + 2] = 46;
+          imageData.data[i + 3] = 255;
+        } else {
+          imageData.data[i + 3] = 0;
+        }
+      }
+
+      const tintedCanvas = document.createElement("canvas");
+      tintedCanvas.width = width;
+      tintedCanvas.height = height;
+      tintedCanvas.getContext("2d").putImageData(imageData, 0, 0);
+
+      this.masks[id] = {
+        ...muscle,
+        exerciseMuscle: getExerciseCategoryForMuscle(id),
+        hitMap,
+        tintedCanvas,
+      };
+    }
   }
 
 
@@ -1435,20 +1499,7 @@ class MuscleMaskMap {
 
 
   isWhite(mask, x, y) {
-
-    const pixel =
-      mask.ctx.getImageData(
-        x,
-        y,
-        1,
-        1
-      ).data;
-
-    return (
-      pixel[0] > 220 &&
-      pixel[1] > 220 &&
-      pixel[2] > 220
-    );
+    return mask.hitMap[y * this.canvas.width + x] === 1;
   }
 
 
@@ -1476,23 +1527,45 @@ class MuscleMaskMap {
   }
 
   clearSelection() {
-
     this.selectedMuscle = null;
+    this.hideSelectionPanel();
+    this.updateAccessibleMuscles();
+    this.renderMode();
+  }
 
-    this.ctx.clearRect(
-      0,
-      0,
-      this.canvas.width,
-      this.canvas.height
-    );
+  updateAccessibleMuscles() {
+    const options = document.querySelector(".muscle-map-region-options");
+    if (!options) return;
 
+    if (options.dataset.side === this.side && options.children.length) {
+      options.querySelectorAll("[data-map-muscle]").forEach((button) => {
+        button.setAttribute(
+          "aria-pressed",
+          this.selectedMuscle?.id === button.dataset.mapMuscle ? "true" : "false"
+        );
+      });
+      return;
+    }
+
+    options.dataset.side = this.side;
+
+    options.innerHTML = Object.entries(MUSCLE_MASKS[this.side])
+      .map(([id, muscle]) => `
+        <button
+          type="button"
+          data-map-muscle="${id}"
+          aria-pressed="${this.selectedMuscle?.id === id}"
+        >${muscle.name}</button>
+      `)
+      .join("");
+  }
+
+  hideSelectionPanel() {
     const panel = document.querySelector(
       ".muscle-selection-panel"
     );
 
-    if (panel) {
-      panel.classList.remove("is-visible");
-    }
+    panel?.classList.remove("is-visible");
   }
 
 
@@ -1501,11 +1574,13 @@ class MuscleMaskMap {
     this.selectedMuscle = {
       id,
       name: muscle.name,
-      exerciseMuscle: muscle.exerciseMuscle,
+      exerciseMuscle: getExerciseCategoryForMuscle(id),
       description: muscle.description
     };
 
-    this.renderSelection();
+    this.updateAccessibleMuscles();
+
+    this.renderMode();
 
     showMusclePanel(
       this.selectedMuscle
@@ -1514,14 +1589,6 @@ class MuscleMaskMap {
 
 
   renderSelection() {
-
-    this.ctx.clearRect(
-      0,
-      0,
-      this.canvas.width,
-      this.canvas.height
-    );
-
     if (!this.selectedMuscle) return;
 
     const muscle =
@@ -1531,51 +1598,218 @@ class MuscleMaskMap {
 
     if (!muscle) return;
 
-    const maskData =
-      muscle.ctx.getImageData(
-        0,
-        0,
-        this.canvas.width,
-        this.canvas.height
+    this.drawMask(muscle, 0.72);
+  }
+
+  renderActivity() {
+    const activity = getMuscleActivity();
+
+    for (const muscle of Object.values(this.masks)) {
+      const muscleActivity = activity[muscle.exerciseMuscle];
+      if (!muscleActivity) continue;
+
+      this.drawMask(
+        muscle,
+        0.18 + muscleActivity.intensity * 0.58
+      );
+    }
+
+    this.renderSelection();
+    return activity;
+  }
+
+  renderSynergy() {
+    if (!this.selectedMuscle) return {};
+
+    const synergy = getMuscleSynergy(this.selectedMuscle.id);
+    const maxCount = Math.max(
+      ...Object.values(synergy).map((entry) => entry.sessions),
+      0
+    );
+
+    if (!maxCount) {
+      this.renderSelection();
+      return synergy;
+    }
+
+    for (const muscle of Object.values(this.masks)) {
+      const category = muscle.exerciseMuscle;
+      if (!category || category === this.selectedMuscle.exerciseMuscle) continue;
+
+      const related = synergy[category];
+      if (!related) continue;
+
+      this.drawMask(muscle, 0.2 + (related.sessions / maxCount) * 0.5);
+    }
+
+    this.renderSelection();
+    return synergy;
+  }
+
+  drawMask(muscle, opacity) {
+    if (!muscle?.tintedCanvas || opacity <= 0) return;
+
+    this.ctx.save();
+    this.ctx.globalAlpha = Math.min(opacity, 1);
+    this.ctx.drawImage(muscle.tintedCanvas, 0, 0);
+    this.ctx.restore();
+  }
+
+  setMode(mode) {
+    if (!["anatomy", "activity", "synergy"].includes(mode)) return;
+
+    this.mode = mode;
+    this.selectedMuscle = null;
+    this.hideSelectionPanel();
+    this.updateAccessibleMuscles();
+    this.renderMode();
+  }
+
+  setLayer(layer) {
+    if (layer !== "surface" || this.layer === layer) return;
+    this.layer = layer;
+    this.renderMode();
+  }
+
+  renderMode() {
+    if (!this.ctx || !this.ready) return;
+
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    const status = document.querySelector(".muscle-map-empty-state");
+    const statusTitle = status?.querySelector("span");
+    const statusText = status?.querySelector("p");
+
+    if (this.mode === "activity") {
+      const activity = this.renderActivity();
+      const hasVisibleActivity = Object.values(this.masks).some(
+        (muscle) => activity[muscle.exerciseMuscle]
       );
 
-    const pixels =
-      maskData.data;
+      if (!hasVisibleActivity) {
+        if (statusTitle) statusTitle.textContent = "NO ACTIVITY IN THIS VIEW";
+        if (statusText) statusText.textContent = "Logged workouts will appear here.";
+      } else if (statusTitle) {
+        statusTitle.textContent = "TRAINING ACTIVITY";
+        if (statusText) statusText.textContent = "Brighter regions were trained in more sessions.";
+      }
+      return;
+    }
 
-    for (
-      let i = 0;
-      i < pixels.length;
-      i += 4
-    ) {
+    if (this.mode === "synergy") {
+      if (!this.selectedMuscle) {
+        if (statusTitle) statusTitle.textContent = "SELECT A MUSCLE";
+        if (statusText) statusText.textContent = "Explore muscles trained in the same sessions.";
+        return;
+      }
 
-      const r = pixels[i];
-      const g = pixels[i + 1];
-      const b = pixels[i + 2];
+      if (!this.selectedMuscle.exerciseMuscle) {
+        if (statusTitle) statusTitle.textContent = "NO EXERCISE CATEGORY";
+        if (statusText) statusText.textContent = "This region is not yet classified in the exercise library.";
+        return;
+      }
 
-      if (
-        r > 220 &&
-        g > 220 &&
-        b > 220
-      ) {
-
-        pixels[i] = 210;
-        pixels[i + 1] = 25;
-        pixels[i + 2] = 25;
-        pixels[i + 3] = 115;
-
+      const synergy = this.renderSynergy();
+      if (!Object.keys(synergy).length) {
+        if (statusTitle) statusTitle.textContent = "NO CO-TRAINING DATA";
+        if (statusText) statusText.textContent = "Log sessions with this muscle to reveal training patterns.";
       } else {
+        const hasVisibleRelatedRegion = Object.values(this.masks).some(
+          (muscle) =>
+            muscle.exerciseMuscle &&
+            muscle.exerciseMuscle !== this.selectedMuscle.exerciseMuscle &&
+            synergy[muscle.exerciseMuscle]
+        );
 
-        pixels[i + 3] = 0;
+        if (statusTitle) {
+          statusTitle.textContent = hasVisibleRelatedRegion
+            ? "TRAINED TOGETHER"
+            : "RELATED MUSCLES ON OTHER VIEW";
+        }
+        if (statusText) {
+          statusText.textContent = hasVisibleRelatedRegion
+            ? "These regions often appear in the same workout sessions."
+            : "Switch FRONT/BACK to see related regions.";
+        }
+      }
+      return;
+    }
+
+    this.renderSelection();
+    if (statusTitle) statusTitle.textContent = "SELECT A MUSCLE";
+    if (statusText) statusText.textContent = "Explore exercises, anatomy and training data.";
+  }
+}
+
+function getMuscleActivity() {
+  const relevantCategories = new Set(
+    Object.values(MUSCLE_EXERCISE_CATEGORIES).filter(Boolean)
+  );
+  const counts = {};
+
+  for (const session of workoutSessions) {
+    const trainedCategories = new Set();
+
+    for (const sessionExercise of session.exercises || []) {
+      const exercise = exercises.find(
+        (entry) => String(entry.id) === String(sessionExercise.exerciseId)
+      );
+      if (exercise && relevantCategories.has(exercise.muscle)) {
+        trainedCategories.add(exercise.muscle);
       }
     }
 
-    this.ctx.putImageData(
-      maskData,
-      0,
-      0
-    );
+    for (const category of trainedCategories) {
+      counts[category] = (counts[category] || 0) + 1;
+    }
   }
+
+  const maxCount = Math.max(...Object.values(counts), 0);
+  return Object.fromEntries(
+    Object.entries(counts).map(([category, sessions]) => [
+      category,
+      { sessions, intensity: maxCount ? sessions / maxCount : 0 },
+    ])
+  );
 }
+
+function getMuscleSynergy(selectedMuscleId) {
+  const selectedCategory = getExerciseCategoryForMuscle(selectedMuscleId);
+  if (!selectedCategory) return {};
+
+  const counts = {};
+  for (const session of workoutSessions) {
+    const categories = new Set();
+
+    for (const sessionExercise of session.exercises || []) {
+      const exercise = exercises.find(
+        (entry) => String(entry.id) === String(sessionExercise.exerciseId)
+      );
+      if (exercise && EXERCISE_MUSCLE_CATEGORIES.has(exercise.muscle)) {
+        categories.add(exercise.muscle);
+      }
+    }
+
+    if (!categories.has(selectedCategory)) continue;
+    for (const category of categories) {
+      if (category !== selectedCategory) {
+        counts[category] = (counts[category] || 0) + 1;
+      }
+    }
+  }
+
+  return Object.fromEntries(
+    Object.entries(counts).map(([category, sessions]) => [category, { sessions }])
+  );
+}
+
+let activeMuscleMap = null;
+window.addEventListener("resize", () => {
+  if (activeMuscleMap?.model.isConnected) {
+    activeMuscleMap.resize();
+  } else {
+    activeMuscleMap = null;
+  }
+});
 
 document.addEventListener("pointerdown", (event) => {
 
@@ -1649,7 +1883,7 @@ function showMusclePanel(muscle) {
         </strong>
 
         <span class="muscle-selection-meta">
-          ${muscle.exerciseMuscle || muscle.name}
+          ${muscle.exerciseMuscle || "ALL EXERCISES"}
         </span>
       </div>
 
@@ -1785,36 +2019,7 @@ function renderMuscleMap() {
   class="muscle-map-canvas"
   aria-label="Interactive muscle map"
 ></canvas>
-    <path
-      class="muscle-region"
-      data-muscle="chest"
-      d="
-        M500 284
-        C466 276 422 284 381 308
-        C353 324 339 351 343 374
-        C347 398 369 414 401 421
-        C435 429 469 417 489 396
-        C500 384 504 363 501 341
-        C498 319 499 298 500 284
-        Z
-      "
-    />
 
-    <path
-      class="muscle-region"
-      data-muscle="chest"
-      d="
-        M524 284
-        C558 276 602 284 643 308
-        C671 324 685 351 681 374
-        C677 398 655 414 623 421
-        C589 429 555 417 535 396
-        C524 384 520 363 523 341
-        C526 319 525 298 524 284
-        Z
-      "
-    />
-  </svg>
 
 </div>
 
@@ -1874,6 +2079,9 @@ function renderMuscleMap() {
               <button
                 type="button"
                 aria-pressed="false"
+                aria-label="Deep layer unavailable because no deep anatomy assets are installed"
+                title="Deep anatomy assets are not available yet"
+                disabled
               >
                 DEEP
               </button>
@@ -1883,7 +2091,7 @@ function renderMuscleMap() {
           </div>
 
 
-          <div class="muscle-map-empty-state">
+          <div class="muscle-map-empty-state" aria-live="polite">
 
             <span>
               SELECT A MUSCLE
@@ -1919,6 +2127,15 @@ function renderMuscleMap() {
 
     muscleModel.muscleMapInstance =
       muscleMap;
+    activeMuscleMap = muscleMap;
+
+    document
+      .querySelector(".muscle-map-region-options")
+      ?.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-map-muscle]");
+        const muscle = button && muscleMap.masks[button.dataset.mapMuscle];
+        if (muscle) muscleMap.select(button.dataset.mapMuscle, muscle);
+      });
 
     const frontButton =
       document.querySelector(".muscle-view-front");
@@ -1930,28 +2147,40 @@ function renderMuscleMap() {
       document.querySelector(".muscle-map-model");
 
 
+    let switchingSide = false;
+
     async function switchMuscleSide(side) {
-      if (!muscleMap || muscleMap.side === side) return;
 
-      // Small press animation
-      gsap.to(side === "front" ? frontButton : backButton, {
-        scale: 0.96,
-        duration: 0.08,
-        yoyo: true,
-        repeat: 1,
-        ease: "power2.out"
-      });
+      if (!muscleMap || muscleMap.side === side || switchingSide) {
+        return;
+      }
 
-      // Animate current body out
-      await gsap.to(muscleStage, {
-        opacity: 1,
-        rotateY: side === "back" ? -10 : 10,
-        scale: 0.98,
-        duration: 0.16,
-        ease: "power2.in"
-      });
+      switchingSide = true;
 
-      // Update the toggle immediately
+      const button =
+        side === "front"
+          ? frontButton
+          : backButton;
+
+      if (!reduceMotion) {
+        gsap.to(button, {
+          scale: 0.96,
+          duration: 0.08,
+          yoyo: true,
+          repeat: 1,
+          ease: "power2.out"
+        });
+
+        await gsap.to(muscleStage, {
+          opacity: 0.72,
+          rotateY: side === "back" ? -8 : 8,
+          scale: 0.985,
+          duration: 0.16,
+          ease: "power2.in"
+        });
+      }
+
+      // Update active state
       frontButton.classList.toggle(
         "active",
         side === "front"
@@ -1962,95 +2191,118 @@ function renderMuscleMap() {
         side === "back"
       );
 
-      // Then change anatomy
-      await muscleMap.setSide(side);
-
-      // ===============================
-      // ANATOMY / ACTIVITY / SYNERGY
-      // ===============================
-
-      const modeButtons = document.querySelectorAll(
-        ".muscle-map-mode-toggle button"
-      );
-
-      modeButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-
-          // Remove active state from all 3
-          modeButtons.forEach((btn) => {
-            btn.classList.remove("active");
-            btn.setAttribute("aria-selected", "false");
-          });
-
-          // Activate clicked button
-          button.classList.add("active");
-          button.setAttribute("aria-selected", "true");
-
-          // Get selected mode
-          const mode = button.textContent
-            .trim()
-            .toLowerCase();
-
-          console.log("Muscle Map mode:", mode);
-        });
-      });
-
-      // ===============================
-      // SURFACE / DEEP
-      // ===============================
-
-      const layerButtons = document.querySelectorAll(
-        ".muscle-map-layer-toggle button"
-      );
-
-      layerButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-
-          // Remove active state from both
-          layerButtons.forEach((btn) => {
-            btn.classList.remove("active");
-            btn.setAttribute("aria-pressed", "false");
-          });
-
-          // Activate clicked button
-          button.classList.add("active");
-          button.setAttribute("aria-pressed", "true");
-
-          const layer = button.textContent
-            .trim()
-            .toLowerCase();
-
-          console.log("Muscle layer:", layer);
-        });
-      });
-
       frontButton.setAttribute(
         "aria-pressed",
-        side === "front" ? "true" : "false"
+        side === "front"
+          ? "true"
+          : "false"
       );
 
       backButton.setAttribute(
         "aria-pressed",
-        side === "back" ? "true" : "false"
+        side === "back"
+          ? "true"
+          : "false"
       );
 
-      // Animate new body in
-      gsap.fromTo(
-        muscleStage,
-        {
-          opacity: 0,
-          rotateY: side === "back" ? 10 : -10,
-          scale: 0.98
-        },
-        {
-          opacity: 1,
-          rotateY: 0,
-          scale: 1,
-          duration: 0.28,
-          ease: "power2.out"
+      try {
+        await muscleMap.setSide(side);
+
+        if (!reduceMotion) {
+          gsap.set(muscleStage, {
+            opacity: 0,
+            rotateY: side === "back" ? 8 : -8,
+            scale: 0.985
+          });
+
+          gsap.to(muscleStage, {
+            opacity: 1,
+            rotateY: 0,
+            scale: 1,
+            duration: 0.28,
+            ease: "power2.out"
+          });
+        }
+      } finally {
+        switchingSide = false;
+      }
+    }
+
+    const modeButtons = document.querySelectorAll(
+      ".muscle-map-mode-toggle button"
+    );
+
+    modeButtons.forEach((button) => {
+
+      button.addEventListener("click", () => {
+
+        modeButtons.forEach((btn) => {
+
+          btn.classList.remove("active");
+
+          btn.setAttribute(
+            "aria-selected",
+            "false"
+          );
+
+        });
+
+        button.classList.add("active");
+
+        button.setAttribute(
+          "aria-selected",
+          "true"
+        );
+
+        const mode =
+          button.textContent
+            .trim()
+            .toLowerCase();
+
+        muscleMap.setMode(mode);
+
+      });
+
+    });
+
+
+    // =========================================================
+    // MUSCLE MAP LAYER
+    // =========================================================
+
+    const layerButtons =
+      document.querySelectorAll(
+        ".muscle-map-layer-toggle button"
+      );
+
+    layerButtons.forEach((button) => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          layerButtons.forEach((btn) => {
+            btn.classList.remove("active");
+            btn.setAttribute(
+              "aria-pressed",
+              "false"
+            );
+          });
+
+          button.classList.add("active");
+
+          button.setAttribute(
+            "aria-pressed",
+            "true"
+          );
+
+          const layer = button.textContent.trim().toLowerCase();
+          muscleMap.setLayer(layer);
+
         }
       );
-    }
+
+    });
 
 
     frontButton?.addEventListener("click", () => {
@@ -8333,6 +8585,16 @@ function attachEvents() {
 
 
           const page = button.dataset.page;
+
+          if (page !== "map") {
+
+            activeMuscleMap = null;
+
+            document
+              .querySelector(".muscle-selection-panel")
+              ?.remove();
+
+          }
 
           console.log(
             "Navigation:",
