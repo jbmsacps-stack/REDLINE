@@ -73,6 +73,10 @@ async function initializeApp() {
     return;
   }
 
+  loadRoutinesFromCache();
+
+  render();
+
   await Promise.all([
     loadRoutinesFromSupabase(),
     loadWorkoutSessionsFromSupabase()
@@ -251,6 +255,48 @@ function weightToKg(value) {
 
 let routines = [
 ];
+
+function loadRoutinesFromCache() {
+
+  try {
+
+    const cached =
+      localStorage.getItem(
+        "redline-routines-cache"
+      );
+
+    if (!cached) {
+      return;
+    }
+
+    const parsed =
+      JSON.parse(cached);
+
+    if (!Array.isArray(parsed)) {
+      return;
+    }
+
+    routines = parsed;
+
+    console.log(
+      "REDLINE routines restored from cache:",
+      routines
+    );
+
+  } catch (error) {
+
+    console.warn(
+      "Failed to restore routine cache:",
+      error
+    );
+
+    localStorage.removeItem(
+      "redline-routines-cache"
+    );
+
+  }
+
+}
 
 async function loadRoutinesFromSupabase() {
 
