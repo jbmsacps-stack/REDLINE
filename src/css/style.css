@@ -9226,3 +9226,498 @@ svg {
   background: rgba(225, 29, 46, 0.11);
   color: #fff;
 }
+
+/* =========================================================
+   MUSCLE MAP — UNDER CONSTRUCTION
+========================================================= */
+
+.muscle-map-under-construction {
+  min-height: calc(
+    100vh - 150px
+  );
+
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    40px 20px
+    calc(120px + env(safe-area-inset-bottom));
+
+  text-align: center;
+}
+
+
+/* MARK */
+
+.muscle-map-uc-mark {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  gap: 4px;
+
+  width: 34px;
+  height: 28px;
+
+  margin-bottom: 26px;
+}
+
+.muscle-map-uc-mark span {
+  display: block;
+
+  width: 3px;
+
+  border-radius: 999px;
+
+  background: var(--color-red);
+
+  opacity: 0.7;
+}
+
+.muscle-map-uc-mark span:nth-child(1) {
+  height: 11px;
+}
+
+.muscle-map-uc-mark span:nth-child(2) {
+  height: 22px;
+}
+
+.muscle-map-uc-mark span:nth-child(3) {
+  height: 15px;
+}
+
+
+/* EYEBROW */
+
+.muscle-map-uc-eyebrow {
+  margin: 0 0 12px;
+
+  color: var(--color-red);
+
+  font-size: 0.58rem;
+  font-weight: 900;
+
+  letter-spacing: 0.18em;
+
+  text-transform: uppercase;
+}
+
+
+/* TITLE */
+
+.muscle-map-under-construction h1 {
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size:
+    clamp(
+      2.7rem,
+      13vw,
+      5rem
+    );
+
+  font-weight: 950;
+
+  line-height: 0.84;
+
+  letter-spacing: -0.08em;
+}
+
+.muscle-map-under-construction h1 span {
+  color: var(--color-red);
+}
+
+
+/* DESCRIPTION */
+
+.muscle-map-uc-description {
+  max-width: 300px;
+
+  margin: 18px auto 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.72rem;
+
+  line-height: 1.5;
+}
+
+
+/* STATUS */
+
+.muscle-map-uc-status {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  margin-top: 24px;
+
+  padding:
+    8px 12px;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.07);
+
+  border-radius: 999px;
+
+  background:
+    rgba(255, 255, 255, 0.025);
+
+  color: #686868;
+
+  font-size: 0.52rem;
+
+  font-weight: 900;
+
+  letter-spacing: 0.14em;
+}
+
+
+/* STATUS DOT */
+
+.muscle-map-uc-dot {
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: var(--color-red);
+
+  box-shadow:
+    0 0 0 4px
+    rgba(225, 29, 46, 0.08);
+}
+
+.muscle-map-uc-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  min-height: 42px;
+
+  margin-top: 28px;
+  padding: 0 16px;
+
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 11px;
+
+  background: rgba(255, 255, 255, 0.025);
+  color: #b8b8b8;
+
+  font-size: 0.6rem;
+  font-weight: 900;
+
+  letter-spacing: 0.11em;
+
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.muscle-map-uc-back span {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.muscle-map-uc-back:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.055);
+  color: #fff;
+}
+
+.muscle-map-uc-back:active {
+  transform: scale(0.96);
+}
+
+/* =========================================================
+   MUSCLE MAP — UNDER CONSTRUCTION
+========================================================= */
+
+.muscle-map-under-construction {
+  width: 100%;
+  min-height: calc(100vh - 150px);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  padding: 32px 18px
+    calc(105px + env(safe-area-inset-bottom));
+
+  text-align: center;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   MARK
+========================================================= */
+
+.muscle-map-uc-mark {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  gap: 4px;
+
+  width: 28px;
+  height: 28px;
+
+  margin-bottom: 24px;
+}
+
+.muscle-map-uc-mark span {
+  display: block;
+
+  width: 4px;
+
+  border-radius: 999px;
+
+  background: var(--color-red);
+}
+
+.muscle-map-uc-mark span:nth-child(1) {
+  height: 11px;
+}
+
+.muscle-map-uc-mark span:nth-child(2) {
+  height: 27px;
+}
+
+.muscle-map-uc-mark span:nth-child(3) {
+  height: 17px;
+}
+
+
+/* =========================================================
+   EYEBROW
+========================================================= */
+
+.muscle-map-uc-eyebrow {
+  margin: 0 0 14px;
+
+  color: var(--color-red);
+
+  font-size: 0.58rem;
+  font-weight: 900;
+
+  line-height: 1;
+
+  letter-spacing: 0.16em;
+
+  text-transform: uppercase;
+}
+
+
+/* =========================================================
+   TITLE
+========================================================= */
+
+.muscle-map-under-construction h1 {
+  width: 100%;
+  max-width: 360px;
+
+  margin: 0;
+
+  color: #f4f4f4;
+
+  font-size: clamp(
+    2.35rem,
+    10.5vw,
+    4.6rem
+  );
+
+  font-weight: 950;
+
+  line-height: 0.86;
+
+  letter-spacing: -0.085em;
+
+  text-align: center;
+
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.muscle-map-under-construction h1 span {
+  display: block;
+
+  color: var(--color-red);
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   DESCRIPTION
+========================================================= */
+
+.muscle-map-uc-description {
+  width: 100%;
+  max-width: 290px;
+
+  margin: 22px auto 0;
+
+  color: #7b7b7b;
+
+  font-size: 0.72rem;
+
+  line-height: 1.55;
+
+  text-align: center;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.muscle-map-uc-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  margin-top: 22px;
+
+  min-height: 36px;
+
+  padding: 0 13px;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.075);
+
+  border-radius: 999px;
+
+  background:
+    rgba(255, 255, 255, 0.018);
+
+  color: #696969;
+
+  font-size: 0.51rem;
+  font-weight: 900;
+
+  letter-spacing: 0.14em;
+
+  white-space: nowrap;
+}
+
+.muscle-map-uc-dot {
+  width: 6px;
+  height: 6px;
+
+  flex: 0 0 6px;
+
+  border-radius: 50%;
+
+  background: var(--color-red);
+
+  box-shadow:
+    0 0 0 4px rgba(225, 29, 46, 0.08);
+}
+
+
+/* =========================================================
+   GO BACK
+========================================================= */
+
+.muscle-map-uc-back {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  min-height: 44px;
+
+  margin-top: 32px;
+
+  padding: 0 17px;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.09);
+
+  border-radius: 11px;
+
+  background:
+    rgba(255, 255, 255, 0.018);
+
+  color: #b8b8b8;
+
+  font-size: 0.59rem;
+  font-weight: 900;
+
+  letter-spacing: 0.1em;
+
+  transition:
+    background 180ms var(--ease-standard),
+    border-color 180ms var(--ease-standard),
+    color 180ms var(--ease-standard),
+    transform 180ms var(--ease-standard);
+}
+
+.muscle-map-uc-back span {
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
+.muscle-map-uc-back:hover {
+  border-color:
+    rgba(255, 255, 255, 0.15);
+
+  background:
+    rgba(255, 255, 255, 0.045);
+
+  color: #fff;
+}
+
+.muscle-map-uc-back:active {
+  transform: scale(0.96);
+}
+
+.muscle-map-uc-back:focus-visible {
+  outline: none;
+
+  border-color: var(--color-red);
+
+  box-shadow:
+    0 0 0 3px rgba(225, 29, 46, 0.12);
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 360px) {
+  .muscle-map-under-construction {
+    padding-inline: 14px;
+  }
+
+  .muscle-map-under-construction h1 {
+    font-size: clamp(
+      2.1rem,
+      10vw,
+      3.5rem
+    );
+  }
+
+  .muscle-map-uc-description {
+    max-width: 270px;
+  }
+}

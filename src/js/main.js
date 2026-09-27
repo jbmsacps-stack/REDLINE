@@ -1923,398 +1923,447 @@ function showMusclePanel(muscle) {
 // MUSCLE MAP
 // =========================================================
 
+// function renderMuscleMap() {
+
+//   const app = document.querySelector("#app");
+
+//   app.innerHTML = `
+
+//     <div class="app-shell muscle-map-shell">
+
+//       <header class="app-header">
+
+//         <a
+//           href="#"
+//           class="logo"
+//           aria-label="REDLINE home"
+//         >
+//           RED<span>LINE</span>
+//         </a>
+
+//         <button
+//           class="profile-button"
+//           aria-label="Profile"
+//           type="button"
+//         >
+//           ${clerk.user?.imageUrl
+//       ? `<img
+//                 src="${clerk.user.imageUrl}"
+//                 alt=""
+//               >`
+//       : "●"
+//     }
+//         </button>
+
+//       </header>
+
+
+//       <main>
+
+//         <section
+//           class="muscle-map-screen"
+//           aria-labelledby="muscle-map-title"
+//         >
+
+//           <div class="muscle-map-heading">
+
+//             <span class="section-kicker">
+//               EXPLORE YOUR BODY
+//             </span>
+
+//             <h1 id="muscle-map-title">
+//               MUSCLE MAP
+//             </h1>
+
+//             <p>
+//               TAP A MUSCLE TO EXPLORE
+//             </p>
+
+//           </div>
+
+
+//           <div
+//   class="muscle-map-view-toggle"
+//   role="group"
+//   aria-label="Anatomy view"
+// >
+//   <button
+//     class="muscle-view-front active"
+//     type="button"
+//     aria-pressed="true"
+//   >
+//     FRONT
+//   </button>
+
+//   <button
+//     class="muscle-view-back"
+//     type="button"
+//     aria-pressed="false"
+//   >
+//     BACK
+//   </button>
+// </div>
+
+
+//           <div class="muscle-map-stage">
+
+//   <div class="muscle-map-model">
+
+//   <img
+//     src="/assets/muscle-map/front/base.webp"
+//     alt="Front-view anatomical muscle map"
+//     draggable="false"
+//   >
+
+//   <canvas
+//   class="muscle-map-canvas"
+//   aria-label="Interactive muscle map"
+// ></canvas>
+
+
+// </div>
+
+// </div>
+
+
+//           <div class="muscle-map-controls">
+
+//             <div
+//               class="muscle-map-mode-toggle"
+//               role="tablist"
+//               aria-label="Muscle map mode"
+//             >
+
+//               <button
+//                 class="active"
+//                 type="button"
+//                 role="tab"
+//                 aria-selected="true"
+//               >
+//                 ANATOMY
+//               </button>
+
+//               <button
+//                 type="button"
+//                 role="tab"
+//                 aria-selected="false"
+//               >
+//                 ACTIVITY
+//               </button>
+
+//               <button
+//                 type="button"
+//                 role="tab"
+//                 aria-selected="false"
+//               >
+//                 SYNERGY
+//               </button>
+
+//             </div>
+
+
+//             <div
+//               class="muscle-map-layer-toggle"
+//               role="group"
+//               aria-label="Anatomy depth"
+//             >
+
+//               <button
+//                 class="active"
+//                 type="button"
+//                 aria-pressed="true"
+//               >
+//                 SURFACE
+//               </button>
+
+//               <button
+//                 type="button"
+//                 aria-pressed="false"
+//                 aria-label="Deep layer unavailable because no deep anatomy assets are installed"
+//                 title="Deep anatomy assets are not available yet"
+//                 disabled
+//               >
+//                 DEEP
+//               </button>
+
+//             </div>
+
+//           </div>
+
+
+//           <div class="muscle-map-empty-state" aria-live="polite">
+
+//             <span>
+//               SELECT A MUSCLE
+//             </span>
+
+//             <p>
+//               Explore exercises, anatomy and training data.
+//             </p>
+
+//           </div>
+
+//         </section>
+
+//       </main>
+
+//     </div>
+
+
+//     ${renderBottomNav("map")}
+
+//   `;
+
+//   attachEvents();
+
+//   const muscleModel =
+//     document.querySelector(
+//       ".muscle-map-model"
+//     );
+
+//   if (muscleModel) {
+//     const muscleMap =
+//       new MuscleMaskMap(muscleModel);
+
+//     muscleModel.muscleMapInstance =
+//       muscleMap;
+//     activeMuscleMap = muscleMap;
+
+//     document
+//       .querySelector(".muscle-map-region-options")
+//       ?.addEventListener("click", (event) => {
+//         const button = event.target.closest("[data-map-muscle]");
+//         const muscle = button && muscleMap.masks[button.dataset.mapMuscle];
+//         if (muscle) muscleMap.select(button.dataset.mapMuscle, muscle);
+//       });
+
+//     const frontButton =
+//       document.querySelector(".muscle-view-front");
+
+//     const backButton =
+//       document.querySelector(".muscle-view-back");
+
+//     const muscleStage =
+//       document.querySelector(".muscle-map-model");
+
+
+//     let switchingSide = false;
+
+//     async function switchMuscleSide(side) {
+
+//       if (!muscleMap || muscleMap.side === side || switchingSide) {
+//         return;
+//       }
+
+//       switchingSide = true;
+
+//       const button =
+//         side === "front"
+//           ? frontButton
+//           : backButton;
+
+//       if (!reduceMotion) {
+//         gsap.to(button, {
+//           scale: 0.96,
+//           duration: 0.08,
+//           yoyo: true,
+//           repeat: 1,
+//           ease: "power2.out"
+//         });
+
+//         await gsap.to(muscleStage, {
+//           opacity: 0.72,
+//           rotateY: side === "back" ? -8 : 8,
+//           scale: 0.985,
+//           duration: 0.16,
+//           ease: "power2.in"
+//         });
+//       }
+
+//       // Update active state
+//       frontButton.classList.toggle(
+//         "active",
+//         side === "front"
+//       );
+
+//       backButton.classList.toggle(
+//         "active",
+//         side === "back"
+//       );
+
+//       frontButton.setAttribute(
+//         "aria-pressed",
+//         side === "front"
+//           ? "true"
+//           : "false"
+//       );
+
+//       backButton.setAttribute(
+//         "aria-pressed",
+//         side === "back"
+//           ? "true"
+//           : "false"
+//       );
+
+//       try {
+//         await muscleMap.setSide(side);
+
+//         if (!reduceMotion) {
+//           gsap.set(muscleStage, {
+//             opacity: 0,
+//             rotateY: side === "back" ? 8 : -8,
+//             scale: 0.985
+//           });
+
+//           gsap.to(muscleStage, {
+//             opacity: 1,
+//             rotateY: 0,
+//             scale: 1,
+//             duration: 0.28,
+//             ease: "power2.out"
+//           });
+//         }
+//       } finally {
+//         switchingSide = false;
+//       }
+//     }
+
+//     const modeButtons = document.querySelectorAll(
+//       ".muscle-map-mode-toggle button"
+//     );
+
+//     modeButtons.forEach((button) => {
+
+//       button.addEventListener("click", () => {
+
+//         modeButtons.forEach((btn) => {
+
+//           btn.classList.remove("active");
+
+//           btn.setAttribute(
+//             "aria-selected",
+//             "false"
+//           );
+
+//         });
+
+//         button.classList.add("active");
+
+//         button.setAttribute(
+//           "aria-selected",
+//           "true"
+//         );
+
+//         const mode =
+//           button.textContent
+//             .trim()
+//             .toLowerCase();
+
+//         muscleMap.setMode(mode);
+
+//       });
+
+//     });
+
+
+//     // =========================================================
+//     // MUSCLE MAP LAYER
+//     // =========================================================
+
+//     const layerButtons =
+//       document.querySelectorAll(
+//         ".muscle-map-layer-toggle button"
+//       );
+
+//     layerButtons.forEach((button) => {
+
+//       button.addEventListener(
+//         "click",
+//         () => {
+
+//           layerButtons.forEach((btn) => {
+//             btn.classList.remove("active");
+//             btn.setAttribute(
+//               "aria-pressed",
+//               "false"
+//             );
+//           });
+
+//           button.classList.add("active");
+
+//           button.setAttribute(
+//             "aria-pressed",
+//             "true"
+//           );
+
+//           const layer = button.textContent.trim().toLowerCase();
+//           muscleMap.setLayer(layer);
+
+//         }
+//       );
+
+//     });
+
+
+//     frontButton?.addEventListener("click", () => {
+//       switchMuscleSide("front");
+//     });
+
+
+//     backButton?.addEventListener("click", () => {
+//       switchMuscleSide("back");
+//     });
+//   }
+
+// }
+
 function renderMuscleMap() {
-
-  const app = document.querySelector("#app");
-
   app.innerHTML = `
 
-    <div class="app-shell muscle-map-shell">
+  
+    <section class="muscle-map-under-construction" aria-labelledby="muscle-map-uc-title">
 
-      <header class="app-header">
+      <div class="muscle-map-uc-mark" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
 
-        <a
-          href="#"
-          class="logo"
-          aria-label="REDLINE home"
-        >
-          RED<span>LINE</span>
-        </a>
+      <p class="muscle-map-uc-eyebrow">
+        REDLINE / MUSCLE MAP
+      </p>
 
-        <button
-          class="profile-button"
-          aria-label="Profile"
-          type="button"
-        >
-          ${clerk.user?.imageUrl
-      ? `<img
-                src="${clerk.user.imageUrl}"
-                alt=""
-              >`
-      : "●"
-    }
-        </button>
+      <h1 id="muscle-map-uc-title">
+        UNDER<br>
+        <span>CONSTRUCTION</span>
+      </h1>
 
-      </header>
+      <p class="muscle-map-uc-description">
+        The muscle mapping experience is currently being rebuilt.
+      </p>
 
+      <div class="muscle-map-uc-status">
+        <span class="muscle-map-uc-dot"></span>
+        <span>COMING SOON</span>
+      </div>
 
-      <main>
+      <button class="muscle-map-uc-back" type="button">
+  <span aria-hidden="true">←</span>
+  GO BACK
+</button>
 
-        <section
-          class="muscle-map-screen"
-          aria-labelledby="muscle-map-title"
-        >
+    </section>
 
-          <div class="muscle-map-heading">
-
-            <span class="section-kicker">
-              EXPLORE YOUR BODY
-            </span>
-
-            <h1 id="muscle-map-title">
-              MUSCLE MAP
-            </h1>
-
-            <p>
-              TAP A MUSCLE TO EXPLORE
-            </p>
-
-          </div>
-
-
-          <div
-  class="muscle-map-view-toggle"
-  role="group"
-  aria-label="Anatomy view"
->
-  <button
-    class="muscle-view-front active"
-    type="button"
-    aria-pressed="true"
-  >
-    FRONT
-  </button>
-
-  <button
-    class="muscle-view-back"
-    type="button"
-    aria-pressed="false"
-  >
-    BACK
-  </button>
-</div>
-
-
-          <div class="muscle-map-stage">
-
-  <div class="muscle-map-model">
-
-  <img
-    src="/assets/muscle-map/front/base.webp"
-    alt="Front-view anatomical muscle map"
-    draggable="false"
-  >
-
-  <canvas
-  class="muscle-map-canvas"
-  aria-label="Interactive muscle map"
-></canvas>
-
-
-</div>
-
-</div>
-
-
-          <div class="muscle-map-controls">
-
-            <div
-              class="muscle-map-mode-toggle"
-              role="tablist"
-              aria-label="Muscle map mode"
-            >
-
-              <button
-                class="active"
-                type="button"
-                role="tab"
-                aria-selected="true"
-              >
-                ANATOMY
-              </button>
-
-              <button
-                type="button"
-                role="tab"
-                aria-selected="false"
-              >
-                ACTIVITY
-              </button>
-
-              <button
-                type="button"
-                role="tab"
-                aria-selected="false"
-              >
-                SYNERGY
-              </button>
-
-            </div>
-
-
-            <div
-              class="muscle-map-layer-toggle"
-              role="group"
-              aria-label="Anatomy depth"
-            >
-
-              <button
-                class="active"
-                type="button"
-                aria-pressed="true"
-              >
-                SURFACE
-              </button>
-
-              <button
-                type="button"
-                aria-pressed="false"
-                aria-label="Deep layer unavailable because no deep anatomy assets are installed"
-                title="Deep anatomy assets are not available yet"
-                disabled
-              >
-                DEEP
-              </button>
-
-            </div>
-
-          </div>
-
-
-          <div class="muscle-map-empty-state" aria-live="polite">
-
-            <span>
-              SELECT A MUSCLE
-            </span>
-
-            <p>
-              Explore exercises, anatomy and training data.
-            </p>
-
-          </div>
-
-        </section>
-
-      </main>
-
-    </div>
-
-
-    ${renderBottomNav("map")}
-
+    
   `;
 
-  attachEvents();
+  const muscleMapBackButton = document.querySelector(
+    ".muscle-map-uc-back"
+  );
 
-  const muscleModel =
-    document.querySelector(
-      ".muscle-map-model"
-    );
-
-  if (muscleModel) {
-    const muscleMap =
-      new MuscleMaskMap(muscleModel);
-
-    muscleModel.muscleMapInstance =
-      muscleMap;
-    activeMuscleMap = muscleMap;
-
-    document
-      .querySelector(".muscle-map-region-options")
-      ?.addEventListener("click", (event) => {
-        const button = event.target.closest("[data-map-muscle]");
-        const muscle = button && muscleMap.masks[button.dataset.mapMuscle];
-        if (muscle) muscleMap.select(button.dataset.mapMuscle, muscle);
-      });
-
-    const frontButton =
-      document.querySelector(".muscle-view-front");
-
-    const backButton =
-      document.querySelector(".muscle-view-back");
-
-    const muscleStage =
-      document.querySelector(".muscle-map-model");
-
-
-    let switchingSide = false;
-
-    async function switchMuscleSide(side) {
-
-      if (!muscleMap || muscleMap.side === side || switchingSide) {
-        return;
-      }
-
-      switchingSide = true;
-
-      const button =
-        side === "front"
-          ? frontButton
-          : backButton;
-
-      if (!reduceMotion) {
-        gsap.to(button, {
-          scale: 0.96,
-          duration: 0.08,
-          yoyo: true,
-          repeat: 1,
-          ease: "power2.out"
-        });
-
-        await gsap.to(muscleStage, {
-          opacity: 0.72,
-          rotateY: side === "back" ? -8 : 8,
-          scale: 0.985,
-          duration: 0.16,
-          ease: "power2.in"
-        });
-      }
-
-      // Update active state
-      frontButton.classList.toggle(
-        "active",
-        side === "front"
-      );
-
-      backButton.classList.toggle(
-        "active",
-        side === "back"
-      );
-
-      frontButton.setAttribute(
-        "aria-pressed",
-        side === "front"
-          ? "true"
-          : "false"
-      );
-
-      backButton.setAttribute(
-        "aria-pressed",
-        side === "back"
-          ? "true"
-          : "false"
-      );
-
-      try {
-        await muscleMap.setSide(side);
-
-        if (!reduceMotion) {
-          gsap.set(muscleStage, {
-            opacity: 0,
-            rotateY: side === "back" ? 8 : -8,
-            scale: 0.985
-          });
-
-          gsap.to(muscleStage, {
-            opacity: 1,
-            rotateY: 0,
-            scale: 1,
-            duration: 0.28,
-            ease: "power2.out"
-          });
-        }
-      } finally {
-        switchingSide = false;
-      }
-    }
-
-    const modeButtons = document.querySelectorAll(
-      ".muscle-map-mode-toggle button"
-    );
-
-    modeButtons.forEach((button) => {
-
-      button.addEventListener("click", () => {
-
-        modeButtons.forEach((btn) => {
-
-          btn.classList.remove("active");
-
-          btn.setAttribute(
-            "aria-selected",
-            "false"
-          );
-
-        });
-
-        button.classList.add("active");
-
-        button.setAttribute(
-          "aria-selected",
-          "true"
-        );
-
-        const mode =
-          button.textContent
-            .trim()
-            .toLowerCase();
-
-        muscleMap.setMode(mode);
-
-      });
-
-    });
-
-
-    // =========================================================
-    // MUSCLE MAP LAYER
-    // =========================================================
-
-    const layerButtons =
-      document.querySelectorAll(
-        ".muscle-map-layer-toggle button"
-      );
-
-    layerButtons.forEach((button) => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          layerButtons.forEach((btn) => {
-            btn.classList.remove("active");
-            btn.setAttribute(
-              "aria-pressed",
-              "false"
-            );
-          });
-
-          button.classList.add("active");
-
-          button.setAttribute(
-            "aria-pressed",
-            "true"
-          );
-
-          const layer = button.textContent.trim().toLowerCase();
-          muscleMap.setLayer(layer);
-
-        }
-      );
-
-    });
-
-
-    frontButton?.addEventListener("click", () => {
-      switchMuscleSide("front");
-    });
-
-
-    backButton?.addEventListener("click", () => {
-      switchMuscleSide("back");
-    });
-  }
-
+  muscleMapBackButton?.addEventListener("click", () => {
+    render();
+  });
 }
 
 function renderRoutines() {
