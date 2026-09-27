@@ -1146,15 +1146,19 @@ function exerciseCard(exercise) {
 // =========================
 
 function equipmentIcon(type) {
+
   const icons = {
-    Barbell: "━",
-    Dumbbell: "◈",
-    Cable: "╱",
-    Machine: "▣",
-    Bodyweight: "○",
+    Barbell: "barbell",
+    Dumbbell: "dumbbell",
+    Cable: "cable",
+    Machine: "machine",
+    Bodyweight: "bodyweight"
   };
 
-  return icons[type] || "•";
+  return icon(
+    icons[type] || "dumbbell",
+    18
+  );
 }
 
 
@@ -1455,8 +1459,274 @@ function render() {
 // SHARED BOTTOM NAVIGATION
 // =========================
 
+function icon(name, size = 21) {
+
+  const icons = {
+
+    workouts: `
+      <svg
+        viewBox="0 0 24 24"
+        width="${size}"
+        height="${size}"
+        aria-hidden="true"
+        fill="none"
+      >
+        <path
+          d="M6 9v6M4.5 10.5v3M8 7v10M18 9v6M19.5 10.5v3M16 7v10"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+        />
+        <path
+          d="M8 12h8"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+    `,
+
+
+    routines: `
+      <svg
+        viewBox="0 0 24 24"
+        width="${size}"
+        height="${size}"
+        aria-hidden="true"
+        fill="none"
+      >
+        <rect
+          x="5"
+          y="4"
+          width="14"
+          height="17"
+          rx="2"
+          stroke="currentColor"
+          stroke-width="1.8"
+        />
+
+        <path
+          d="M9 8h6M9 12h6M9 16h3"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+        />
+      </svg>
+    `,
+
+
+    muscleMap: `
+      <svg
+        viewBox="0 0 24 24"
+        width="${size}"
+        height="${size}"
+        aria-hidden="true"
+        fill="none"
+      >
+        <circle
+          cx="12"
+          cy="5"
+          r="2.2"
+          stroke="currentColor"
+          stroke-width="1.7"
+        />
+
+        <path
+          d="
+            M8.5 9
+            C9.4 7.8 10.2 7.2 12 7.2
+            C13.8 7.2 14.6 7.8 15.5 9
+
+            M9.2 9.2
+            L7.2 14.2
+            L8.8 15.2
+            L10.1 12.7
+
+            M14.8 12.7
+            L15.2 17.5
+            M9.9 12.7
+            L8.5 17.5
+
+            M7.2 14.2
+            L5.9 17
+
+            M16.8 14.2
+            L18.1 17
+          "
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    `,
+
+
+    profile: `
+      <svg
+        viewBox="0 0 24 24"
+        width="${size}"
+        height="${size}"
+        aria-hidden="true"
+        fill="none"
+      >
+        <circle
+          cx="12"
+          cy="8"
+          r="3"
+          stroke="currentColor"
+          stroke-width="1.8"
+        />
+
+        <path
+          d="M5.5 20c.8-3.4 3.1-5 6.5-5s5.7 1.6 6.5 5"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+        />
+      </svg>
+    `,
+
+
+    barbell: `
+      <svg
+        viewBox="0 0 24 24"
+        width="${size}"
+        height="${size}"
+        aria-hidden="true"
+        fill="none"
+      >
+        <path
+          d="M7 8v8M4.5 9.5v5M2.5 10.5v3M17 8v8M19.5 9.5v5M21.5 10.5v3M7 12h10"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+        />
+      </svg>
+    `,
+
+
+    dumbbell: `
+      <svg
+        viewBox="0 0 24 24"
+        width="${size}"
+        height="${size}"
+        aria-hidden="true"
+        fill="none"
+      >
+        <path
+          d="M5 8v8M8 6v12M16 6v12M19 8v8M8 12h8"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+        />
+      </svg>
+    `,
+
+
+    cable: `
+      <svg
+        viewBox="0 0 24 24"
+        width="${size}"
+        height="${size}"
+        aria-hidden="true"
+        fill="none"
+      >
+        <path
+          d="M6 4v12M6 16c0 2.2 1.8 4 4 4h4"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+        />
+
+        <circle
+          cx="6"
+          cy="4"
+          r="2"
+          stroke="currentColor"
+          stroke-width="1.7"
+        />
+
+        <path
+          d="M14 20h4"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+        />
+      </svg>
+    `,
+
+
+    machine: `
+      <svg
+        viewBox="0 0 24 24"
+        width="${size}"
+        height="${size}"
+        aria-hidden="true"
+        fill="none"
+      >
+        <path
+          d="M6 20V5h8l4 4v11"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linejoin="round"
+        />
+
+        <path
+          d="M10 5v4h8M10 13h5M10 17h5"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+        />
+      </svg>
+    `,
+
+
+    bodyweight: `
+      <svg
+        viewBox="0 0 24 24"
+        width="${size}"
+        height="${size}"
+        aria-hidden="true"
+        fill="none"
+      >
+        <circle
+          cx="12"
+          cy="4.5"
+          r="2"
+          stroke="currentColor"
+          stroke-width="1.7"
+        />
+
+        <path
+          d="
+            M12 7
+            v6
+            M8.5 9.5
+            L12 11
+            L15.5 9.5
+            M12 13
+            L9 19
+            M12 13
+            L15 19
+          "
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    `
+
+  };
+
+  return icons[name] || "";
+}
+
 function renderBottomNav(activePage = "workouts") {
+
   return `
+
     <nav
       class="bottom-nav"
       aria-label="Main navigation"
@@ -1467,38 +1737,81 @@ function renderBottomNav(activePage = "workouts") {
         data-page="workouts"
         type="button"
       >
-        <span class="nav-icon">◈</span>
-        <span class="nav-label">Workouts</span>
+
+        <span class="nav-icon">
+          ${icon("workouts")}
+        </span>
+
+        <span class="nav-label">
+          Workouts
+        </span>
+
       </button>
+
 
       <button
         class="nav-item ${activePage === "routines" ? "active" : ""}"
         data-page="routines"
         type="button"
       >
-        <span class="nav-icon">▣</span>
-        <span class="nav-label">Routines</span>
+
+        <span class="nav-icon">
+          ${icon("routines")}
+        </span>
+
+        <span class="nav-label">
+          Routines
+        </span>
+
       </button>
+
 
       <button
         class="nav-item ${activePage === "map" ? "active" : ""}"
         data-page="map"
         type="button"
       >
-        <span class="nav-icon">◎</span>
-        <span class="nav-label">Muscle Map</span>
+
+        <span class="nav-icon">
+          ${icon("muscleMap")}
+        </span>
+
+        <span class="nav-label">
+          Muscle Map
+        </span>
+
       </button>
+
 
       <button
         class="nav-item ${activePage === "profile" ? "active" : ""}"
         data-page="profile"
         type="button"
       >
-        <span class="nav-icon">◉</span>
-        <span class="nav-label">Profile</span>
+
+        <span class="nav-icon nav-avatar-icon">
+
+          ${
+            clerk.user?.imageUrl
+              ? `
+                <img
+                  src="${clerk.user.imageUrl}"
+                  alt=""
+                >
+              `
+              : icon("profile")
+          }
+
+        </span>
+
+        <span class="nav-label">
+          Profile
+        </span>
+
       </button>
 
     </nav>
+
   `;
 }
 

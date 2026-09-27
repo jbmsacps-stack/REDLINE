@@ -11252,3 +11252,113 @@ svg {
   }
 
 }
+
+.nav-icon {
+  width: 22px;
+  height: 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 22px;
+
+  color: currentColor;
+
+  transition:
+    color 180ms ease,
+    transform 180ms var(--ease-standard);
+}
+
+.nav-icon svg {
+  width: 20px;
+  height: 20px;
+
+  display: block;
+
+  stroke: currentColor;
+}
+
+
+.nav-avatar-icon {
+  overflow: hidden;
+
+  border-radius: 50%;
+}
+
+
+.nav-avatar-icon img {
+  width: 21px;
+  height: 21px;
+
+  display: block;
+
+  object-fit: cover;
+
+  border-radius: 50%;
+}
+
+
+.nav-item.active .nav-icon {
+  color: #ffffff;
+}
+
+
+.nav-item:hover .nav-icon {
+  color: #bbbbbb;
+}
+
+
+.nav-item.active:hover .nav-icon {
+  color: #ffffff;
+}
+
+.equipment-button {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.07);
+
+  border-radius: 9px;
+
+  background: rgba(255, 255, 255, 0.025);
+
+  color: #747474;
+
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms var(--ease-standard);
+}
+
+
+.equipment-button svg {
+  width: 18px;
+  height: 18px;
+
+  display: block;
+}
+
+
+.equipment-button:hover {
+  color: #f2f2f2;
+
+  border-color:
+    rgba(225, 29, 46, 0.38);
+
+  background:
+    rgba(225, 29, 46, 0.06);
+}
+
+
+.equipment-button:active {
+  transform: scale(0.92);
+}
