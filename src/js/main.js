@@ -44,30 +44,269 @@ await new Promise((resolve, reject) => {
   document.head.appendChild(script);
 });
 
+
+let authMode = "sign-in";
+
+
+const clerkAppearance = {
+  theme: "simple",
+
+  variables: {
+    colorPrimary: "#e11d2e",
+    colorBackground: "#111111",
+    colorForeground: "#f5f5f5",
+    colorInputBackground: "#0d0d0d",
+    colorInputText: "#f5f5f5",
+    colorTextSecondary: "#858585",
+    colorBorder: "rgba(255,255,255,0.08)",
+    borderRadius: "12px",
+    fontFamily:
+      "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif"
+  },
+
+  options: {
+    elevation: "flush",
+    logoPlacement: "none",
+    socialButtonsPlacement: "top",
+    socialButtonsVariant: "blockButton",
+    animations: true
+  },
+
+  elements: {
+    formButtonPrimary:
+      "redline-clerk-primary",
+
+    formFieldInput:
+      "redline-clerk-input",
+
+    socialButtonsBlockButton:
+      "redline-clerk-social",
+
+    footerActionLink:
+      "redline-clerk-link",
+
+    headerTitle:
+      "redline-clerk-header-title",
+
+    headerSubtitle:
+      "redline-clerk-header-subtitle"
+  }
+};
+
+
 const clerk =
   new Clerk(publishableKey);
+
 
 await clerk.load({
   ui: {
     ClerkUI:
       window.__internal_ClerkUICtor
-  }
+  },
+
+  appearance:
+    clerkAppearance
 });
+
 
 const supabase =
   createClerkSupabaseClient(clerk);
+
+
+function renderAuthPage(mode = "sign-in") {
+
+  authMode = mode;
+
+  app.innerHTML = `
+
+    <main class="auth-page">
+
+      <section class="auth-brand">
+
+        <div class="auth-brand-top">
+
+          <div class="auth-logo">
+            RED<span>LINE</span>
+          </div>
+
+          <span class="auth-system-label">
+            AUTHENTICATION SYSTEM
+          </span>
+
+        </div>
+
+
+        <div class="auth-brand-copy">
+
+          <p class="auth-kicker">
+  THE TRAINING SYSTEM
+</p>
+
+<h1 class="auth-brand-title">
+  TRAIN
+  <span>WITH INTENT.</span>
+</h1>
+
+<p class="auth-brand-description">
+  Plan your workouts, record every set, and understand your progress over time.
+</p>
+
+        </div>
+
+
+        <div class="auth-brand-footer">
+
+          <span>REDLINE / PERSONAL TRAINING</span>
+
+<span class="auth-status">
+  <i></i>
+  SECURE
+</span>
+
+        </div>
+
+      </section>
+
+
+      <section class="auth-panel">
+
+        <div class="auth-panel-inner">
+
+          <div class="auth-mobile-brand">
+
+            <div class="auth-logo">
+              RED<span>LINE</span>
+            </div>
+
+            <span>
+              AUTHENTICATION SYSTEM
+            </span>
+
+          </div>
+
+
+          <div class="auth-heading">
+
+            <span class="auth-kicker">
+  ${mode === "sign-in"
+    ? "WELCOME BACK"
+    : "CREATE YOUR ACCOUNT"}
+</span>
+
+<h2>
+  ${mode === "sign-in"
+    ? "SIGN IN"
+    : "GET STARTED"}
+</h2>
+
+<p>
+  ${mode === "sign-in"
+    ? "Sign in to continue to REDLINE."
+    : "Create your account to start tracking your training."}
+</p>
+
+          </div>
+
+
+          <div class="auth-tabs">
+
+            <button
+              type="button"
+              class="${mode === "sign-in" ? "active" : ""}"
+              data-auth-mode="sign-in"
+            >
+              SIGN IN
+            </button>
+
+            <button
+              type="button"
+              class="${mode === "sign-up" ? "active" : ""}"
+              data-auth-mode="sign-up"
+            >
+              SIGN UP
+            </button>
+
+          </div>
+
+
+          <div class="auth-clerk-card">
+
+            <div
+              id="clerk-auth"
+              class="clerk-auth-container"
+            ></div>
+
+          </div>
+
+
+          <p class="auth-security-note">
+            Your account data is protected by Clerk.
+          </p>
+
+        </div>
+
+      </section>
+
+    </main>
+
+  `;
+
+
+  document
+    .querySelectorAll("[data-auth-mode]")
+    .forEach((button) => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const nextMode =
+            button.dataset.authMode;
+
+          if (nextMode === authMode) {
+            return;
+          }
+
+          renderAuthPage(nextMode);
+
+        }
+      );
+
+    });
+
+
+  const clerkContainer =
+    document.querySelector("#clerk-auth");
+
+
+  if (authMode === "sign-up") {
+
+    clerk.mountSignUp(
+      clerkContainer,
+      {
+        appearance: clerkAppearance
+      }
+    );
+
+  } else {
+
+    clerk.mountSignIn(
+      clerkContainer,
+      {
+        appearance: clerkAppearance
+      }
+    );
+
+  }
+
+}
+
 
 async function initializeApp() {
 
   if (!clerk.isSignedIn) {
 
-    app.innerHTML = `
-      <div id="clerk-sign-in"></div>
-    `;
-
-    clerk.mountSignIn(
-      document.querySelector("#clerk-sign-in")
-    );
+    renderAuthPage("sign-in");
 
     return;
   }
@@ -10460,14 +10699,30 @@ clerk.addListener(() => {
     clerk.isSignedIn;
 
   if (
-    currentSignedInState !==
+    currentSignedInState ===
     lastSignedInState
   ) {
-    lastSignedInState =
-      currentSignedInState;
-
-    initializeApp();
+    return;
   }
+
+  lastSignedInState =
+    currentSignedInState;
+
+  if (currentSignedInState) {
+    initializeApp();
+    return;
+  }
+
+  app.innerHTML = `
+    <div id="clerk-sign-in"></div>
+  `;
+
+  clerk.mountSignIn(
+    document.querySelector(
+      "#clerk-sign-in"
+    )
+  );
+
 });
 
 applyMotionPreference();
