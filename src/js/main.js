@@ -4,11 +4,8 @@ import "../css/style.css";
 import { Clerk } from "@clerk/clerk-js";
 import { createClerkSupabaseClient } from "./supabase.js";
 
-import { EXERCISES } from "./exerciseData.js";
-
 const app = document.querySelector("#app");
 
-import { exercises } from "./data.js";
 import gsap from "gsap";
 
 
@@ -81,6 +78,7 @@ async function initializeApp() {
   render();
 
   Promise.allSettled([
+    loadExercisesFromSupabase(),
     loadRoutinesFromSupabase(),
     loadWorkoutSessionsFromSupabase()
   ]).then(() => {
@@ -116,11 +114,65 @@ let searchTerm = "";
 let selectedExercise = null;
 let activeRoutine = null;
 
+let isAdminUser = false;
+let adminAccessLoaded = false;
+
+let adminExercises = [];
+let adminEditingExerciseId = null;
+
+let exercises = [];
+
 let reduceMotion =
   localStorage.getItem("redline-reduce-motion") === "true";
 
 let weightUnit =
   localStorage.getItem("redline-weight-unit") || "KG";
+
+// =========================================================
+// ADMIN ACCESS
+// =========================================================
+
+async function ensureAdminAccess() {
+
+  if (!clerk.user?.id) {
+    return false;
+  }
+
+  if (adminAccessLoaded) {
+    return isAdminUser;
+  }
+
+  const {
+    data,
+    error
+  } = await supabase
+    .from("admin_users")
+    .select("clerk_user_id")
+    .eq(
+      "clerk_user_id",
+      clerk.user.id
+    )
+    .maybeSingle();
+
+  if (error) {
+
+    console.error(
+      "Failed to verify admin access:",
+      error
+    );
+
+    isAdminUser = false;
+
+  } else {
+
+    isAdminUser = Boolean(data);
+
+  }
+
+  adminAccessLoaded = true;
+
+  return isAdminUser;
+}
 
 async function loadUserSettingsFromSupabase() {
 
@@ -674,24 +726,106 @@ function getLocalDate() {
 // FILTER OPTIONS
 // =========================
 
-const muscles = [
+const MUSCLE_FILTERS = [
   "All",
   "Chest",
   "Back",
-  "Legs",
-  "Hamstrings",
   "Shoulders",
   "Biceps",
   "Triceps",
+  "Forearms",
+  "Abs",
+  "Obliques",
+  "Serratus",
+  "Traps",
+  "Rear Delts",
+  "Lats",
+  "Lower Back",
+  "Quads",
+  "Hamstrings",
+  "Glutes",
+  "Adductors",
+  "Calves",
+  "Legs",
 ];
 
-const equipment = [
+const EQUIPMENT_FILTERS = [
   "All",
   "Barbell",
   "Dumbbell",
   "Cable",
   "Machine",
+  "Bodyweight",
+  "Kettlebell",
+  "Smith Machine",
+  "EZ Bar",
+  "Resistance Band",
+  "Landmine",
+  "Trap Bar",
+  "Pull-Up Bar",
+  "Dip Station",
+  "Suspension Trainer",
+  "Bench",
+  "Plate",
+  "Cardio Machine",
+  "Other",
 ];
+
+
+function getAvailableMuscleFilters() {
+
+  const actualMuscles =
+    exercises
+      .map(
+        (exercise) =>
+          String(
+            exercise.muscle || ""
+          ).trim()
+      )
+      .filter(Boolean);
+
+  return [
+    ...MUSCLE_FILTERS,
+    ...actualMuscles
+      .filter(
+        (muscle) =>
+          !MUSCLE_FILTERS.includes(muscle)
+      )
+      .sort(
+        (a, b) =>
+          a.localeCompare(b)
+      )
+  ];
+
+}
+
+
+function getAvailableEquipmentFilters() {
+
+  const actualEquipment =
+    exercises
+      .map(
+        (exercise) =>
+          String(
+            exercise.equipment || ""
+          ).trim()
+      )
+      .filter(Boolean);
+
+  return [
+    ...EQUIPMENT_FILTERS,
+    ...actualEquipment
+      .filter(
+        (item) =>
+          !EQUIPMENT_FILTERS.includes(item)
+      )
+      .sort(
+        (a, b) =>
+          a.localeCompare(b)
+      )
+  ];
+
+}
 
 
 // =========================
@@ -725,11 +859,24 @@ function exerciseCard(exercise) {
 
       <div class="exercise-visual">
 
+  ${exercise.coverImageUrl
+      ? `
+        <img
+          src="${exercise.coverImageUrl}"
+          alt=""
+          class="exercise-thumbnail"
+          loading="lazy"
+          decoding="async"
+        >
+      `
+      : `
         <span class="visual-letter">
           ${exercise.name.charAt(0)}
         </span>
+      `
+    }
 
-      </div>
+</div>
 
 
       <div class="exercise-content">
@@ -935,7 +1082,7 @@ function render() {
 
             <div class="filter-row">
 
-              ${muscles
+              ${getAvailableMuscleFilters()
       .map(
         (muscle) => `
                     <button
@@ -968,7 +1115,7 @@ function render() {
 
             <div class="filter-row">
 
-              ${equipment
+              ${getAvailableEquipmentFilters()
       .map(
         (item) => `
                     <button
@@ -2746,15 +2893,28 @@ function renderRoutineDetail() {
   animateRoutineDetail();
 }
 
-function openProfile() {
+async function openProfile() {
 
   if (document.querySelector(".routine-detail-page")) {
-    profileReturnView = "routine-detail";
-  } else if (document.querySelector(".routines-screen")) {
-    profileReturnView = "routines";
+
+    profileReturnView =
+      "routine-detail";
+
+  } else if (
+    document.querySelector(".routines-screen")
+  ) {
+
+    profileReturnView =
+      "routines";
+
   } else {
-    profileReturnView = "workouts";
+
+    profileReturnView =
+      "workouts";
+
   }
+
+  await ensureAdminAccess();
 
   renderProfile();
 }
@@ -3533,6 +3693,39 @@ ${completedSessions === 1
 
 </section>
 
+${isAdminUser ? `
+<section class="profile-section">
+
+  <div class="profile-section-heading">
+    ADMIN
+  </div>
+
+  <button
+    class="profile-setting-row profile-admin-button"
+    type="button"
+  >
+
+    <div class="profile-setting-info">
+
+      <strong>
+        EXERCISE LIBRARY
+      </strong>
+
+      <span>
+        CREATE, EDIT AND MANAGE PUBLIC EXERCISES
+      </span>
+
+    </div>
+
+    <span class="profile-setting-action">
+      →
+    </span>
+
+  </button>
+
+</section>
+` : ""}
+
 <section class="profile-section">
 
   <div class="profile-section-heading">
@@ -3730,8 +3923,8 @@ ${completedSessions === 1
                   const routine =
                     routines.find(
                       (item) =>
-                        item.id ===
-                        session.routineId
+                        String(item.id) ===
+                        routineId
                     );
 
                   return `
@@ -6435,14 +6628,14 @@ function attachRoutineSheetEvents(
         () => {
 
           const routineId =
-            Number(
+            String(
               option.dataset.routineId
             );
 
           const routine =
             routines.find(
               (item) =>
-                item.id === routineId
+                String(item.id) === routineId
             );
 
           if (!routine) {
@@ -7481,6 +7674,1260 @@ function openDeleteHistoryModal() {
 
 }
 
+// =========================================================
+// ADMIN DASHBOARD
+// =========================================================
+
+const ADMIN_MUSCLES = [
+  "Chest",
+  "Back",
+  "Shoulders",
+  "Biceps",
+  "Triceps",
+  "Forearms",
+  "Abs",
+  "Obliques",
+  "Serratus",
+  "Traps",
+  "Rear Delts",
+  "Lats",
+  "Lower Back",
+  "Quads",
+  "Hamstrings",
+  "Glutes",
+  "Adductors",
+  "Calves",
+  "Legs"
+];
+
+const ADMIN_EQUIPMENT = [
+  "Barbell",
+  "Dumbbell",
+  "Cable",
+  "Machine",
+  "Bodyweight",
+  "Kettlebell",
+  "Smith Machine",
+  "EZ Bar",
+  "Resistance Band",
+  "Landmine",
+  "Trap Bar",
+  "Pull-Up Bar",
+  "Dip Station",
+  "Suspension Trainer",
+  "Bench",
+  "Plate",
+  "Cardio Machine",
+  "Other"
+];
+
+const ADMIN_DIFFICULTIES = [
+  "Beginner",
+  "Intermediate",
+  "Advanced"
+];
+
+const ADMIN_TYPES = [
+  "Strength",
+  "Cardio",
+  "Mobility",
+  "Stretching",
+  "Bodyweight"
+];
+
+
+function escapeHtml(value) {
+
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+
+function splitAdminList(value) {
+
+  return String(value || "")
+    .split(",")
+    .map(
+      (item) => item.trim()
+    )
+    .filter(Boolean);
+
+}
+
+
+function splitAdminLines(value) {
+
+  return String(value || "")
+    .split("\n")
+    .map(
+      (item) => item.trim()
+    )
+    .filter(Boolean);
+
+}
+
+
+async function loadAdminExercises() {
+
+  const {
+    data,
+    error
+  } = await supabase
+    .from("exercises")
+    .select(`
+      id,
+      name,
+      description,
+      primary_muscle,
+      secondary_muscles,
+      equipment,
+      difficulty,
+      type,
+      tags,
+      instructions,
+      cover_image_url,
+      demo_gif_url,
+      is_public,
+      created_by,
+      created_at,
+      updated_at
+    `)
+    .order(
+      "name",
+      {
+        ascending: true
+      }
+    );
+
+  if (error) {
+
+    console.error(
+      "Failed to load admin exercises:",
+      error
+    );
+
+    throw error;
+  }
+
+  adminExercises =
+    data || [];
+
+  return adminExercises;
+}
+
+
+async function uploadAdminAsset(
+  file,
+  bucket,
+  prefix
+) {
+
+  if (!file) {
+    return "";
+  }
+
+  const extension =
+    file.name.includes(".")
+      ? file.name
+        .split(".")
+        .pop()
+        .toLowerCase()
+      : "bin";
+
+  const path =
+    `${clerk.user.id}/${prefix}-${crypto.randomUUID()}.${extension}`;
+
+  const {
+    error
+  } = await supabase
+    .storage
+    .from(bucket)
+    .upload(
+      path,
+      file,
+      {
+        upsert: false,
+        cacheControl: "3600",
+        contentType:
+          file.type || undefined
+      }
+    );
+
+  if (error) {
+    throw error;
+  }
+
+  const {
+    data
+  } = supabase
+    .storage
+    .from(bucket)
+    .getPublicUrl(path);
+
+  return data.publicUrl;
+}
+
+
+async function saveAdminExercise(
+  form
+) {
+
+  const formData =
+    new FormData(form);
+
+  const name =
+    String(
+      formData.get("name") || ""
+    ).trim();
+
+  const description =
+    String(
+      formData.get("description") || ""
+    ).trim();
+
+  const primaryMuscle =
+    String(
+      formData.get("primary_muscle") || ""
+    ).trim();
+
+  const secondaryMuscles =
+    splitAdminList(
+      formData.get("secondary_muscles")
+    );
+
+  const exerciseEquipment =
+    String(
+      formData.get("equipment") || ""
+    );
+
+  const difficulty =
+    String(
+      formData.get("difficulty") || ""
+    );
+
+  const type =
+    String(
+      formData.get("type") || ""
+    );
+
+  const tags =
+    splitAdminList(
+      formData.get("tags")
+    );
+
+  const instructions =
+    splitAdminLines(
+      formData.get("instructions")
+    );
+
+  const isPublic =
+    formData.get("is_public") === "on";
+
+  const coverFile =
+    formData.get("cover_image");
+
+  const demoFile =
+    formData.get("demo_gif");
+
+
+  if (
+    !name ||
+    !primaryMuscle ||
+    !exerciseEquipment ||
+    !difficulty ||
+    !type
+  ) {
+
+    alert(
+      "Name, primary muscle, equipment, difficulty and type are required."
+    );
+
+    return;
+  }
+
+
+  const submitButton =
+    form.querySelector(
+      ".admin-save-button"
+    );
+
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent =
+      "SAVING...";
+  }
+
+
+  try {
+
+    let coverImageUrl = "";
+    let demoGifUrl = "";
+
+    if (
+      coverFile instanceof File &&
+      coverFile.size > 0
+    ) {
+
+      coverImageUrl =
+        await uploadAdminAsset(
+          coverFile,
+          "exercise-covers",
+          "cover"
+        );
+
+    }
+
+    if (
+      demoFile instanceof File &&
+      demoFile.size > 0
+    ) {
+
+      demoGifUrl =
+        await uploadAdminAsset(
+          demoFile,
+          "exercise-demos",
+          "demo"
+        );
+
+    }
+
+
+    const payload = {
+
+      name,
+
+      description,
+
+      primary_muscle:
+        primaryMuscle,
+
+      secondary_muscles:
+        secondaryMuscles,
+
+      equipment:
+        exerciseEquipment,
+
+      difficulty,
+
+      type,
+
+      tags,
+
+      instructions,
+
+      is_public:
+        isPublic,
+
+      updated_at:
+        new Date().toISOString()
+
+    };
+
+
+    if (adminEditingExerciseId) {
+
+      if (coverImageUrl) {
+        payload.cover_image_url =
+          coverImageUrl;
+      }
+
+      if (demoGifUrl) {
+        payload.demo_gif_url =
+          demoGifUrl;
+      }
+
+
+      const {
+        error
+      } = await supabase
+        .from("exercises")
+        .update(payload)
+        .eq(
+          "id",
+          adminEditingExerciseId
+        );
+
+      if (error) {
+        throw error;
+      }
+
+    } else {
+
+      payload.created_by =
+        clerk.user.id;
+
+      payload.cover_image_url =
+        coverImageUrl;
+
+      payload.demo_gif_url =
+        demoGifUrl;
+
+
+      const {
+        error
+      } = await supabase
+        .from("exercises")
+        .insert(payload);
+
+      if (error) {
+        throw error;
+      }
+
+    }
+
+
+    adminEditingExerciseId =
+      null;
+
+    await loadAdminExercises();
+
+    await loadExercisesFromSupabase();
+
+    renderAdminDashboard();
+
+  } catch (error) {
+
+    console.error(
+      "Failed to save exercise:",
+      error
+    );
+
+    alert(
+      error.message ||
+      "Failed to save exercise."
+    );
+
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent =
+        "SAVE EXERCISE";
+    }
+
+  }
+
+}
+
+
+async function deleteAdminExercise(
+  exerciseId
+) {
+
+  const exercise =
+    adminExercises.find(
+      (item) =>
+        item.id === exerciseId
+    );
+
+  if (!exercise) {
+    return;
+  }
+
+
+  const confirmed =
+    window.confirm(
+      `Delete "${exercise.name}"? This cannot be undone.`
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  try {
+
+    const {
+      error
+    } = await supabase
+      .from("exercises")
+      .delete()
+      .eq(
+        "id",
+        exerciseId
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    if (
+      adminEditingExerciseId ===
+      exerciseId
+    ) {
+      adminEditingExerciseId =
+        null;
+    }
+
+    await loadAdminExercises();
+
+    await loadExercisesFromSupabase();
+
+    renderAdminDashboard();
+
+  } catch (error) {
+
+    console.error(
+      "Failed to delete exercise:",
+      error
+    );
+
+    alert(
+      error.message ||
+      "Failed to delete exercise."
+    );
+
+  }
+
+}
+
+
+async function renderAdminDashboard() {
+
+  const allowed =
+    await ensureAdminAccess();
+
+  if (!allowed) {
+    renderProfile();
+    return;
+  }
+
+
+  const app =
+    document.querySelector("#app");
+
+
+  try {
+
+    await loadAdminExercises();
+
+  } catch (error) {
+
+    app.innerHTML = `
+
+      <div class="app-shell">
+
+        <header class="app-header">
+
+          <button
+            class="profile-back-button"
+            type="button"
+            aria-label="Back"
+          >
+            ←
+          </button>
+
+          <span class="profile-header-label">
+            ADMIN
+          </span>
+
+        </header>
+
+        <main>
+
+          <section class="admin-screen">
+
+            <span class="section-kicker">
+              REDLINE SYSTEM
+            </span>
+
+            <h1 class="admin-title">
+              ADMIN
+              <span>OFFLINE.</span>
+            </h1>
+
+            <p class="admin-error">
+              Unable to load the exercise library.
+              Check your Supabase RLS policies.
+            </p>
+
+          </section>
+
+        </main>
+
+      </div>
+    `;
+
+    attachEvents();
+
+    return;
+  }
+
+
+  const editingExercise =
+    adminExercises.find(
+      (exercise) =>
+        exercise.id ===
+        adminEditingExerciseId
+    ) || null;
+
+
+  app.innerHTML = `
+
+    <div class="app-shell">
+
+      <header class="app-header">
+
+        <button
+          class="profile-back-button"
+          type="button"
+          aria-label="Back to profile"
+        >
+          ←
+        </button>
+
+        <span class="profile-header-label">
+          ADMIN
+        </span>
+
+      </header>
+
+
+      <main>
+
+        <section class="admin-screen">
+
+          <div class="admin-heading">
+
+            <div>
+
+              <span class="section-kicker">
+                REDLINE SYSTEM
+              </span>
+
+              <h1 class="admin-title">
+                EXERCISE
+                <span>CONTROL.</span>
+              </h1>
+
+            </div>
+
+            <div class="admin-count">
+              ${adminExercises.length}
+              ${adminExercises.length === 1
+      ? "EXERCISE"
+      : "EXERCISES"}
+            </div>
+
+          </div>
+
+
+          <section class="admin-editor">
+
+            <div class="admin-section-heading">
+
+              <span>
+                ${editingExercise
+      ? "EDIT EXERCISE"
+      : "NEW EXERCISE"}
+              </span>
+
+              <span>
+                ${editingExercise
+      ? "MODE / EDIT"
+      : "MODE / CREATE"}
+              </span>
+
+            </div>
+
+
+            <form
+              class="admin-exercise-form"
+            >
+
+              <label>
+                <span>NAME</span>
+                <input
+                  name="name"
+                  type="text"
+                  maxlength="120"
+                  required
+                  value="${escapeHtml(
+        editingExercise?.name || ""
+      )}"
+                  placeholder="e.g. Incline Dumbbell Press"
+                >
+              </label>
+
+
+              <label>
+                <span>DESCRIPTION</span>
+                <textarea
+                  name="description"
+                  rows="4"
+                  maxlength="1000"
+                  placeholder="Describe the movement..."
+                >${escapeHtml(
+        editingExercise?.description || ""
+      )}</textarea>
+              </label>
+
+
+              <div class="admin-form-grid">
+
+                <label>
+                  <span>PRIMARY MUSCLE</span>
+
+                  <select
+                    name="primary_muscle"
+                    required
+                  >
+
+                    <option value="">
+                      SELECT
+                    </option>
+
+                    ${ADMIN_MUSCLES
+      .map(
+        (muscle) => `
+                          <option
+                            value="${escapeHtml(muscle)}"
+                            ${editingExercise?.muscle === muscle
+            ? "selected"
+            : ""}
+                          >
+                            ${escapeHtml(muscle)}
+                          </option>
+                        `
+      )
+      .join("")}
+
+                  </select>
+
+                </label>
+
+
+                <label>
+                  <span>EQUIPMENT</span>
+
+                  <select
+                    name="equipment"
+                    required
+                  >
+
+                    <option value="">
+                      SELECT
+                    </option>
+
+                    ${ADMIN_EQUIPMENT
+      .map(
+        (item) => `
+                          <option
+                            value="${escapeHtml(item)}"
+                            ${editingExercise?.equipment === item
+            ? "selected"
+            : ""}
+                          >
+                            ${escapeHtml(item)}
+                          </option>
+                        `
+      )
+      .join("")}
+
+                  </select>
+
+                </label>
+
+
+                <label>
+                  <span>DIFFICULTY</span>
+
+                  <select
+                    name="difficulty"
+                    required
+                  >
+
+                    ${ADMIN_DIFFICULTIES
+      .map(
+        (item) => `
+                          <option
+                            value="${item}"
+                            ${editingExercise?.difficulty === item
+            ? "selected"
+            : ""}
+                          >
+                            ${item}
+                          </option>
+                        `
+      )
+      .join("")}
+
+                  </select>
+
+                </label>
+
+
+                <label>
+                  <span>TYPE</span>
+
+                  <select
+                    name="type"
+                    required
+                  >
+
+                    ${ADMIN_TYPES
+      .map(
+        (item) => `
+                          <option
+                            value="${item}"
+                            ${editingExercise?.type === item
+            ? "selected"
+            : ""}
+                          >
+                            ${item}
+                          </option>
+                        `
+      )
+      .join("")}
+
+                  </select>
+
+                </label>
+
+              </div>
+
+
+              <label>
+                <span>
+                  SECONDARY MUSCLES
+                  <small>comma separated</small>
+                </span>
+
+                <input
+                  name="secondary_muscles"
+                  type="text"
+                  value="${escapeHtml(
+        (
+          editingExercise?.secondaryMuscles ||
+          []
+        ).join(", ")
+      )}"
+                  placeholder="Front Delts, Triceps"
+                >
+              </label>
+
+
+              <label>
+                <span>
+                  TAGS
+                  <small>comma separated</small>
+                </span>
+
+                <input
+                  name="tags"
+                  type="text"
+                  value="${escapeHtml(
+        (
+          editingExercise?.tags ||
+          []
+        ).join(", ")
+      )}"
+                  placeholder="Push, Compound, Beginner"
+                >
+              </label>
+
+
+              <label>
+                <span>
+                  INSTRUCTIONS
+                  <small>one step per line</small>
+                </span>
+
+                <textarea
+                  name="instructions"
+                  rows="7"
+                  placeholder="Set the bench to a slight incline.
+Grab the dumbbells at shoulder height.
+Press upward under control."
+                >${escapeHtml(
+        (
+          editingExercise?.instructions ||
+          []
+        ).join("\n")
+      )}</textarea>
+              </label>
+
+
+              <div class="admin-form-grid">
+
+                <label>
+
+                  <span>COVER IMAGE</span>
+
+                  <input
+                    name="cover_image"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                  >
+
+                  ${editingExercise?.coverImageUrl
+      ? `
+                        <a
+                          class="admin-existing-file"
+                          href="${escapeHtml(
+        editingExercise.coverImageUrl
+      )}"
+                          target="_blank"
+                          rel="noopener"
+                        >
+                          CURRENT COVER ↗
+                        </a>
+                      `
+      : ""
+    }
+
+                </label>
+
+
+                <label>
+
+                  <span>DEMO GIF</span>
+
+                  <input
+                    name="demo_gif"
+                    type="file"
+                    accept="image/gif,video/mp4,video/webm"
+                  >
+
+                  ${editingExercise?.demoGifUrl
+      ? `
+                        <a
+                          class="admin-existing-file"
+                          href="${escapeHtml(
+        editingExercise.demoGifUrl
+      )}"
+                          target="_blank"
+                          rel="noopener"
+                        >
+                          CURRENT DEMO ↗
+                        </a>
+                      `
+      : ""
+    }
+
+                </label>
+
+              </div>
+
+
+              <label
+                class="admin-public-toggle"
+              >
+
+                <input
+                  name="is_public"
+                  type="checkbox"
+                  ${editingExercise?.isPublic !== false
+      ? "checked"
+      : ""}
+                >
+
+                <span>
+
+                  <strong>
+                    PUBLIC LIBRARY
+                  </strong>
+
+                  <small>
+                    SHOW THIS EXERCISE IN THE MAIN LIBRARY
+                  </small>
+
+                </span>
+
+              </label>
+
+
+              <div class="admin-form-actions">
+
+                ${editingExercise
+      ? `
+                      <button
+                        class="admin-cancel-button"
+                        type="button"
+                      >
+                        CANCEL
+                      </button>
+                    `
+      : ""
+    }
+
+                <button
+                  class="admin-save-button"
+                  type="submit"
+                >
+                  ${editingExercise
+      ? "UPDATE EXERCISE"
+      : "SAVE EXERCISE"}
+                </button>
+
+              </div>
+
+            </form>
+
+          </section>
+
+
+          <section class="admin-library">
+
+            <div class="admin-section-heading">
+
+              <span>
+                LIBRARY
+              </span>
+
+              <span>
+                ${adminExercises.length}
+                TOTAL
+              </span>
+
+            </div>
+
+
+            <div class="admin-exercise-list">
+
+              ${adminExercises.length
+      ? adminExercises.map(
+        (exercise) => `
+
+                        <article
+                          class="admin-exercise-card"
+                        >
+
+                          <div
+                            class="admin-exercise-media"
+                          >
+
+                            ${exercise.coverImageUrl
+            ? `
+                                  <img
+                                    src="${escapeHtml(
+              exercise.coverImageUrl
+            )}"
+                                    alt=""
+                                    loading="lazy"
+                                  >
+                                `
+            : `
+                                  <span>
+                                    ${escapeHtml(
+              exercise.name
+                .charAt(0)
+            )}
+                                  </span>
+                                `
+          }
+
+                          </div>
+
+
+                          <div
+                            class="admin-exercise-info"
+                          >
+
+                            <div
+                              class="admin-exercise-topline"
+                            >
+
+                              <span>
+                                ${escapeHtml(
+            exercise.type
+          )}
+                              </span>
+
+                              <span
+                                class="${exercise.isPublic
+            ? "admin-status-public"
+            : "admin-status-private"
+          }"
+                              >
+                                ${exercise.isPublic
+            ? "PUBLIC"
+            : "HIDDEN"
+          }
+                              </span>
+
+                            </div>
+
+
+                            <h2>
+                              ${escapeHtml(
+            exercise.name
+          )}
+                            </h2>
+
+
+                            <p>
+                              ${escapeHtml(
+            exercise.muscle
+          )}
+                              ·
+                              ${escapeHtml(
+            exercise.equipment
+          )}
+                              ·
+                              ${escapeHtml(
+            exercise.difficulty
+          )}
+                            </p>
+
+
+                            <div
+                              class="admin-exercise-actions"
+                            >
+
+                              <button
+                                type="button"
+                                data-admin-edit="${escapeHtml(
+            exercise.id
+          )}"
+                              >
+                                EDIT
+                              </button>
+
+                              <button
+                                type="button"
+                                data-admin-delete="${escapeHtml(
+            exercise.id
+          )}"
+                              >
+                                DELETE
+                              </button>
+
+                            </div>
+
+                          </div>
+
+                        </article>
+
+                      `
+      ).join("")
+      : `
+                    <div class="admin-empty">
+                      NO EXERCISES YET.
+                    </div>
+                  `
+    }
+
+            </div>
+
+          </section>
+
+        </section>
+
+      </main>
+
+    </div>
+  `;
+
+
+  attachAdminEvents();
+}
+
+
+function attachAdminEvents() {
+
+  const backButton =
+    document.querySelector(
+      ".profile-back-button"
+    );
+
+  backButton?.addEventListener(
+    "click",
+    async () => {
+
+      adminEditingExerciseId =
+        null;
+
+      renderProfile();
+
+    }
+  );
+
+
+  const form =
+    document.querySelector(
+      ".admin-exercise-form"
+    );
+
+  form?.addEventListener(
+    "submit",
+    async (event) => {
+
+      event.preventDefault();
+
+      await saveAdminExercise(
+        form
+      );
+
+    }
+  );
+
+
+  document
+    .querySelector(
+      ".admin-cancel-button"
+    )
+    ?.addEventListener(
+      "click",
+      () => {
+
+        adminEditingExerciseId =
+          null;
+
+        renderAdminDashboard();
+
+      }
+    );
+
+
+  document
+    .querySelectorAll(
+      "[data-admin-edit]"
+    )
+    .forEach(
+      (button) => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            adminEditingExerciseId =
+              button.dataset.adminEdit;
+
+            renderAdminDashboard();
+
+          }
+        );
+
+      }
+    );
+
+
+  document
+    .querySelectorAll(
+      "[data-admin-delete]"
+    )
+    .forEach(
+      (button) => {
+
+        button.addEventListener(
+          "click",
+          async () => {
+
+            await deleteAdminExercise(
+              button.dataset.adminDelete
+            );
+
+          }
+        );
+
+      }
+    );
+
+}
+
 function attachEvents() {
 
   // =======================
@@ -7598,11 +9045,13 @@ function attachEvents() {
       card.addEventListener("click", () => {
 
         const exerciseId =
-          Number(card.dataset.id);
+          String(card.dataset.id);
 
         const exercise =
           exercises.find(
-            (item) => item.id === exerciseId
+            (item) =>
+              String(item.id) ===
+              exerciseId
           );
 
         if (!exercise) {
@@ -7611,7 +9060,10 @@ function attachEvents() {
 
         selectedExercise = exercise;
 
-        openExerciseDetail(card, exercise);
+        openExerciseDetail(
+          card,
+          exercise
+        );
       });
 
     });
@@ -7628,12 +9080,12 @@ function attachEvents() {
         () => {
 
           const routineId =
-            Number(card.dataset.routineId);
+            String(card.dataset.routineId);
 
           const routine =
             routines.find(
               (item) =>
-                item.id === routineId
+                String(item.id) === routineId
             );
 
           if (!routine) {
@@ -7824,14 +9276,15 @@ function attachEvents() {
           }
 
           const exerciseId =
-            Number(
+            String(
               item.dataset.exerciseId
             );
 
           const exercise =
             exercises.find(
               (entry) =>
-                entry.id === exerciseId
+                String(entry.id) ===
+                exerciseId
             );
 
           if (!exercise) {
@@ -7874,21 +9327,22 @@ function attachEvents() {
           }
 
           const exerciseId =
-            Number(
+            String(
               item.dataset.exerciseId
             );
 
           const routineExercise =
-            activeRoutine.exercises.find(
-              (entry) =>
-                entry.exerciseId ===
+            activeRoutine?.exercises.find(
+              (exercise) =>
+                String(exercise.exerciseId) ===
                 exerciseId
             );
 
           const exercise =
             exercises.find(
               (entry) =>
-                entry.id === exerciseId
+                String(entry.id) ===
+                exerciseId
             );
 
           if (!routineExercise || !exercise) {
@@ -8775,6 +10229,18 @@ function attachEvents() {
     }
   );
 
+  const profileAdminButton =
+    document.querySelector(
+      ".profile-admin-button"
+    );
+
+  profileAdminButton?.addEventListener(
+    "click",
+    () => {
+      renderAdminDashboard();
+    }
+  );
+
   const profileSignoutButton =
     document.querySelector(
       ".profile-signout-button"
@@ -8841,6 +10307,128 @@ function animateCards() {
 
       ease: "power3.out",
     }
+  );
+
+}
+
+
+// =========================================================
+// EXERCISE LIBRARY — SUPABASE
+// =========================================================
+
+async function loadExercisesFromSupabase() {
+
+  const {
+    data,
+    error
+  } = await supabase
+
+    .from("exercises")
+
+    .select(`
+      id,
+      name,
+      description,
+      primary_muscle,
+      secondary_muscles,
+      equipment,
+      difficulty,
+      type,
+      tags,
+      instructions,
+      cover_image_url,
+      demo_gif_url,
+      is_public,
+      created_by,
+      created_at,
+      updated_at
+    `)
+
+    .eq(
+      "is_public",
+      true
+    )
+
+    .order(
+      "name",
+      {
+        ascending: true
+      }
+    );
+
+
+  if (error) {
+
+    console.error(
+      "Failed to load exercises from Supabase:",
+      error
+    );
+
+    return;
+
+  }
+
+
+  const normalizedExercises =
+    (data || []).map(
+      (exercise) => ({
+
+        id: exercise.id,
+
+        name:
+          exercise.name,
+
+        description:
+          exercise.description || "",
+
+        muscle:
+          exercise.primary_muscle,
+
+        secondaryMuscles:
+          exercise.secondary_muscles || [],
+
+        equipment:
+          exercise.equipment,
+
+        difficulty:
+          exercise.difficulty,
+
+        type:
+          exercise.type,
+
+        tags:
+          exercise.tags || [],
+
+        instructions:
+          exercise.instructions || [],
+
+        coverImageUrl:
+          exercise.cover_image_url || "",
+
+        demoGifUrl:
+          exercise.demo_gif_url || "",
+
+        isPublic:
+          exercise.is_public,
+
+        createdBy:
+          exercise.created_by,
+
+        createdAt:
+          exercise.created_at,
+
+        updatedAt:
+          exercise.updated_at
+
+      })
+    );
+
+
+  exercises = normalizedExercises;
+
+  console.log(
+    "REDLINE exercises loaded:",
+    exercises
   );
 
 }

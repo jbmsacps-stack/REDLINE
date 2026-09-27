@@ -881,6 +881,29 @@ svg {
     min-height: 112px;
   }
 
+  .exercise-thumbnail {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    display: block;
+
+    opacity: 0.92;
+
+    user-select: none;
+    -webkit-user-drag: none;
+
+    transition:
+      transform 320ms var(--ease-standard),
+      opacity 220ms ease;
+  }
+
+  .exercise-card:hover .exercise-thumbnail {
+    transform: scale(1.035);
+    opacity: 1;
+  }
+
   .bottom-nav {
     left: 6px;
     right: 6px;
@@ -8989,7 +9012,7 @@ svg {
   user-select: none;
 }
 
-.muscle-map-model > img {
+.muscle-map-model>img {
   display: block;
 
   width: 100%;
@@ -9037,11 +9060,9 @@ svg {
 
   color: var(--color-text);
 
-  font-size: clamp(
-    2.2rem,
-    11vw,
-    3.4rem
-  );
+  font-size: clamp(2.2rem,
+      11vw,
+      3.4rem);
 
   font-weight: 900;
   line-height: 0.9;
@@ -9122,11 +9143,9 @@ svg {
 .muscle-map-model {
   position: relative;
 
-  width: clamp(
-    220px,
-    64vw,
-    280px
-  );
+  width: clamp(220px,
+      64vw,
+      280px);
 
   aspect-ratio: 1024 / 1536;
 
@@ -9138,7 +9157,7 @@ svg {
   -webkit-user-select: none;
 }
 
-.muscle-map-model > img {
+.muscle-map-model>img {
   display: block;
 
   width: 100%;
@@ -9232,9 +9251,7 @@ svg {
 ========================================================= */
 
 .muscle-map-under-construction {
-  min-height: calc(
-    100vh - 150px
-  );
+  min-height: calc(100vh - 150px);
 
   width: 100%;
 
@@ -9244,8 +9261,7 @@ svg {
   justify-content: center;
 
   padding:
-    40px 20px
-    calc(120px + env(safe-area-inset-bottom));
+    40px 20px calc(120px + env(safe-area-inset-bottom));
 
   text-align: center;
 }
@@ -9315,11 +9331,9 @@ svg {
   color: var(--color-text);
 
   font-size:
-    clamp(
-      2.7rem,
+    clamp(2.7rem,
       13vw,
-      5rem
-    );
+      5rem);
 
   font-weight: 950;
 
@@ -9391,8 +9405,7 @@ svg {
   background: var(--color-red);
 
   box-shadow:
-    0 0 0 4px
-    rgba(225, 29, 46, 0.08);
+    0 0 0 4px rgba(225, 29, 46, 0.08);
 }
 
 .muscle-map-uc-back {
@@ -9453,8 +9466,7 @@ svg {
   align-items: center;
   justify-content: center;
 
-  padding: 32px 18px
-    calc(105px + env(safe-area-inset-bottom));
+  padding: 32px 18px calc(105px + env(safe-area-inset-bottom));
 
   text-align: center;
 
@@ -9534,11 +9546,9 @@ svg {
 
   color: #f4f4f4;
 
-  font-size: clamp(
-    2.35rem,
-    10.5vw,
-    4.6rem
-  );
+  font-size: clamp(2.35rem,
+      10.5vw,
+      4.6rem);
 
   font-weight: 950;
 
@@ -9710,14 +9720,373 @@ svg {
   }
 
   .muscle-map-under-construction h1 {
-    font-size: clamp(
-      2.1rem,
-      10vw,
-      3.5rem
-    );
+    font-size: clamp(2.1rem,
+        10vw,
+        3.5rem);
   }
 
   .muscle-map-uc-description {
     max-width: 270px;
   }
+}
+
+/* =========================================================
+   ADMIN DASHBOARD
+   ========================================================= */
+
+.admin-screen {
+  width: min(100%, 1100px);
+  margin: 0 auto;
+  padding: 24px 16px 120px;
+}
+
+.admin-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.admin-title {
+  margin: 8px 0 0;
+  font-size: clamp(2.1rem, 8vw, 4rem);
+  line-height: .92;
+  letter-spacing: -.05em;
+}
+
+.admin-title span {
+  display: block;
+  color: var(--color-red);
+}
+
+.admin-count {
+  flex: 0 0 auto;
+  font-size: .72rem;
+  letter-spacing: .12em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.admin-editor,
+.admin-library {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 18px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.admin-section-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 16px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  color: var(--color-text-muted);
+}
+
+.admin-exercise-form {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+}
+
+.admin-exercise-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-exercise-form label > span {
+  font-size: .67rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: var(--color-text-muted);
+}
+
+.admin-exercise-form label > span small {
+  margin-left: 6px;
+  font-weight: 400;
+  letter-spacing: .04em;
+  opacity: .65;
+}
+
+.admin-exercise-form input,
+.admin-exercise-form textarea,
+.admin-exercise-form select {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-background);
+  color: var(--color-text);
+  padding: 13px 14px;
+  font: inherit;
+  outline: none;
+}
+
+.admin-exercise-form textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+.admin-exercise-form input:focus,
+.admin-exercise-form textarea:focus,
+.admin-exercise-form select:focus {
+  border-color: var(--color-red);
+}
+
+.admin-form-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1fr;
+}
+
+.admin-exercise-form input[type="file"] {
+  padding: 10px;
+  font-size: .78rem;
+}
+
+.admin-existing-file {
+  color: var(--color-red);
+  font-size: .68rem;
+  text-decoration: none;
+  letter-spacing: .08em;
+}
+
+.admin-public-toggle {
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: center;
+  gap: 12px !important;
+  padding: 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.admin-public-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-red);
+}
+
+.admin-public-toggle span {
+  display: grid;
+  gap: 3px;
+}
+
+.admin-public-toggle strong {
+  font-size: .73rem;
+  letter-spacing: .08em;
+}
+
+.admin-public-toggle small {
+  font-size: .65rem;
+  color: var(--color-text-muted);
+}
+
+.admin-form-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-save-button,
+.admin-cancel-button {
+  flex: 1;
+  min-height: 48px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  font: inherit;
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  cursor: pointer;
+}
+
+.admin-save-button {
+  border-color: var(--color-red);
+  background: var(--color-red);
+  color: white;
+}
+
+.admin-cancel-button {
+  background: transparent;
+  color: var(--color-text);
+}
+
+.admin-save-button:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+.admin-exercise-list {
+  display: grid;
+}
+
+.admin-exercise-card {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 14px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-exercise-card:last-child {
+  border-bottom: 0;
+}
+
+.admin-exercise-media {
+  width: 86px;
+  height: 86px;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(225, 29, 46, .13),
+      transparent 65%
+    ),
+    var(--color-background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-exercise-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.admin-exercise-media span {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--color-text-muted);
+}
+
+.admin-exercise-info {
+  min-width: 0;
+}
+
+.admin-exercise-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: .62rem;
+  color: var(--color-text-muted);
+  letter-spacing: .1em;
+}
+
+.admin-exercise-info h2 {
+  margin: 5px 0;
+  font-size: .95rem;
+  line-height: 1.15;
+}
+
+.admin-exercise-info p {
+  margin: 0;
+  font-size: .67rem;
+  color: var(--color-text-muted);
+}
+
+.admin-status-public {
+  color: var(--color-red);
+}
+
+.admin-status-private {
+  color: var(--color-text-muted);
+}
+
+.admin-exercise-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.admin-exercise-actions button {
+  padding: 7px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  cursor: pointer;
+}
+
+.admin-exercise-actions button:last-child {
+  color: var(--color-red);
+}
+
+.admin-empty {
+  padding: 40px 16px;
+  text-align: center;
+  font-size: .7rem;
+  letter-spacing: .12em;
+  color: var(--color-text-muted);
+}
+
+.admin-error {
+  max-width: 500px;
+  margin-top: 16px;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+@media (min-width: 700px) {
+
+  .admin-screen {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .admin-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-exercise-card {
+    grid-template-columns: 110px minmax(0, 1fr);
+  }
+
+  .admin-exercise-media {
+    width: 110px;
+    height: 110px;
+  }
+
+}
+
+/* =========================================================
+   ADMIN SELECT DROPDOWNS — DARK NATIVE MENU
+   ========================================================= */
+
+.admin-exercise-form select {
+  color-scheme: dark;
+  color: #f2f2f2;
+  background-color: var(--color-background);
+}
+
+.admin-exercise-form select option {
+  color: #f2f2f2;
+  background-color: #151515;
+}
+
+.admin-exercise-form select option:checked {
+  color: #ffffff;
+  background-color: #2a2a2a;
+}
+
+.admin-exercise-form select option:hover {
+  color: #ffffff;
+  background-color: #222222;
+}
+
+.admin-exercise-form select:focus {
+  color-scheme: dark;
 }
