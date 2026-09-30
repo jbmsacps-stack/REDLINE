@@ -1815,7 +1815,6 @@ function renderBottomNav(activePage = "workouts") {
 }
 
 
-
 function renderMuscleMap() {
 
   app.innerHTML = `
