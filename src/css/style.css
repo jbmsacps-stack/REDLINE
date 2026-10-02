@@ -11015,3 +11015,327 @@ html[data-reduce-motion="true"]
   outline-offset: 4px;
   border-radius: 4px;
 }
+
+/* =========================================================
+   MUSCLE PERFORMANCE PANEL
+========================================================= */
+
+.muscle-map-selected {
+  width: 100%;
+  max-width: 360px;
+
+  margin: 18px auto 0;
+  padding: 20px 0 96px;
+
+  border-top: 1px solid rgba(255,255,255,0.08);
+
+  opacity: 0;
+  transform: translateY(8px);
+
+  pointer-events: none;
+
+  transition:
+    opacity 220ms ease,
+    transform 260ms cubic-bezier(.22,1,.36,1);
+}
+
+.muscle-map-selected.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+
+  pointer-events: auto;
+}
+
+
+/* ---------------------------------------------------------
+   Header
+--------------------------------------------------------- */
+
+.muscle-performance-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 16px;
+}
+
+.muscle-performance-kicker {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--color-red);
+
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.muscle-performance-name {
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.055em;
+}
+
+.muscle-performance-subtitle {
+  margin: 7px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+}
+
+.muscle-performance-side {
+  padding-top: 4px;
+
+  color: #5c5c5c;
+
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+
+/* ---------------------------------------------------------
+   Stats
+--------------------------------------------------------- */
+
+.muscle-performance-stats {
+  margin-top: 18px;
+
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+
+  border-top: 1px solid rgba(255,255,255,0.07);
+  border-left: 1px solid rgba(255,255,255,0.07);
+}
+
+.muscle-performance-stat {
+  min-height: 68px;
+
+  padding: 12px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  border-right: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+
+  background: rgba(255,255,255,0.015);
+}
+
+.muscle-performance-stat span {
+  color: #606060;
+
+  font-size: 0.54rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.muscle-performance-stat strong {
+  margin-top: 8px;
+
+  color: var(--color-text);
+
+  font-size: 1.12rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+
+/* ---------------------------------------------------------
+   Last trained
+--------------------------------------------------------- */
+
+.muscle-performance-last {
+  margin-top: 16px;
+  padding: 13px 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+.muscle-performance-last span {
+  color: #606060;
+
+  font-size: 0.54rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.muscle-performance-last strong {
+  color: var(--color-text);
+
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+
+/* ---------------------------------------------------------
+   Recent training
+--------------------------------------------------------- */
+
+.muscle-performance-history {
+  margin-top: 18px;
+}
+
+.muscle-performance-history-heading {
+  margin-bottom: 9px;
+
+  color: #606060;
+
+  font-size: 0.54rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.muscle-performance-history-list {
+  display: grid;
+  gap: 7px;
+}
+
+.muscle-performance-history-item {
+  padding: 12px;
+
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+
+  background: rgba(255,255,255,0.018);
+}
+
+.muscle-performance-history-item > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.muscle-performance-history-item strong {
+  color: #dedede;
+
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.muscle-performance-history-item > div:first-child span {
+  color: #555;
+
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+}
+
+.muscle-performance-history-values {
+  margin-top: 9px;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.muscle-performance-history-values span {
+  color: #777;
+
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+}
+
+
+/* ---------------------------------------------------------
+   Empty state
+--------------------------------------------------------- */
+
+.muscle-performance-empty {
+  padding: 14px;
+
+  border: 1px dashed rgba(255,255,255,0.08);
+  border-radius: 10px;
+
+  color: #5d5d5d;
+
+  font-size: 0.55rem;
+  font-weight: 800;
+  line-height: 1.6;
+  letter-spacing: 0.07em;
+}
+
+
+/* ---------------------------------------------------------
+   View exercises
+--------------------------------------------------------- */
+
+.muscle-performance-action {
+  width: 100%;
+  min-height: 48px;
+
+  margin-top: 16px;
+  padding: 0 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border: 1px solid rgba(225,29,46,0.22);
+  border-radius: 11px;
+
+  background: rgba(225,29,46,0.055);
+
+  color: var(--color-red);
+
+  font-family: inherit;
+
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  transition:
+    background 160ms ease,
+    transform 120ms ease;
+}
+
+.muscle-performance-action span:last-child {
+  font-size: 0.9rem;
+}
+
+.muscle-performance-action:active {
+  transform: scale(0.985);
+
+  background: rgba(225,29,46,0.10);
+}
+
+
+/* ---------------------------------------------------------
+   Small screens
+--------------------------------------------------------- */
+
+@media (max-width: 380px) {
+
+  .muscle-map-selected {
+    padding-bottom: 82px;
+  }
+
+  .muscle-performance-name {
+    font-size: 1.8rem;
+  }
+
+  .muscle-performance-stat {
+    min-height: 64px;
+    padding: 10px;
+  }
+
+}

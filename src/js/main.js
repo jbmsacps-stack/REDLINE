@@ -2034,6 +2034,196 @@ const MUSCLE_HOTSPOTS = {
 
 };
 
+// =========================================================
+// MUSCLE TRAINING ANALYTICS
+// Uses only explicitly logged user data.
+// =========================================================
+
+function getMuscleTrainingStats(muscleName) {
+
+  const normalizedMuscle =
+    String(muscleName || "")
+      .trim()
+      .toLowerCase();
+
+  const matchingExercises =
+    exercises.filter(
+      (exercise) =>
+        String(exercise.muscle || "")
+          .trim()
+          .toLowerCase() === normalizedMuscle
+    );
+
+  const matchingExerciseIds =
+    new Set(
+      matchingExercises.map(
+        (exercise) => String(exercise.id)
+      )
+    );
+
+  /*
+   * Routines containing at least one exercise
+   * whose PRIMARY muscle matches this region.
+   */
+  const matchingRoutines =
+    routines.filter(
+      (routine) =>
+        Array.isArray(routine.exercises) &&
+        routine.exercises.some(
+          (entry) =>
+            matchingExerciseIds.has(
+              String(entry.exerciseId)
+            )
+        )
+    );
+
+  let totalSets = 0;
+  let totalReps = 0;
+  let totalVolumeKg = 0;
+
+  const loggedExerciseIds = new Set();
+  const matchingSessions = [];
+
+  workoutSessions.forEach(
+    (session) => {
+
+      const matchingEntries =
+        (session.exercises || []).filter(
+          (entry) =>
+            matchingExerciseIds.has(
+              String(entry.exerciseId)
+            )
+        );
+
+      if (!matchingEntries.length) {
+        return;
+      }
+
+      matchingEntries.forEach(
+        (entry) => {
+
+          loggedExerciseIds.add(
+            String(entry.exerciseId)
+          );
+
+          const sets =
+            Number(entry.sets);
+
+          const reps =
+            Number(entry.reps);
+
+          const weight =
+            Number(entry.weight);
+
+          if (Number.isFinite(sets)) {
+            totalSets += sets;
+          }
+
+          if (Number.isFinite(reps)) {
+            totalReps += reps;
+          }
+
+          /*
+           * Volume is calculated ONLY when all
+           * three logged values are numeric.
+           */
+          if (
+            Number.isFinite(weight) &&
+            Number.isFinite(reps) &&
+            Number.isFinite(sets) &&
+            weight > 0 &&
+            reps > 0 &&
+            sets > 0
+          ) {
+            totalVolumeKg +=
+              weight *
+              reps *
+              sets;
+          }
+
+        }
+      );
+
+      matchingSessions.push({
+        ...session,
+        matchingEntries
+      });
+
+    }
+  );
+
+  matchingSessions.sort(
+    (a, b) =>
+      new Date(`${b.date}T00:00:00`) -
+      new Date(`${a.date}T00:00:00`)
+  );
+
+  const lastSession =
+    matchingSessions[0] || null;
+
+  const recentTraining =
+    matchingSessions
+      .slice(0, 4)
+      .flatMap(
+        (session) =>
+          session.matchingEntries.map(
+            (entry) => {
+
+              const exercise =
+                exercises.find(
+                  (item) =>
+                    String(item.id) ===
+                    String(entry.exerciseId)
+                );
+
+              return {
+                date: session.date,
+                exerciseName:
+                  exercise?.name ||
+                  "Unknown exercise",
+                sets: entry.sets,
+                reps: entry.reps,
+                weight: Number(entry.weight),
+                notes: entry.notes || ""
+              };
+
+            }
+          )
+      )
+      .slice(0, 6);
+
+  return {
+    muscle: muscleName,
+
+    availableExercises:
+      matchingExercises.length,
+
+    trainedExercises:
+      loggedExerciseIds.size,
+
+    routines:
+      matchingRoutines.length,
+
+    sessions:
+      matchingSessions.length,
+
+    sets:
+      totalSets,
+
+    reps:
+      totalReps,
+
+    volumeKg:
+      totalVolumeKg,
+
+    lastTrained:
+      lastSession?.date || null,
+
+    recentTraining
+  };
+
+}
+
 
 function renderMuscleMap() {
 
@@ -2202,27 +2392,10 @@ function renderMuscleMap() {
 
 
           <div
-            class="muscle-map-selected"
-            aria-live="polite"
-            aria-hidden="true"
-          >
-
-            <span class="muscle-map-selected-kicker">
-              SELECTED REGION
-            </span>
-
-            <strong class="muscle-map-selected-name">
-            </strong>
-
-            <button
-  class="muscle-map-selected-action"
-  type="button"
->
-  VIEW EXERCISES
-  <span aria-hidden="true">→</span>
-</button>
-
-          </div>
+  class="muscle-map-selected"
+  aria-live="polite"
+  aria-hidden="true"
+></div>
 
         </section>
 
@@ -2261,10 +2434,244 @@ function renderMuscleMap() {
       ".muscle-map-selected"
     );
 
-  const selectedName =
-    document.querySelector(
-      ".muscle-map-selected-name"
-    );
+  function formatMuscleDate(date) {
+
+    if (!date) {
+      return "NO LOGGED TRAINING";
+    }
+
+    const parsed =
+      new Date(`${date}T00:00:00`);
+
+    if (Number.isNaN(parsed.getTime())) {
+      return date;
+    }
+
+    return parsed.toLocaleDateString(
+      undefined,
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      }
+    ).toUpperCase();
+  }
+
+
+  function formatMuscleVolume(kg) {
+
+    if (!Number.isFinite(kg) || kg <= 0) {
+      return "—";
+    }
+
+    const value =
+      weightUnit === "LB"
+        ? kg * KG_TO_LB
+        : kg;
+
+    return `${Number(value.toFixed(1))} ${weightUnit.toLowerCase()}`;
+  }
+
+
+  function renderSelectedMusclePanel(
+    muscleId
+  ) {
+
+    const muscle =
+      MUSCLE_HOTSPOTS[side]?.[muscleId];
+
+    if (!muscle) {
+      return;
+    }
+
+    const stats =
+      getMuscleTrainingStats(
+        muscle.label
+      );
+
+    selectedPanel.innerHTML = `
+    <div class="muscle-performance-header">
+
+      <div>
+        <span class="muscle-performance-kicker">
+          SELECTED REGION
+        </span>
+
+        <h2 class="muscle-performance-name">
+          ${muscle.label}
+        </h2>
+
+        <p class="muscle-performance-subtitle">
+          ${stats.sessions
+        ? "YOUR LOGGED TRAINING"
+        : "NO LOGGED TRAINING YET"}
+        </p>
+      </div>
+
+      <span class="muscle-performance-side">
+        ${side === "front" ? "FRONT" : "BACK"}
+      </span>
+
+    </div>
+
+
+    <div class="muscle-performance-stats">
+
+      <div class="muscle-performance-stat">
+        <span>SESSIONS</span>
+        <strong>${stats.sessions}</strong>
+      </div>
+
+      <div class="muscle-performance-stat">
+        <span>ROUTINES</span>
+        <strong>${stats.routines}</strong>
+      </div>
+
+      <div class="muscle-performance-stat">
+        <span>SETS</span>
+        <strong>${stats.sets}</strong>
+      </div>
+
+      <div class="muscle-performance-stat">
+        <span>REPS</span>
+        <strong>${stats.reps}</strong>
+      </div>
+
+      <div class="muscle-performance-stat">
+        <span>MOVEMENTS</span>
+        <strong>${stats.trainedExercises}</strong>
+      </div>
+
+      <div class="muscle-performance-stat">
+        <span>VOLUME</span>
+        <strong>${formatMuscleVolume(stats.volumeKg)}</strong>
+      </div>
+
+    </div>
+
+
+    <div class="muscle-performance-last">
+
+      <span>
+        LAST TRAINED
+      </span>
+
+      <strong>
+        ${formatMuscleDate(stats.lastTrained)}
+      </strong>
+
+    </div>
+
+
+    <div class="muscle-performance-history">
+
+      <div class="muscle-performance-history-heading">
+        RECENT TRAINING
+      </div>
+
+      ${stats.recentTraining.length
+        ? `
+            <div class="muscle-performance-history-list">
+
+              ${stats.recentTraining
+          .map(
+            (entry) => `
+                    <article
+                      class="muscle-performance-history-item"
+                    >
+
+                      <div>
+                        <strong>
+                          ${entry.exerciseName}
+                        </strong>
+
+                        <span>
+                          ${formatMuscleDate(entry.date)}
+                        </span>
+                      </div>
+
+                      <div class="muscle-performance-history-values">
+
+                        <span>
+                          ${entry.sets || "—"} SETS
+                        </span>
+
+                        <span>
+                          ${entry.reps || "—"} REPS
+                        </span>
+
+                        <span>
+                          ${entry.weight > 0
+                ? formatWeight(entry.weight)
+                : "BODYWEIGHT"
+              }
+                        </span>
+
+                      </div>
+
+                    </article>
+                  `
+          )
+          .join("")}
+
+            </div>
+          `
+        : `
+            <div class="muscle-performance-empty">
+              COMPLETE A WORKOUT CONTAINING THIS
+              MUSCLE TO BUILD YOUR TRAINING HISTORY.
+            </div>
+          `
+      }
+
+    </div>
+
+
+    <button
+      class="muscle-performance-action"
+      type="button"
+    >
+      <span>VIEW EXERCISES</span>
+      <span aria-hidden="true">→</span>
+    </button>
+  `;
+
+
+    selectedPanel
+      .querySelector(
+        ".muscle-performance-action"
+      )
+      ?.addEventListener(
+        "click",
+        (event) => {
+
+          event.stopPropagation();
+
+          sessionStorage.setItem(
+            "redlineSelectedMuscle",
+            muscle.label
+          );
+
+          selectedPanel.classList.remove(
+            "is-visible"
+          );
+
+          selectedPanel.setAttribute(
+            "aria-hidden",
+            "true"
+          );
+
+          document
+            .querySelector(
+              '[data-page="workouts"]'
+            )
+            ?.click();
+
+        }
+      );
+
+  }
+
   const selectedAction =
     document.querySelector(
       ".muscle-map-selected-action"
@@ -2514,8 +2921,9 @@ function renderMuscleMap() {
 
       });
 
-    selectedName.textContent =
-      muscle.label;
+    renderSelectedMusclePanel(
+      id
+    );
 
     selectedPanel.classList.add(
       "is-visible"
@@ -2552,56 +2960,56 @@ function renderMuscleMap() {
   }
 
   selectedAction?.addEventListener(
-  "click",
-  (event) => {
+    "click",
+    (event) => {
 
-    event.stopPropagation();
+      event.stopPropagation();
 
-    if (!selectedMuscle) {
-      return;
-    }
+      if (!selectedMuscle) {
+        return;
+      }
 
-    const muscle =
-      MUSCLE_HOTSPOTS[side]?.[selectedMuscle];
+      const muscle =
+        MUSCLE_HOTSPOTS[side]?.[selectedMuscle];
 
-    if (!muscle) {
-      return;
-    }
+      if (!muscle) {
+        return;
+      }
 
-    /*
-     * Store the exact muscle name used by
-     * the exercise library.
-     */
-    sessionStorage.setItem(
-      "redlineSelectedMuscle",
-      muscle.label
-    );
-
-    /*
-     * Close the selected panel.
-     */
-    selectedPanel.classList.remove(
-      "is-visible"
-    );
-
-    selectedPanel.setAttribute(
-      "aria-hidden",
-      "true"
-    );
-
-    /*
-     * Navigate through the existing app
-     * navigation instead of forcing a page reload.
-     */
-    const workoutsNav =
-      document.querySelector(
-        '[data-page="workouts"]'
+      /*
+       * Store the exact muscle name used by
+       * the exercise library.
+       */
+      sessionStorage.setItem(
+        "redlineSelectedMuscle",
+        muscle.label
       );
 
-    workoutsNav?.click();
+      /*
+       * Close the selected panel.
+       */
+      selectedPanel.classList.remove(
+        "is-visible"
+      );
 
-  }
-);
+      selectedPanel.setAttribute(
+        "aria-hidden",
+        "true"
+      );
+
+      /*
+       * Navigate through the existing app
+       * navigation instead of forcing a page reload.
+       */
+      const workoutsNav =
+        document.querySelector(
+          '[data-page="workouts"]'
+        );
+
+      workoutsNav?.click();
+
+    }
+  );
 
   function switchSide(
     nextSide
