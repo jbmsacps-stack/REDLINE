@@ -1814,34 +1814,658 @@ function renderBottomNav(activePage = "workouts") {
   `;
 }
 
+const MUSCLE_PLATES = {
+  front: {
+    base: "/assets/muscle-map/front/front.webp",
+    chest: "/assets/muscle-map/front/chest.webp",
+    shoulders: "/assets/muscle-map/front/shoulder.webp",
+    biceps: "/assets/muscle-map/front/biceps.webp",
+    triceps: "/assets/muscle-map/front/triceps.webp",
+    forearms: "/assets/muscle-map/front/forearms.webp",
+    abs: "/assets/muscle-map/front/abs.webp",
+    obliques: "/assets/muscle-map/front/obliques.webp",
+    serratus: "/assets/muscle-map/front/serratus.webp",
+    quads: "/assets/muscle-map/front/quads.webp",
+    adductors: "/assets/muscle-map/front/adductors.webp",
+    calves: "/assets/muscle-map/front/calves.webp",
+  },
+
+  back: {
+    base: "/assets/muscle-map/back/back.webp",
+    traps: "/assets/muscle-map/back/traps.webp",
+    rearDelts: "/assets/muscle-map/back/rear_delts.webp",
+    lats: "/assets/muscle-map/back/lats.webp",
+    triceps: "/assets/muscle-map/back/triceps.webp",
+    forearms: "/assets/muscle-map/back/forearms.webp",
+    lowerBack: "/assets/muscle-map/back/lower_back.webp",
+    glutes: "/assets/muscle-map/back/glutes.webp",
+    hamstrings: "/assets/muscle-map/back/hamstrings.webp",
+    calves: "/assets/muscle-map/back/calves.webp",
+  }
+};
+
+const MUSCLE_HOTSPOTS = {
+
+  front: {
+
+    chest: {
+      label: "Chest",
+      priority: 10,
+      zones: [
+        { left: 34, top: 20, width: 15, height: 10 },
+        { left: 51, top: 20, width: 15, height: 10 },
+      ],
+    },
+
+    shoulders: {
+      label: "Shoulders",
+      priority: 15,
+      zones: [
+        { left: 23, top: 18, width: 12, height: 10 },
+        { left: 65, top: 18, width: 12, height: 10 },
+      ],
+    },
+
+    biceps: {
+      label: "Biceps",
+      priority: 20,
+      zones: [
+        { left: 28, top: 25, width: 11, height: 11 },
+        { left: 61, top: 25, width: 11, height: 11 },
+      ],
+    },
+
+    triceps: {
+      label: "Triceps",
+      priority: 19,
+      zones: [
+        { left: 24, top: 27, width: 10, height: 13 },
+        { left: 66, top: 27, width: 10, height: 13 },
+      ],
+    },
+
+    forearms: {
+      label: "Forearms",
+      priority: 18,
+      zones: [
+        { left: 19, top: 35, width: 10, height: 18 },
+        { left: 71, top: 35, width: 10, height: 18 },
+      ],
+    },
+
+    abs: {
+      label: "Abs",
+      priority: 40,
+      zones: [
+        { left: 43, top: 29, width: 14, height: 19 },
+      ],
+    },
+
+    obliques: {
+      label: "Obliques",
+      priority: 35,
+      zones: [
+        { left: 34, top: 30, width: 9, height: 15 },
+        { left: 57, top: 30, width: 9, height: 15 },
+      ],
+    },
+
+    serratus: {
+      label: "Serratus",
+      priority: 45,
+      zones: [
+        { left: 34, top: 25, width: 9, height: 8 },
+        { left: 57, top: 25, width: 9, height: 8 },
+      ],
+    },
+
+    quads: {
+      label: "Quads",
+      priority: 10,
+      zones: [
+        { left: 33, top: 46, width: 16, height: 24 },
+        { left: 51, top: 46, width: 16, height: 24 },
+      ],
+    },
+
+    adductors: {
+      label: "Adductors",
+      priority: 45,
+      zones: [
+        { left: 43, top: 58, width: 7, height: 11 },
+        { left: 50, top: 58, width: 7, height: 11 },
+      ],
+    },
+
+    calves: {
+      label: "Calves",
+      priority: 20,
+      zones: [
+        { left: 34, top: 73, width: 11, height: 18 },
+        { left: 55, top: 73, width: 11, height: 18 },
+      ],
+    },
+
+  },
+
+
+  back: {
+
+    traps: {
+      label: "Traps",
+      priority: 40,
+      zones: [
+        { left: 39, top: 14, width: 22, height: 14 },
+      ],
+    },
+
+    rearDelts: {
+      label: "Rear Delts",
+      priority: 35,
+      zones: [
+        { left: 27, top: 18, width: 12, height: 10 },
+        { left: 61, top: 18, width: 12, height: 10 },
+      ],
+    },
+
+    lats: {
+      label: "Lats",
+      priority: 25,
+      zones: [
+        { left: 33, top: 27, width: 12, height: 17 },
+        { left: 55, top: 27, width: 12, height: 17 },
+      ],
+    },
+
+    triceps: {
+      label: "Triceps",
+      priority: 20,
+      zones: [
+        { left: 24, top: 27, width: 10, height: 14 },
+        { left: 66, top: 27, width: 10, height: 14 },
+      ],
+    },
+
+    forearms: {
+      label: "Forearms",
+      priority: 18,
+      zones: [
+        { left: 19, top: 35, width: 10, height: 18 },
+        { left: 71, top: 35, width: 10, height: 18 },
+      ],
+    },
+
+    lowerBack: {
+      label: "Lower Back",
+      priority: 45,
+      zones: [
+        { left: 43, top: 37, width: 14, height: 10 },
+      ],
+    },
+
+    glutes: {
+      label: "Glutes",
+      priority: 35,
+      zones: [
+        { left: 35, top: 47, width: 15, height: 15 },
+        { left: 50, top: 47, width: 15, height: 15 },
+      ],
+    },
+
+    hamstrings: {
+      label: "Hamstrings",
+      priority: 25,
+      zones: [
+        { left: 34, top: 60, width: 15, height: 18 },
+        { left: 51, top: 60, width: 15, height: 18 },
+      ],
+    },
+
+    calves: {
+      label: "Calves",
+      priority: 20,
+      zones: [
+        { left: 34, top: 77, width: 11, height: 13 },
+        { left: 55, top: 77, width: 11, height: 13 },
+      ],
+    },
+
+  },
+
+};
+
+
 function renderMuscleMap() {
 
+  let side = "front";
+  let selectedMuscle = null;
+
   app.innerHTML = `
-    <div class="app-shell">
+
+    <div class="app-shell muscle-map-shell">
+
+      <header class="app-header">
+
+        <a
+          href="#"
+          class="logo"
+          aria-label="REDLINE home"
+        >
+          RED<span>LINE</span>
+        </a>
+
+        <button
+          class="profile-button"
+          aria-label="Profile"
+          type="button"
+        >
+          ${clerk.user?.imageUrl
+      ? `
+                <img
+                  src="${clerk.user.imageUrl}"
+                  alt=""
+                >
+              `
+      : "●"
+    }
+        </button>
+
+      </header>
+
 
       <main>
+
         <section
           class="muscle-map-screen"
           aria-labelledby="muscle-map-title"
         >
 
-          <span class="section-kicker">
-            REDLINE SYSTEM
-          </span>
+          <div class="muscle-map-heading">
 
-          <h1 id="muscle-map-title">
-            MUSCLE MAP
-          </h1>
+            <span class="section-kicker">
+              REDLINE SYSTEM
+            </span>
+
+            <h1 id="muscle-map-title">
+              MUSCLE MAP
+            </h1>
+
+          </div>
+
+
+          <div
+  class="muscle-map-view-toggle"
+  role="group"
+  aria-label="Anatomy view"
+>
+
+  <button
+    type="button"
+    class="muscle-view-button active"
+    data-side="front"
+    aria-pressed="true"
+  >
+    FRONT
+  </button>
+
+  <button
+    type="button"
+    class="muscle-view-button"
+    data-side="back"
+    aria-pressed="false"
+  >
+    BACK
+  </button>
+
+</div>
+
+
+          <div class="muscle-map-stage">
+
+            <div class="muscle-map-model">
+
+              <img
+                class="muscle-map-base"
+                src="${MUSCLE_PLATES.front.base}"
+                alt="Front anatomical muscle display"
+                draggable="false"
+              >
+
+              <img
+                class="muscle-map-state"
+                src=""
+                alt=""
+                aria-hidden="true"
+                draggable="false"
+              >
+
+
+              <div
+                class="muscle-map-hotspots"
+                aria-label="Muscle regions"
+              ></div>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="muscle-map-selected"
+            aria-live="polite"
+            aria-hidden="true"
+          >
+
+            <span class="muscle-map-selected-kicker">
+              SELECTED REGION
+            </span>
+
+            <strong class="muscle-map-selected-name">
+            </strong>
+
+            <span class="muscle-map-selected-action">
+              VIEW EXERCISES →
+            </span>
+
+          </div>
 
         </section>
+
       </main>
+
 
       ${renderBottomNav("map")}
 
     </div>
+
   `;
 
+
+  const model =
+    document.querySelector(
+      ".muscle-map-model"
+    );
+
+  const baseImage =
+    document.querySelector(
+      ".muscle-map-base"
+    );
+
+  const stateImage =
+    document.querySelector(
+      ".muscle-map-state"
+    );
+
+  const hotspots =
+    document.querySelector(
+      ".muscle-map-hotspots"
+    );
+
+  const selectedPanel =
+    document.querySelector(
+      ".muscle-map-selected"
+    );
+
+  const selectedName =
+    document.querySelector(
+      ".muscle-map-selected-name"
+    );
+
+
+  function renderHotspots() {
+
+    hotspots.innerHTML = Object.entries(
+      MUSCLE_HOTSPOTS[side]
+    )
+      .flatMap(([id, muscle]) =>
+        muscle.zones.map(
+          (zone, zoneIndex) => `
+          <button
+            type="button"
+            class="muscle-map-hotspot"
+            data-muscle="${id}"
+            data-zone="${zoneIndex}"
+            aria-label="Select ${muscle.label}"
+            style="
+              left:${zone.left}%;
+              top:${zone.top}%;
+              width:${zone.width}%;
+              height:${zone.height}%;
+              z-index:${muscle.priority};
+            "
+          ></button>
+        `
+        )
+      )
+      .join("");
+
+  }
+
+
+  function clearSelection() {
+
+    selectedMuscle = null;
+
+    stateImage.classList.remove(
+      "is-visible"
+    );
+
+    stateImage.removeAttribute(
+      "src"
+    );
+
+    selectedPanel.classList.remove(
+      "is-visible"
+    );
+
+    selectedPanel.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    document
+      .querySelectorAll(
+        ".muscle-map-hotspot"
+      )
+      .forEach(
+        (button) =>
+          button.classList.remove(
+            "active"
+          )
+      );
+
+  }
+
+
+  function selectMuscle(id) {
+
+    const muscle =
+      MUSCLE_HOTSPOTS[side]?.[id];
+
+    const plate =
+      MUSCLE_PLATES[side]?.[id];
+
+    if (!muscle || !plate) {
+      return;
+    }
+
+    selectedMuscle = id;
+
+    document
+      .querySelectorAll(".muscle-map-hotspot")
+      .forEach((button) => {
+
+        button.classList.toggle(
+          "active",
+          button.dataset.muscle === id
+        );
+
+      });
+
+    selectedName.textContent =
+      muscle.label;
+
+    selectedPanel.classList.add(
+      "is-visible"
+    );
+
+    selectedPanel.setAttribute(
+      "aria-hidden",
+      "false"
+    );
+
+    stateImage.classList.remove(
+      "is-visible"
+    );
+
+    const nextImage =
+      new Image();
+
+    nextImage.onload = () => {
+
+      if (selectedMuscle !== id) {
+        return;
+      }
+
+      stateImage.src = plate;
+
+      stateImage.classList.add(
+        "is-visible"
+      );
+
+    };
+
+    nextImage.src = plate;
+
+  }
+
+
+  function switchSide(
+    nextSide
+  ) {
+
+    if (
+      nextSide === side
+    ) {
+      return;
+    }
+
+    side =
+      nextSide;
+
+    clearSelection();
+
+    model.classList.add(
+      "is-switching"
+    );
+
+
+    const nextBase =
+      MUSCLE_PLATES[
+        nextSide
+      ].base;
+
+
+    baseImage.onload =
+      () => {
+
+        model.classList.remove(
+          "is-switching"
+        );
+
+      };
+
+
+    baseImage.src =
+      nextBase;
+
+
+    baseImage.alt =
+      nextSide === "front"
+        ? "Front anatomical muscle display"
+        : "Back anatomical muscle display";
+
+
+    document
+      .querySelectorAll(
+        ".muscle-view-button"
+      )
+      .forEach(
+        (button) => {
+
+          const active =
+            button.dataset.side ===
+            nextSide;
+
+          button.classList.toggle(
+            "active",
+            active
+          );
+
+          button.setAttribute(
+            "aria-pressed",
+            active
+              ? "true"
+              : "false"
+          );
+
+        }
+      );
+
+
+    renderHotspots();
+
+  }
+
+
+  renderHotspots();
+
+
+  hotspots.addEventListener(
+    "click",
+    (event) => {
+
+      const button =
+        event.target.closest(
+          ".muscle-map-hotspot"
+        );
+
+      if (!button) {
+        return;
+      }
+
+      selectMuscle(
+        button.dataset.muscle
+      );
+
+    }
+  );
+
+
+  document
+    .querySelectorAll(
+      ".muscle-view-button"
+    )
+    .forEach(
+      (button) => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            switchSide(
+              button.dataset.side
+            );
+
+          }
+        );
+
+      }
+    );
+
+
   attachEvents();
+
 }
 
 function renderRoutines() {
@@ -8289,7 +8913,7 @@ function attachEvents() {
   // =======================
 
   document
-    .querySelectorAll("[data-muscle]")
+    .querySelectorAll(".filter-chip[data-muscle]")
     .forEach((button) => {
 
       button.addEventListener(
@@ -8300,6 +8924,7 @@ function attachEvents() {
             button.dataset.muscle;
 
           render();
+
         }
       );
 
