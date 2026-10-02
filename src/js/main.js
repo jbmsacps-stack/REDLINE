@@ -2149,6 +2149,57 @@ function renderMuscleMap() {
 
           </div>
 
+          <button
+  class="muscle-map-picker-button"
+  type="button"
+  aria-haspopup="dialog"
+  aria-expanded="false"
+>
+  <span>SELECT MUSCLE</span>
+  <span aria-hidden="true">+</span>
+</button>
+
+<div
+  class="muscle-map-picker"
+  aria-hidden="true"
+>
+  <div class="muscle-map-picker-backdrop"></div>
+
+  <div
+    class="muscle-map-picker-sheet"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="muscle-map-picker-title"
+  >
+    <div class="muscle-map-picker-handle"></div>
+
+    <div class="muscle-map-picker-header">
+      <div>
+        <span class="muscle-map-picker-kicker">
+          REDLINE SYSTEM
+        </span>
+
+        <h2 id="muscle-map-picker-title">
+          SELECT MUSCLE
+        </h2>
+      </div>
+
+      <button
+        class="muscle-map-picker-close"
+        type="button"
+        aria-label="Close muscle selector"
+      >
+        ×
+      </button>
+    </div>
+
+    <div
+      class="muscle-map-picker-list"
+      role="list"
+    ></div>
+  </div>
+</div>
+
 
           <div
             class="muscle-map-selected"
@@ -2163,9 +2214,13 @@ function renderMuscleMap() {
             <strong class="muscle-map-selected-name">
             </strong>
 
-            <span class="muscle-map-selected-action">
-              VIEW EXERCISES →
-            </span>
+            <button
+  class="muscle-map-selected-action"
+  type="button"
+>
+  VIEW EXERCISES
+  <span aria-hidden="true">→</span>
+</button>
 
           </div>
 
@@ -2210,6 +2265,10 @@ function renderMuscleMap() {
     document.querySelector(
       ".muscle-map-selected-name"
     );
+  const selectedAction =
+    document.querySelector(
+      ".muscle-map-selected-action"
+    );
 
 
   function renderHotspots() {
@@ -2240,6 +2299,159 @@ function renderMuscleMap() {
       .join("");
 
   }
+
+  hotspots.addEventListener(
+    "click",
+    (event) => {
+
+      event.stopPropagation();
+
+      const button =
+        event.target.closest(
+          ".muscle-map-hotspot"
+        );
+
+      if (!button) {
+        return;
+      }
+
+      selectMuscle(
+        button.dataset.muscle
+      );
+
+    }
+  );
+
+  function renderMusclePicker() {
+
+    const list =
+      document.querySelector(
+        ".muscle-map-picker-list"
+      );
+
+    if (!list) {
+      return;
+    }
+
+    list.innerHTML =
+      Object.entries(MUSCLE_HOTSPOTS[side])
+        .map(
+          ([id, muscle]) => `
+          <button
+            type="button"
+            class="muscle-map-picker-item"
+            data-picker-muscle="${id}"
+          >
+            <span>
+              ${muscle.label}
+            </span>
+
+            <span aria-hidden="true">
+              →
+            </span>
+          </button>
+        `
+        )
+        .join("");
+
+  }
+
+  const pickerButton =
+    document.querySelector(
+      ".muscle-map-picker-button"
+    );
+
+  const picker =
+    document.querySelector(
+      ".muscle-map-picker"
+    );
+
+  const pickerBackdrop =
+    document.querySelector(
+      ".muscle-map-picker-backdrop"
+    );
+
+  const pickerClose =
+    document.querySelector(
+      ".muscle-map-picker-close"
+    );
+
+  function openMusclePicker() {
+
+    renderMusclePicker();
+
+    picker.classList.add("is-visible");
+
+    picker.setAttribute(
+      "aria-hidden",
+      "false"
+    );
+
+    pickerButton.setAttribute(
+      "aria-expanded",
+      "true"
+    );
+
+  }
+
+  function closeMusclePicker() {
+
+    picker.classList.remove(
+      "is-visible"
+    );
+
+    picker.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    pickerButton.setAttribute(
+      "aria-expanded",
+      "false"
+    );
+
+  }
+
+  pickerButton?.addEventListener(
+    "click",
+    openMusclePicker
+  );
+
+  pickerClose?.addEventListener(
+    "click",
+    closeMusclePicker
+  );
+
+  pickerBackdrop?.addEventListener(
+    "click",
+    closeMusclePicker
+  );
+
+  document
+    .querySelector(
+      ".muscle-map-picker-list"
+    )
+    ?.addEventListener(
+      "click",
+      (event) => {
+
+        const button =
+          event.target.closest(
+            "[data-picker-muscle]"
+          );
+
+        if (!button) {
+          return;
+        }
+
+        closeMusclePicker();
+
+        selectMuscle(
+          button.dataset.pickerMuscle
+        );
+
+      }
+    );
 
 
   function clearSelection() {
@@ -2339,6 +2551,57 @@ function renderMuscleMap() {
 
   }
 
+  selectedAction?.addEventListener(
+  "click",
+  (event) => {
+
+    event.stopPropagation();
+
+    if (!selectedMuscle) {
+      return;
+    }
+
+    const muscle =
+      MUSCLE_HOTSPOTS[side]?.[selectedMuscle];
+
+    if (!muscle) {
+      return;
+    }
+
+    /*
+     * Store the exact muscle name used by
+     * the exercise library.
+     */
+    sessionStorage.setItem(
+      "redlineSelectedMuscle",
+      muscle.label
+    );
+
+    /*
+     * Close the selected panel.
+     */
+    selectedPanel.classList.remove(
+      "is-visible"
+    );
+
+    selectedPanel.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    /*
+     * Navigate through the existing app
+     * navigation instead of forcing a page reload.
+     */
+    const workoutsNav =
+      document.querySelector(
+        '[data-page="workouts"]'
+      );
+
+    workoutsNav?.click();
+
+  }
+);
 
   function switchSide(
     nextSide
@@ -2354,10 +2617,6 @@ function renderMuscleMap() {
       nextSide;
 
     clearSelection();
-
-    model.classList.add(
-      "is-switching"
-    );
 
 
     const nextBase =

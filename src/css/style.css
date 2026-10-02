@@ -10505,3 +10505,513 @@ html[data-reduce-motion="true"]
     transition: none !important;
   }
 }
+
+/* =========================================================
+   MUSCLE PICKER
+========================================================= */
+
+.muscle-map-picker-button {
+  width: min(100%, 260px);
+  min-height: 46px;
+
+  margin: 6px auto 0;
+
+  padding: 0 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 12px;
+
+  background: rgba(255,255,255,0.025);
+  color: var(--color-text);
+
+  font-family: inherit;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.muscle-map-picker-button span:last-child {
+  color: var(--color-red);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.muscle-map-picker-button:active {
+  transform: scale(0.98);
+}
+
+
+/* =========================================================
+   PICKER SHEET
+========================================================= */
+
+.muscle-map-picker {
+  position: fixed;
+  inset: 0;
+
+  z-index: 1000;
+
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.muscle-map-picker.is-visible {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.muscle-map-picker-backdrop {
+  position: absolute;
+  inset: 0;
+
+  background: rgba(0,0,0,0.72);
+
+  opacity: 0;
+
+  transition:
+    opacity 220ms ease;
+}
+
+.muscle-map-picker.is-visible
+  .muscle-map-picker-backdrop {
+  opacity: 1;
+}
+
+.muscle-map-picker-sheet {
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  max-height: 78svh;
+
+  padding:
+    10px
+    18px
+    calc(18px + env(safe-area-inset-bottom));
+
+  border:
+    1px solid rgba(255,255,255,0.08);
+
+  border-bottom: 0;
+
+  border-radius: 22px 22px 0 0;
+
+  background: #0d0d0d;
+
+  box-shadow:
+    0 -20px 60px rgba(0,0,0,0.45);
+
+  overflow-y: auto;
+
+  transform: translateY(100%);
+
+  transition:
+    transform 280ms cubic-bezier(.22,1,.36,1);
+}
+
+.muscle-map-picker.is-visible
+  .muscle-map-picker-sheet {
+  transform: translateY(0);
+}
+
+.muscle-map-picker-handle {
+  width: 34px;
+  height: 4px;
+
+  margin: 2px auto 18px;
+
+  border-radius: 999px;
+
+  background: rgba(255,255,255,0.16);
+}
+
+.muscle-map-picker-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-bottom: 18px;
+}
+
+.muscle-map-picker-kicker {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--color-red);
+
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.muscle-map-picker-header h2 {
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.muscle-map-picker-close {
+  width: 38px;
+  height: 38px;
+
+  flex: 0 0 auto;
+
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+
+  background: rgba(255,255,255,0.025);
+  color: #858585;
+
+  font-family: inherit;
+  font-size: 1.4rem;
+  line-height: 1;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+.muscle-map-picker-close:active {
+  transform: scale(0.94);
+}
+
+
+/* =========================================================
+   MUSCLE LIST
+========================================================= */
+
+.muscle-map-picker-list {
+  display: grid;
+  gap: 7px;
+}
+
+.muscle-map-picker-item {
+  width: 100%;
+  min-height: 48px;
+
+  padding: 0 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 11px;
+
+  background: rgba(255,255,255,0.02);
+  color: #d8d8d8;
+
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.muscle-map-picker-item span:last-child {
+  color: #5d5d5d;
+  font-size: 0.9rem;
+}
+
+.muscle-map-picker-item:active {
+  background: rgba(225,29,46,0.08);
+  border-color: rgba(225,29,46,0.28);
+  color: #fff;
+}
+
+.muscle-map-picker-item:focus-visible {
+  outline: 2px solid var(--color-red);
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .muscle-map-picker-backdrop,
+  .muscle-map-picker-sheet {
+    transition: none;
+  }
+
+}
+
+/* =========================================================
+   REDLINE — FRONT / BACK VIEW CONTROL
+========================================================= */
+
+.muscle-map-view-toggle {
+  --toggle-padding: 4px;
+
+  position: relative;
+
+  width: 192px;
+  height: 54px;
+
+  margin: 28px auto 0;
+  padding: var(--toggle-padding);
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 17px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0.035),
+      rgba(255,255,255,0.018)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.025),
+    0 12px 30px rgba(0,0,0,0.30);
+
+  isolation: isolate;
+  overflow: hidden;
+}
+
+
+/* ---------------------------------------------------------
+   Sliding active indicator
+--------------------------------------------------------- */
+
+.muscle-map-view-toggle::before {
+  content: "";
+
+  position: absolute;
+
+  top: var(--toggle-padding);
+  left: var(--toggle-padding);
+
+  width: calc(50% - var(--toggle-padding));
+  height: calc(100% - (var(--toggle-padding) * 2));
+
+  border-radius: 13px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(225,29,46,0.18),
+      rgba(225,29,46,0.10)
+    );
+
+  box-shadow:
+    inset 0 0 0 1px rgba(225,29,46,0.16),
+    0 4px 14px rgba(225,29,46,0.08);
+
+  transform: translateX(0);
+
+  transition:
+    transform 280ms cubic-bezier(.22,1,.36,1);
+
+  pointer-events: none;
+}
+
+
+/* BACK active */
+
+.muscle-map-view-toggle:has(
+  .muscle-view-button[data-side="back"].active
+)::before {
+  transform: translateX(100%);
+}
+
+
+/* ---------------------------------------------------------
+   Buttons
+--------------------------------------------------------- */
+
+.muscle-view-button {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  height: 100%;
+
+  border: 0;
+  border-radius: 13px;
+
+  background: transparent;
+
+  color: #666;
+
+  font-family: inherit;
+
+  font-size: 0.70rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+
+  text-transform: uppercase;
+
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  transition:
+    color 220ms ease,
+    transform 120ms ease;
+}
+
+.muscle-view-button.active {
+  color: #f5f5f5;
+}
+
+
+/* Mobile press feedback */
+
+.muscle-view-button:active {
+  transform: scale(0.96);
+}
+
+
+/* Accessibility */
+
+.muscle-view-button:focus-visible {
+  outline: 2px solid var(--color-red);
+  outline-offset: -2px;
+}
+
+
+/* ---------------------------------------------------------
+   Tiny screens
+--------------------------------------------------------- */
+
+@media (max-width: 380px) {
+
+  .muscle-map-view-toggle {
+    width: 178px;
+    height: 50px;
+    margin-top: 24px;
+  }
+
+  .muscle-view-button {
+    font-size: 0.65rem;
+  }
+
+}
+
+
+/* ---------------------------------------------------------
+   Reduced motion
+--------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .muscle-map-view-toggle::before,
+  .muscle-view-button {
+    transition: none !important;
+  }
+
+}
+
+/* =========================================================
+   SMOOTH ANATOMY VIEW TRANSITION
+========================================================= */
+
+.muscle-map-base {
+  opacity: 1;
+  transform: scale(1);
+
+  transition:
+    opacity 240ms ease,
+    transform 300ms cubic-bezier(.22,1,.36,1);
+}
+
+.muscle-map-model.is-switching
+.muscle-map-base {
+  opacity: 0.18;
+  transform: scale(0.985);
+}
+
+
+.muscle-map-state {
+  opacity: 0;
+
+  transform: scale(1.008);
+
+  transition:
+    opacity 220ms ease,
+    transform 260ms cubic-bezier(.22,1,.36,1);
+}
+
+.muscle-map-state.is-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.muscle-map-selected-action {
+  appearance: none;
+  -webkit-appearance: none;
+
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+
+  color: var(--color-red);
+
+  font-family: inherit;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    opacity 160ms ease,
+    transform 120ms ease;
+}
+
+.muscle-map-selected-action span {
+  font-size: 0.85rem;
+  line-height: 1;
+  transition: transform 160ms ease;
+}
+
+.muscle-map-selected-action:active {
+  transform: scale(0.96);
+}
+
+.muscle-map-selected-action:active span {
+  transform: translateX(3px);
+}
+
+.muscle-map-selected-action:focus-visible {
+  outline: 2px solid var(--color-red);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
