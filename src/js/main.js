@@ -6574,25 +6574,174 @@ function animateRoutineCards() {
 // EVENTS
 // =========================
 
+function getYouTubeVideoId(value) {
+  const raw = String(value || "").trim();
+
+  if (!raw) {
+    return "";
+  }
+
+  try {
+    const url = new URL(raw);
+
+    const host =
+      url.hostname
+        .replace(/^www\./, "")
+        .toLowerCase();
+
+    let videoId = "";
+
+    if (host === "youtu.be") {
+      videoId =
+        url.pathname
+          .split("/")
+          .filter(Boolean)[0] || "";
+    }
+
+    if (
+      host === "youtube.com" ||
+      host === "m.youtube.com"
+    ) {
+      if (url.pathname === "/watch") {
+        videoId =
+          url.searchParams.get("v") || "";
+      } else if (
+        /^\/(embed|shorts|live)\//.test(
+          url.pathname
+        )
+      ) {
+        videoId =
+          url.pathname
+            .split("/")
+            .filter(Boolean)[1] || "";
+      }
+    }
+
+    return /^[A-Za-z0-9_-]{11}$/.test(videoId)
+      ? videoId
+      : "";
+
+  } catch {
+    return "";
+  }
+}
+
+
+function getYouTubeEmbedUrl(value) {
+  const videoId =
+    getYouTubeVideoId(value);
+
+  if (!videoId) {
+    return "";
+  }
+
+  return (
+    `https://www.youtube.com/embed/${videoId}` +
+    `?rel=0&modestbranding=1`
+  );
+}
+
 function exerciseMedia(exercise) {
-  /*
-    Future:
-    - image
-    - GIF
-    - WebM
-    - MP4
 
-    For now we intentionally render a designed placeholder.
-  */
+  const youtubeEmbed =
+    getYouTubeEmbedUrl(
+      exercise.demoYoutubeUrl
+    );
 
-  return `
-    <div class="detail-media-placeholder">
 
-      <div class="media-grid"></div>
+  let mediaMarkup = "";
+  let hasMedia = false;
 
-      <div class="media-corner media-corner-top"></div>
-      <div class="media-corner media-corner-bottom"></div>
 
+  if (youtubeEmbed) {
+
+    hasMedia = true;
+
+    mediaMarkup = `
+      <iframe
+        class="detail-demo-media detail-demo-iframe"
+        src="${escapeHtml(youtubeEmbed)}"
+        title="${escapeHtml(
+      exercise.name
+    )} demonstration"
+        loading="lazy"
+        allow="
+          accelerometer;
+          autoplay;
+          clipboard-write;
+          encrypted-media;
+          gyroscope;
+          picture-in-picture;
+          web-share
+        "
+        referrerpolicy="strict-origin-when-cross-origin"
+        allowfullscreen
+      ></iframe>
+    `;
+
+  } else if (
+    exercise.demoVideoUrl
+  ) {
+
+    hasMedia = true;
+
+    mediaMarkup = `
+      <video
+        class="detail-demo-media detail-demo-video"
+        controls
+        playsinline
+        preload="metadata"
+      >
+        <source
+          src="${escapeHtml(
+      exercise.demoVideoUrl
+    )}"
+        >
+        Your browser does not support video playback.
+      </video>
+    `;
+
+  } else if (
+    exercise.demoGifUrl
+  ) {
+
+    hasMedia = true;
+
+    mediaMarkup = `
+      <img
+        class="detail-demo-media detail-demo-image"
+        src="${escapeHtml(
+      exercise.demoGifUrl
+    )}"
+        alt="${escapeHtml(
+      exercise.name
+    )} demonstration"
+        loading="lazy"
+      >
+    `;
+
+  } else if (
+    exercise.coverImageUrl
+  ) {
+
+    hasMedia = true;
+
+    mediaMarkup = `
+      <img
+        class="detail-demo-media detail-demo-image"
+        src="${escapeHtml(
+      exercise.coverImageUrl
+    )}"
+        alt="${escapeHtml(
+      exercise.name
+    )}"
+        loading="lazy"
+      >
+    `;
+
+  } else {
+
+    mediaMarkup = `
       <div class="media-center">
 
         <div class="media-mark">
@@ -6610,6 +6759,29 @@ function exerciseMedia(exercise) {
         </div>
 
       </div>
+    `;
+  }
+
+
+  return `
+    <div
+      class="
+        detail-media-placeholder
+        ${hasMedia ? "has-media" : ""}
+      "
+    >
+
+      ${mediaMarkup}
+
+      <div class="media-grid"></div>
+
+      <div
+        class="media-corner media-corner-top"
+      ></div>
+
+      <div
+        class="media-corner media-corner-bottom"
+      ></div>
 
       <div class="media-top-label">
         REDLINE / MOVEMENT
@@ -6620,7 +6792,11 @@ function exerciseMedia(exercise) {
       </div>
 
       <div class="media-bottom-right">
-        ${exercise.equipment.toUpperCase()}
+        ${escapeHtml(
+    String(
+      exercise.equipment || ""
+    ).toUpperCase()
+  )}
       </div>
 
     </div>
@@ -8412,8 +8588,10 @@ async function loadAdminExercises() {
       tags,
       instructions,
       cover_image_url,
-      demo_gif_url,
-      is_public,
+demo_gif_url,
+demo_video_url,
+demo_youtube_url,
+is_public,
       created_by,
       created_at,
       updated_at
@@ -8553,7 +8731,34 @@ async function saveAdminExercise(
     formData.get("cover_image");
 
   const demoFile =
-    formData.get("demo_gif");
+    formData.get("demo_media");
+
+  const demoYoutubeInput =
+    String(
+      formData.get("demo_youtube_url") || ""
+    ).trim();
+
+  const demoYoutubeId =
+    getYouTubeVideoId(
+      demoYoutubeInput
+    );
+
+  if (
+    demoYoutubeInput &&
+    !demoYoutubeId
+  ) {
+
+    alert(
+      "Please enter a valid YouTube URL."
+    );
+
+    return;
+  }
+
+  const demoYoutubeUrl =
+    demoYoutubeId
+      ? `https://www.youtube.com/watch?v=${demoYoutubeId}`
+      : "";
 
 
   if (
@@ -8588,33 +8793,53 @@ async function saveAdminExercise(
 
     let coverImageUrl = "";
     let demoGifUrl = "";
-
-    if (
-      coverFile instanceof File &&
-      coverFile.size > 0
-    ) {
-
-      coverImageUrl =
-        await uploadAdminAsset(
-          coverFile,
-          "exercise-covers",
-          "cover"
-        );
-
-    }
+    let demoVideoUrl = "";
 
     if (
       demoFile instanceof File &&
       demoFile.size > 0
     ) {
 
-      demoGifUrl =
+      const allowedTypes = new Set([
+        "image/gif",
+        "video/mp4",
+        "video/webm"
+      ]);
+
+      if (
+        !allowedTypes.has(
+          demoFile.type
+        )
+      ) {
+
+        alert(
+          "Demo media must be GIF, MP4 or WebM."
+        );
+
+        return;
+      }
+
+
+      const uploadedDemoUrl =
         await uploadAdminAsset(
           demoFile,
           "exercise-demos",
           "demo"
         );
 
+
+      if (
+        demoFile.type === "image/gif"
+      ) {
+
+        demoGifUrl =
+          uploadedDemoUrl;
+
+      } else {
+
+        demoVideoUrl =
+          uploadedDemoUrl;
+      }
     }
 
 
@@ -8657,9 +8882,32 @@ async function saveAdminExercise(
           coverImageUrl;
       }
 
-      if (demoGifUrl) {
+      if (
+        demoFile instanceof File &&
+        demoFile.size > 0
+      ) {
+
         payload.demo_gif_url =
-          demoGifUrl;
+          demoGifUrl || null;
+
+        payload.demo_video_url =
+          demoVideoUrl || null;
+
+        payload.demo_youtube_url =
+          null;
+
+      } else if (
+        demoYoutubeUrl
+      ) {
+
+        payload.demo_gif_url =
+          null;
+
+        payload.demo_video_url =
+          null;
+
+        payload.demo_youtube_url =
+          demoYoutubeUrl;
       }
 
 
@@ -8683,10 +8931,16 @@ async function saveAdminExercise(
         clerk.user.id;
 
       payload.cover_image_url =
-        coverImageUrl;
+        coverImageUrl || null;
 
       payload.demo_gif_url =
-        demoGifUrl;
+        demoGifUrl || null;
+
+      payload.demo_video_url =
+        demoVideoUrl || null;
+
+      payload.demo_youtube_url =
+        demoYoutubeUrl || null;
 
 
       const {
@@ -9205,31 +9459,85 @@ Press upward under control."
 
                 <label>
 
-                  <span>DEMO GIF</span>
+  <span>
+    DEMO MEDIA
+    <small>GIF, MP4 or WebM</small>
+  </span>
 
-                  <input
-                    name="demo_gif"
-                    type="file"
-                    accept="image/gif,video/mp4,video/webm"
-                  >
+  <input
+    name="demo_media"
+    type="file"
+    accept="image/gif,video/mp4,video/webm"
+  >
 
-                  ${editingExercise?.demoGifUrl
+  ${editingExercise?.demoGifUrl
       ? `
-                        <a
-                          class="admin-existing-file"
-                          href="${escapeHtml(
+      <a
+        class="admin-existing-file"
+        href="${escapeHtml(
         editingExercise.demoGifUrl
       )}"
-                          target="_blank"
-                          rel="noopener"
-                        >
-                          CURRENT DEMO ↗
-                        </a>
-                      `
+        target="_blank"
+        rel="noopener"
+      >
+        CURRENT GIF ↗
+      </a>
+    `
       : ""
     }
 
-                </label>
+  ${editingExercise?.demoVideoUrl
+      ? `
+      <a
+        class="admin-existing-file"
+        href="${escapeHtml(
+        editingExercise.demoVideoUrl
+      )}"
+        target="_blank"
+        rel="noopener"
+      >
+        CURRENT VIDEO ↗
+      </a>
+    `
+      : ""
+    }
+
+</label>
+
+
+<label>
+
+  <span>
+    YOUTUBE DEMO
+    <small>optional</small>
+  </span>
+
+  <input
+    name="demo_youtube_url"
+    type="url"
+    value="${escapeHtml(
+      editingExercise?.demoYoutubeUrl || ""
+    )}"
+    placeholder="https://youtube.com/watch?v=..."
+  >
+
+  ${editingExercise?.demoYoutubeUrl
+      ? `
+      <a
+        class="admin-existing-file"
+        href="${escapeHtml(
+        editingExercise.demoYoutubeUrl
+      )}"
+        target="_blank"
+        rel="noopener"
+      >
+        CURRENT YOUTUBE ↗
+      </a>
+    `
+      : ""
+    }
+
+</label>
 
               </div>
 
@@ -10950,8 +11258,10 @@ async function loadExercisesFromSupabase() {
       tags,
       instructions,
       cover_image_url,
-      demo_gif_url,
-      is_public,
+demo_gif_url,
+demo_video_url,
+demo_youtube_url,
+is_public,
       created_by,
       created_at,
       updated_at
@@ -11020,6 +11330,12 @@ async function loadExercisesFromSupabase() {
 
         demoGifUrl:
           exercise.demo_gif_url || "",
+
+        demoVideoUrl:
+          exercise.demo_video_url || "",
+
+        demoYoutubeUrl:
+          exercise.demo_youtube_url || "",
 
         isPublic:
           exercise.is_public,

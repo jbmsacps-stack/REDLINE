@@ -11339,3 +11339,61 @@ html[data-reduce-motion="true"]
   }
 
 }
+
+/* =========================================================
+   EXERCISE DEMO MEDIA
+========================================================= */
+
+.detail-media-placeholder.has-media::after {
+  opacity: 0;
+  animation: none;
+}
+
+
+.detail-demo-media {
+  position: absolute;
+  inset: 0;
+
+  z-index: 1;
+
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  border: 0;
+
+  background: #0d0d0d;
+}
+
+
+.detail-demo-image,
+.detail-demo-video {
+  object-fit: cover;
+}
+
+
+.detail-demo-video {
+  object-fit: contain;
+}
+
+
+.detail-demo-iframe {
+  width: 100%;
+  height: 100%;
+}
+
+
+.detail-media-placeholder .media-grid {
+  z-index: 2;
+  pointer-events: none;
+}
+
+
+.detail-media-placeholder .media-corner,
+.detail-media-placeholder .media-top-label,
+.detail-media-placeholder .media-bottom-left,
+.detail-media-placeholder .media-bottom-right {
+  z-index: 3;
+  pointer-events: none;
+}
