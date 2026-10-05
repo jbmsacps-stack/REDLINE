@@ -8588,10 +8588,10 @@ async function loadAdminExercises() {
       tags,
       instructions,
       cover_image_url,
-demo_gif_url,
-demo_video_url,
-demo_youtube_url,
-is_public,
+      demo_gif_url,
+      demo_video_url,
+      demo_youtube_url,
+      is_public,
       created_by,
       created_at,
       updated_at
@@ -8603,6 +8603,7 @@ is_public,
       }
     );
 
+
   if (error) {
 
     console.error(
@@ -8613,8 +8614,78 @@ is_public,
     throw error;
   }
 
+
   adminExercises =
-    data || [];
+    (data || []).map(
+      (exercise) => ({
+
+        id:
+          exercise.id,
+
+        name:
+          exercise.name,
+
+        description:
+          exercise.description || "",
+
+        muscle:
+          exercise.primary_muscle || "",
+
+        secondaryMuscles:
+          Array.isArray(
+            exercise.secondary_muscles
+          )
+            ? exercise.secondary_muscles
+            : [],
+
+        equipment:
+          exercise.equipment || "",
+
+        difficulty:
+          exercise.difficulty || "",
+
+        type:
+          exercise.type || "",
+
+        tags:
+          Array.isArray(exercise.tags)
+            ? exercise.tags
+            : [],
+
+        instructions:
+          Array.isArray(
+            exercise.instructions
+          )
+            ? exercise.instructions
+            : [],
+
+        coverImageUrl:
+          exercise.cover_image_url || "",
+
+        demoGifUrl:
+          exercise.demo_gif_url || "",
+
+        demoVideoUrl:
+          exercise.demo_video_url || "",
+
+        demoYoutubeUrl:
+          exercise.demo_youtube_url || "",
+
+        isPublic:
+          exercise.is_public === true,
+
+        createdBy:
+          exercise.created_by || "",
+
+        createdAt:
+          exercise.created_at || "",
+
+        updatedAt:
+          exercise.updated_at || ""
+
+      })
+    );
+
 
   return adminExercises;
 }
