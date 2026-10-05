@@ -8679,69 +8679,117 @@ async function saveAdminExercise(
   const formData =
     new FormData(form);
 
+
   const name =
     String(
       formData.get("name") || ""
     ).trim();
+
 
   const description =
     String(
       formData.get("description") || ""
     ).trim();
 
+
   const primaryMuscle =
     String(
       formData.get("primary_muscle") || ""
     ).trim();
+
 
   const secondaryMuscles =
     splitAdminList(
       formData.get("secondary_muscles")
     );
 
+
   const exerciseEquipment =
     String(
       formData.get("equipment") || ""
     );
+
 
   const difficulty =
     String(
       formData.get("difficulty") || ""
     );
 
+
   const type =
     String(
       formData.get("type") || ""
     );
+
 
   const tags =
     splitAdminList(
       formData.get("tags")
     );
 
+
   const instructions =
     splitAdminLines(
       formData.get("instructions")
     );
 
+
   const isPublic =
     formData.get("is_public") === "on";
+
+
+  // =====================================================
+  // COVER IMAGE
+  // =====================================================
 
   const coverFile =
     formData.get("cover_image");
 
+
+  const coverImageInput =
+    String(
+      formData.get("cover_image_url") || ""
+    ).trim();
+
+
+  if (coverImageInput) {
+
+    try {
+
+      new URL(
+        coverImageInput
+      );
+
+    } catch {
+
+      alert(
+        "Please enter a valid cover image URL."
+      );
+
+      return;
+    }
+  }
+
+
+  // =====================================================
+  // DEMO MEDIA
+  // =====================================================
+
   const demoFile =
     formData.get("demo_media");
+
 
   const demoYoutubeInput =
     String(
       formData.get("demo_youtube_url") || ""
     ).trim();
 
+
   const demoYoutubeId =
     getYouTubeVideoId(
       demoYoutubeInput
     );
+
 
   if (
     demoYoutubeInput &&
@@ -8755,11 +8803,16 @@ async function saveAdminExercise(
     return;
   }
 
+
   const demoYoutubeUrl =
     demoYoutubeId
       ? `https://www.youtube.com/watch?v=${demoYoutubeId}`
       : "";
 
+
+  // =====================================================
+  // REQUIRED FIELDS
+  // =====================================================
 
   if (
     !name ||
@@ -8782,8 +8835,11 @@ async function saveAdminExercise(
       ".admin-save-button"
     );
 
+
   if (submitButton) {
+
     submitButton.disabled = true;
+
     submitButton.textContent =
       "SAVING...";
   }
@@ -8791,23 +8847,83 @@ async function saveAdminExercise(
 
   try {
 
-    let coverImageUrl = "";
-    let demoGifUrl = "";
-    let demoVideoUrl = "";
+    let coverImageUrl =
+      "";
+
+    let demoGifUrl =
+      "";
+
+    let demoVideoUrl =
+      "";
+
+
+    // ===================================================
+    // COVER IMAGE
+    // ===================================================
+
+    if (
+      coverFile instanceof File &&
+      coverFile.size > 0
+    ) {
+
+      const allowedCoverTypes =
+        new Set([
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ]);
+
+
+      if (
+        !allowedCoverTypes.has(
+          coverFile.type
+        )
+      ) {
+
+        alert(
+          "Cover image must be PNG, JPG or WebP."
+        );
+
+        return;
+      }
+
+
+      coverImageUrl =
+        await uploadAdminAsset(
+          coverFile,
+          "exercise-covers",
+          "cover"
+        );
+
+    } else if (
+      coverImageInput
+    ) {
+
+      // URL is used when no file is uploaded
+      coverImageUrl =
+        coverImageInput;
+    }
+
+
+    // ===================================================
+    // DEMO MEDIA
+    // ===================================================
 
     if (
       demoFile instanceof File &&
       demoFile.size > 0
     ) {
 
-      const allowedTypes = new Set([
-        "image/gif",
-        "video/mp4",
-        "video/webm"
-      ]);
+      const allowedDemoTypes =
+        new Set([
+          "image/gif",
+          "video/mp4",
+          "video/webm"
+        ]);
+
 
       if (
-        !allowedTypes.has(
+        !allowedDemoTypes.has(
           demoFile.type
         )
       ) {
@@ -8829,7 +8945,8 @@ async function saveAdminExercise(
 
 
       if (
-        demoFile.type === "image/gif"
+        demoFile.type ===
+        "image/gif"
       ) {
 
         demoGifUrl =
@@ -8842,6 +8959,10 @@ async function saveAdminExercise(
       }
     }
 
+
+    // ===================================================
+    // PAYLOAD
+    // ===================================================
 
     const payload = {
 
@@ -8875,12 +8996,30 @@ async function saveAdminExercise(
     };
 
 
-    if (adminEditingExerciseId) {
+    // ===================================================
+    // UPDATE EXISTING EXERCISE
+    // ===================================================
 
+    if (
+      adminEditingExerciseId
+    ) {
+
+      /*
+       * Only change cover_image_url when
+       * the admin supplied a new file or URL.
+       *
+       * Otherwise the existing cover is preserved.
+       */
       if (coverImageUrl) {
+
         payload.cover_image_url =
           coverImageUrl;
       }
+
+
+      // -----------------------------------------------
+      // DEMO FILE
+      // -----------------------------------------------
 
       if (
         demoFile instanceof File &&
@@ -8896,7 +9035,13 @@ async function saveAdminExercise(
         payload.demo_youtube_url =
           null;
 
-      } else if (
+      }
+
+      // -----------------------------------------------
+      // YOUTUBE
+      // -----------------------------------------------
+
+      else if (
         demoYoutubeUrl
       ) {
 
@@ -8921,23 +9066,35 @@ async function saveAdminExercise(
           adminEditingExerciseId
         );
 
+
       if (error) {
         throw error;
       }
 
-    } else {
+
+    }
+
+    // ===================================================
+    // CREATE NEW EXERCISE
+    // ===================================================
+
+    else {
 
       payload.created_by =
         clerk.user.id;
 
+
       payload.cover_image_url =
         coverImageUrl || null;
+
 
       payload.demo_gif_url =
         demoGifUrl || null;
 
+
       payload.demo_video_url =
         demoVideoUrl || null;
+
 
       payload.demo_youtube_url =
         demoYoutubeUrl || null;
@@ -8947,7 +9104,10 @@ async function saveAdminExercise(
         error
       } = await supabase
         .from("exercises")
-        .insert(payload);
+        .insert(
+          payload
+        );
+
 
       if (error) {
         throw error;
@@ -8956,14 +9116,20 @@ async function saveAdminExercise(
     }
 
 
+    // ===================================================
+    // REFRESH
+    // ===================================================
+
     adminEditingExerciseId =
       null;
+
 
     await loadAdminExercises();
 
     await loadExercisesFromSupabase();
 
     renderAdminDashboard();
+
 
   } catch (error) {
 
@@ -8972,13 +9138,18 @@ async function saveAdminExercise(
       error
     );
 
+
     alert(
       error.message ||
       "Failed to save exercise."
     );
 
+
     if (submitButton) {
-      submitButton.disabled = false;
+
+      submitButton.disabled =
+        false;
+
       submitButton.textContent =
         "SAVE EXERCISE";
     }
@@ -9430,31 +9601,43 @@ Press upward under control."
 
                 <label>
 
-                  <span>COVER IMAGE</span>
+  <span>
+    COVER IMAGE
+    <small>upload or use an image URL</small>
+  </span>
 
-                  <input
-                    name="cover_image"
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                  >
+  <input
+    name="cover_image"
+    type="file"
+    accept="image/png,image/jpeg,image/webp"
+  >
 
-                  ${editingExercise?.coverImageUrl
-      ? `
-                        <a
-                          class="admin-existing-file"
-                          href="${escapeHtml(
-        editingExercise.coverImageUrl
-      )}"
-                          target="_blank"
-                          rel="noopener"
-                        >
-                          CURRENT COVER ↗
-                        </a>
-                      `
-      : ""
-    }
+  <input
+    name="cover_image_url"
+    type="url"
+    value="${escapeHtml(
+      editingExercise?.cover_image_url || ""
+    )}"
+    placeholder="https://example.com/cover.webp"
+  >
 
-                </label>
+  ${editingExercise?.cover_image_url
+    ? `
+      <a
+        class="admin-existing-file"
+        href="${escapeHtml(
+          editingExercise.cover_image_url
+        )}"
+        target="_blank"
+        rel="noopener"
+      >
+        CURRENT COVER ↗
+      </a>
+    `
+    : ""
+  }
+
+</label>
 
 
                 <label>
@@ -9629,16 +9812,16 @@ Press upward under control."
                             class="admin-exercise-media"
                           >
 
-                            ${exercise.coverImageUrl
-            ? `
-                                  <img
-                                    src="${escapeHtml(
-              exercise.coverImageUrl
-            )}"
-                                    alt=""
-                                    loading="lazy"
-                                  >
-                                `
+                            ${exercise.cover_image_url
+  ? `
+    <img
+      src="${escapeHtml(
+        exercise.cover_image_url
+      )}"
+      alt=""
+      loading="lazy"
+    >
+  `
             : `
                                   <span>
                                     ${escapeHtml(
