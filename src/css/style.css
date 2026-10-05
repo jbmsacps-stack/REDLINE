@@ -607,7 +607,7 @@ svg {
   width: 100%;
   min-width: 0;
 
-  height: 143px;
+  height: 125px;
   min-height: 125px;
 
   display: grid;
@@ -877,7 +877,7 @@ svg {
   }
 
   .exercise-visual {
-    height: 112px;
+    height: 143px;
     min-height: 112px;
   }
 
