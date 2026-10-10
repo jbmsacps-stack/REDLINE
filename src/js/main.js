@@ -8670,7 +8670,7 @@ async function loadAdminExercises() {
             : [],
 
         coverImageUrl:
-          exercise.coverImageUrl || "",
+          exercise.cover_image_url || "",
 
         demoGifUrl:
           exercise.demo_gif_url || "",
