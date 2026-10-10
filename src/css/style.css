@@ -11397,3 +11397,16 @@ html[data-reduce-motion="true"]
   z-index: 3;
   pointer-events: none;
 }
+
+
+/* ADMIN — EXERCISE LIBRARY SEARCH */
+
+.admin-library-search {
+  margin: 0 0 18px;
+}
+
+.admin-library-search input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+}

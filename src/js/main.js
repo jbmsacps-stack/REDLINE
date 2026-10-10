@@ -9865,6 +9865,20 @@ Press upward under control."
 
           <section class="admin-library">
 
+          
+
+<label class="search-box admin-library-search">
+  <span class="search-icon" aria-hidden="true">⌕</span>
+  <input
+    id="admin-library-search"
+    type="search"
+    placeholder="Search exercises, muscles, equipment..."
+    autocomplete="off"
+    aria-label="Search Exercise Control library"
+  >
+</label>
+
+
             <div class="admin-section-heading">
 
               <span>
@@ -10119,6 +10133,42 @@ function attachAdminEvents() {
 
       }
     );
+
+
+  const adminSearch = document.querySelector(
+    "#admin-library-search"
+  );
+
+  adminSearch?.addEventListener("input", () => {
+    const query = adminSearch.value.trim().toLowerCase();
+
+    const cards = document.querySelectorAll(
+      ".admin-exercise-card"
+    );
+
+    let visibleCount = 0;
+
+    cards.forEach((card) => {
+      const matches = card.textContent
+        .toLowerCase()
+        .includes(query);
+
+      card.style.display = matches ? "" : "none";
+
+      if (matches) {
+        visibleCount++;
+      }
+    });
+
+    const total = document.querySelector(
+      ".admin-library .admin-section-heading span:last-child"
+    );
+
+    if (total) {
+      total.textContent = `${visibleCount} ${visibleCount === 1 ? "EXERCISE" : "EXERCISES"
+        }`;
+    }
+  });
 
 }
 
