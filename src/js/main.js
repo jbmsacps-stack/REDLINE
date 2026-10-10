@@ -1198,9 +1198,19 @@ function render() {
         searchText.includes(searchTerm);
 
 
+      const normalizeMuscle = (value) =>
+        String(value ?? "").trim().toLowerCase();
+
       const matchesMuscle =
         activeMuscle === "All" ||
-        exercise.muscle === activeMuscle;
+        normalizeMuscle(exercise.muscle) ===
+        normalizeMuscle(activeMuscle) ||
+        (Array.isArray(exercise.secondaryMuscles) &&
+          exercise.secondaryMuscles.some(
+            (muscle) =>
+              normalizeMuscle(muscle) ===
+              normalizeMuscle(activeMuscle)
+          ));
 
 
       const matchesEquipment =
@@ -9687,26 +9697,26 @@ Press upward under control."
     name="cover_image_url"
     type="url"
     value="${escapeHtml(
-      editingExercise?.cover_image_url || ""
-    )}"
+        editingExercise?.cover_image_url || ""
+      )}"
     placeholder="https://example.com/cover.webp"
   >
 
   ${editingExercise?.cover_image_url
-    ? `
+      ? `
       <a
         class="admin-existing-file"
         href="${escapeHtml(
-          editingExercise.cover_image_url
-        )}"
+        editingExercise.cover_image_url
+      )}"
         target="_blank"
         rel="noopener"
       >
         CURRENT COVER ↗
       </a>
     `
-    : ""
-  }
+      : ""
+    }
 
 </label>
 
@@ -9884,11 +9894,11 @@ Press upward under control."
                           >
 
                             ${exercise.cover_image_url
-  ? `
+            ? `
     <img
       src="${escapeHtml(
-        exercise.cover_image_url
-      )}"
+              exercise.cover_image_url
+            )}"
       alt=""
       loading="lazy"
     >
@@ -10592,15 +10602,12 @@ function attachEvents() {
           }
 
           const exerciseId =
-            Number(
-              item.dataset.exerciseId
-            );
+            String(item.dataset.exerciseId);
 
           const routineExercise =
             activeRoutine?.exercises.find(
               (exercise) =>
-                exercise.exerciseId ===
-                exerciseId
+                String(exercise.exerciseId) === exerciseId
             );
 
           if (!routineExercise) {
@@ -10642,15 +10649,12 @@ function attachEvents() {
           }
 
           const exerciseId =
-            Number(
-              item.dataset.exerciseId
-            );
+            String(item.dataset.exerciseId);
 
           const routineExercise =
             activeRoutine?.exercises.find(
               (exercise) =>
-                exercise.exerciseId ===
-                exerciseId
+                String(exercise.exerciseId) === exerciseId
             );
 
           if (!routineExercise) {
