@@ -746,55 +746,53 @@ async function loadRoutinesFromSupabase() {
   }
 }
 
-async function syncRoutineToSupabase(routine) {
 
-  if (!routine?.id) {
-    return;
+async function syncRoutineToSupabase(routine) {
+  if (!routine?.id || !clerk.user?.id) {
+    return false;
   }
 
-  const { error: routineError } =
-    await supabase
-      .from("routines")
-      .update({
-        name: routine.name
-      })
-      .eq("id", routine.id)
-      .eq("user_id", clerk.user.id);
+  if (!Array.isArray(routine.exercises)) {
+    console.error(
+      "Routine sync cancelled: exercises must be an array."
+    );
+    return false;
+  }
+
+  // Update the routine name first.
+  const { error: routineError } = await supabase
+    .from("routines")
+    .update({ name: routine.name })
+    .eq("id", routine.id)
+    .eq("user_id", clerk.user.id);
 
   if (routineError) {
-    console.error(
-      "Failed to update routine:",
-      routineError
-    );
-
-    return;
+    console.error("Failed to update routine:", routineError);
+    return false;
   }
 
-
-  const { error: deleteError } =
+  // Preserve the existing exercise rows until replacements
+  // have been saved successfully.
+  const { data: existingRows, error: fetchError } =
     await supabase
       .from("routine_exercises")
-      .delete()
+      .select("id")
       .eq("routine_id", routine.id);
 
-  if (deleteError) {
+  if (fetchError || !existingRows) {
     console.error(
-      "Failed to clear routine exercises:",
-      deleteError
+      "Routine sync cancelled: could not verify existing exercises.",
+      fetchError
     );
-
-    return;
+    return false;
   }
 
+  const oldIds = existingRows.map((row) => row.id);
+  let newIds = [];
 
-  if (!routine.exercises.length) {
-    saveRoutinesToCache();
-    return;
-  }
-
-
-  const exerciseRows =
-    routine.exercises.map(
+  // Insert replacements before removing existing rows.
+  if (routine.exercises.length > 0) {
+    const exerciseRows = routine.exercises.map(
       (exercise, index) => ({
         routine_id: routine.id,
         exercise_id: exercise.exerciseId,
@@ -806,30 +804,63 @@ async function syncRoutineToSupabase(routine) {
       })
     );
 
+    const { data: insertedRows, error: insertError } =
+      await supabase
+        .from("routine_exercises")
+        .insert(exerciseRows)
+        .select("id");
 
-  const { error: exerciseError } =
-    await supabase
+    if (insertError || !insertedRows) {
+      console.error(
+        "Routine sync cancelled: replacement exercises were not saved.",
+        insertError
+      );
+      return false;
+    }
+
+    newIds = insertedRows.map((row) => row.id);
+  }
+
+  // Only remove the old rows after the replacements succeed.
+  if (oldIds.length > 0) {
+    const { error: deleteError } = await supabase
       .from("routine_exercises")
-      .insert(exerciseRows);
+      .delete()
+      .in("id", oldIds)
+      .eq("routine_id", routine.id);
 
+    if (deleteError) {
+      console.error(
+        "Could not remove old routine exercises. Attempting cleanup.",
+        deleteError
+      );
 
-  if (exerciseError) {
-    console.error(
-      "Failed to save routine exercises:",
-      exerciseError
-    );
+      // Best-effort rollback: preserve the old rows if possible.
+      if (newIds.length > 0) {
+        const { error: cleanupError } = await supabase
+          .from("routine_exercises")
+          .delete()
+          .in("id", newIds)
+          .eq("routine_id", routine.id);
 
-    return;
+        if (cleanupError) {
+          console.error(
+            "Cleanup failed; check for duplicate routine exercises.",
+            cleanupError
+          );
+        }
+      }
+
+      return false;
+    }
   }
 
   saveRoutinesToCache();
 
-
-  console.log(
-    "Routine synced:",
-    routine.name
-  );
+  console.log("Routine synced:", routine.name);
+  return true;
 }
+
 
 let workoutSessions = [];
 let sessionNoteDraft = "";
@@ -4539,6 +4570,7 @@ ${isAdminUser ? `
   </span>
 </button>
 
+${isAdminUser ? `
 <button
   class="profile-setting-row profile-feedback-admin-button"
   type="button"
@@ -4550,6 +4582,7 @@ ${isAdminUser ? `
 
   <span class="profile-setting-action">→</span>
 </button>
+` : ""}
 
   <button
     class="profile-setting-row"
