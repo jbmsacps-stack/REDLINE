@@ -350,6 +350,7 @@ function applyMotionPreference() {
 let activeMuscle = "All";
 let activeEquipment = "All";
 let searchTerm = "";
+let exerciseSearchTimer = null;
 let selectedExercise = null;
 let activeRoutine = null;
 
@@ -10743,19 +10744,34 @@ function attachEvents() {
     document.querySelector("#exercise-search");
 
 
-  search?.addEventListener(
-    "input",
-    (event) => {
+  search?.addEventListener("input", (event) => {
+    const input = event.currentTarget;
+    const value = input.value;
+    const caretPosition = input.selectionStart ?? value.length;
 
-      searchTerm =
-        event.target.value
-          .trim()
-          .toLowerCase();
+    clearTimeout(exerciseSearchTimer);
 
+    exerciseSearchTimer = setTimeout(() => {
+      searchTerm = value.trim().toLowerCase();
 
       render();
-    }
-  );
+
+      // Keep the search field focused after rendering.
+      const updatedSearch =
+        document.querySelector("#exercise-search");
+
+      if (updatedSearch) {
+        updatedSearch.focus({ preventScroll: true });
+
+        const position = Math.min(
+          caretPosition,
+          updatedSearch.value.length
+        );
+
+        updatedSearch.setSelectionRange(position, position);
+      }
+    }, 300);
+  });
 
 
   // =======================
