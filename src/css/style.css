@@ -11410,3 +11410,359 @@ html[data-reduce-motion="true"]
   width: 100%;
   min-width: 0;
 }
+
+/* =========================================================
+   REDLINE — REPORT / FEEDBACK FORM
+========================================================= */
+
+.feedback-sheet {
+  max-height: 85vh;
+}
+
+.feedback-sheet .routine-sheet-content {
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+}
+
+#feedback-form {
+  display: grid;
+  gap: 20px;
+}
+
+.feedback-field {
+  display: grid;
+  gap: 9px;
+}
+
+.feedback-field > span {
+  color: #777;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.feedback-field input,
+.feedback-field select,
+.feedback-field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 14px;
+
+  border: 1px solid #292929;
+  border-radius: 10px;
+  outline: none;
+
+  background: #0c0c0c;
+  color: #f2f2f2;
+
+  font: inherit;
+  font-size: 13px;
+
+  transition:
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.feedback-field input:focus,
+.feedback-field select:focus,
+.feedback-field textarea:focus {
+  border-color: var(--color-red);
+  background: #111;
+}
+
+.feedback-field select {
+  cursor: pointer;
+}
+
+.feedback-field textarea {
+  min-height: 130px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.feedback-field input::placeholder,
+.feedback-field textarea::placeholder {
+  color: #555;
+}
+
+.feedback-form-message {
+  min-height: 0;
+  margin: 0;
+  color: #aaa;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.feedback-submit {
+  width: 100%;
+  padding: 16px;
+
+  border: 1px solid var(--color-red);
+  border-radius: 10px;
+
+  background: var(--color-red);
+  color: #fff;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+
+  cursor: pointer;
+
+  transition:
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.feedback-submit:hover {
+  background: #c91829;
+}
+
+.feedback-submit:active {
+  transform: scale(0.98);
+}
+
+.feedback-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .feedback-sheet .routine-sheet-header {
+    padding-inline: 18px;
+  }
+
+  .feedback-sheet .routine-sheet-content {
+    padding-inline: 18px;
+  }
+}
+
+/* REDLINE — ADMIN FEEDBACK DASHBOARD */
+
+.feedback-admin-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.feedback-admin-card {
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  background: #111;
+  min-width: 0;
+}
+
+.feedback-admin-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.feedback-admin-category {
+  color: #e11d2e;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.feedback-admin-date {
+  color: #777;
+  font-size: 11px;
+}
+
+.feedback-admin-card h2 {
+  margin: 0 0 12px;
+  color: #f5f5f5;
+  font-size: 17px;
+  overflow-wrap: anywhere;
+}
+
+.feedback-admin-description {
+  margin: 0;
+  color: #aaa;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.feedback-admin-user {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  color: #666;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.feedback-admin-empty {
+  color: #999;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+
+/* =========================================================
+   REDLINE — FEEDBACK DASHBOARD CONTROLS
+========================================================= */
+
+.feedback-admin-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(180px, 0.8fr);
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.feedback-admin-tools input,
+.feedback-admin-tools select {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 14px;
+
+  border: 1px solid #292929;
+  border-radius: 10px;
+
+  background: #101010;
+  color: #f5f5f5;
+
+  font-family: inherit;
+  font-size: 12px;
+
+  outline: none;
+  transition: border-color 180ms ease;
+}
+
+.feedback-admin-tools input::placeholder {
+  color: #707070;
+}
+
+.feedback-admin-tools input:focus,
+.feedback-admin-tools select:focus {
+  border-color: #e11d2e;
+}
+
+.feedback-admin-tools select {
+  cursor: pointer;
+}
+
+.feedback-admin-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.feedback-admin-delete {
+  padding: 10px 15px;
+
+  border: 1px solid rgba(225, 29, 46, 0.45);
+  border-radius: 8px;
+
+  background: rgba(225, 29, 46, 0.08);
+  color: #ff5260;
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    opacity 180ms ease;
+}
+
+.feedback-admin-delete:hover {
+  background: rgba(225, 29, 46, 0.18);
+  border-color: #e11d2e;
+}
+
+.feedback-admin-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.feedback-delete-subject {
+  padding: 12px;
+  border: 1px solid rgba(225, 29, 46, 0.2);
+  border-radius: 8px;
+  background: rgba(225, 29, 46, 0.06);
+  color: #f5f5f5;
+  overflow-wrap: anywhere;
+}
+
+.feedback-delete-error {
+  color: #ff5260;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  .feedback-admin-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .feedback-admin-tools input,
+  .feedback-admin-tools select {
+    min-height: 46px;
+  }
+
+  .feedback-admin-card {
+    padding: 16px;
+  }
+}
+
+/* =========================================================
+   REDLINE — FEEDBACK DASHBOARD BACK BUTTON
+========================================================= */
+
+.feedback-admin-back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  padding: 0;
+
+  border: 1px solid #292929;
+  border-radius: 10px;
+
+  background: #101010;
+  color: #f5f5f5;
+
+  font-family: inherit;
+  font-size: 22px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.feedback-admin-back-button:hover {
+  color: #e11d2e;
+  border-color: #e11d2e;
+  background: #171010;
+}
+
+.feedback-admin-back-button:active {
+  transform: scale(0.95);
+}
+
+.feedback-admin-back-button:focus-visible {
+  outline: 2px solid #e11d2e;
+  outline-offset: 3px;
+}

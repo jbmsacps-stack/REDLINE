@@ -3870,6 +3870,169 @@ function getWeeklyVolume() {
   return weeks;
 }
 
+
+function openFeedbackForm() {
+  if (document.querySelector(".feedback-sheet-overlay")) {
+    return;
+  }
+
+  const overlay = document.createElement("div");
+  overlay.className = "routine-sheet-overlay feedback-sheet-overlay";
+
+  overlay.innerHTML = `
+    <div class="routine-sheet-backdrop"></div>
+
+    <section
+      class="routine-sheet feedback-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="feedback-sheet-title"
+    >
+      <div class="routine-sheet-handle"></div>
+
+      <header class="routine-sheet-header">
+        <div>
+          <span class="routine-sheet-eyebrow">
+            REDLINE / SUPPORT
+          </span>
+
+          <h2 id="feedback-sheet-title">
+            REPORT / FEEDBACK
+          </h2>
+        </div>
+
+        <button
+          class="routine-sheet-close feedback-close"
+          type="button"
+          aria-label="Close feedback form"
+        >×</button>
+      </header>
+
+      <div class="routine-sheet-content">
+        <form id="feedback-form">
+          <label class="feedback-field">
+            <span>TYPE</span>
+            <select name="category" required>
+              <option value="bug">Bug / Something isn't working</option>
+              <option value="feature">Feature request</option>
+              <option value="feedback">General feedback</option>
+              <option value="ui">UI / Design issue</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+
+          <label class="feedback-field">
+            <span>SUBJECT</span>
+            <input
+              name="subject"
+              type="text"
+              maxlength="120"
+              placeholder="Briefly describe it"
+              required
+            />
+          </label>
+
+          <label class="feedback-field">
+            <span>DESCRIPTION</span>
+            <textarea
+              name="description"
+              rows="5"
+              maxlength="5000"
+              placeholder="Tell us what happened or what you would like to see..."
+              required
+            ></textarea>
+          </label>
+
+          <p class="feedback-form-message" role="status"></p>
+
+          <button class="feedback-submit" type="submit">
+            SUBMIT REPORT →
+          </button>
+        </form>
+      </div>
+    </section>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const closeForm = () => overlay.remove();
+
+  overlay.querySelector(".feedback-close")
+    .addEventListener("click", closeForm);
+
+  overlay.querySelector(".routine-sheet-backdrop")
+    .addEventListener("click", closeForm);
+
+  overlay.querySelector("#feedback-form")
+    .addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const form = event.currentTarget;
+      const submitButton = form.querySelector(".feedback-submit");
+      const message = form.querySelector(".feedback-form-message");
+
+      const formData = new FormData(form);
+
+      const category = String(
+        formData.get("category") || ""
+      ).trim();
+
+      const subject = String(
+        formData.get("subject") || ""
+      ).trim();
+
+      const description = String(
+        formData.get("description") || ""
+      ).trim();
+
+      if (!clerk.user?.id) {
+        message.textContent =
+          "You must be signed in to submit feedback.";
+        return;
+      }
+
+      if (!subject || !description) {
+        message.textContent =
+          "Please complete the subject and description.";
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.textContent = "SUBMITTING...";
+      message.textContent = "Sending your report...";
+
+      try {
+        const { error } = await supabase
+          .from("feedback_reports")
+          .insert({
+            user_id: clerk.user.id,
+            category,
+            subject,
+            description
+          });
+
+        if (error) {
+          throw error;
+        }
+
+        form.reset();
+
+        message.textContent =
+          "Report submitted successfully. Thank you for your feedback.";
+
+        submitButton.textContent = "SUBMITTED ✓";
+      } catch (error) {
+        console.error("Failed to submit feedback:", error);
+
+        message.textContent =
+          "Couldn't submit your report. Please try again.";
+
+        submitButton.disabled = false;
+        submitButton.textContent = "SUBMIT REPORT →";
+      }
+    });
+}
+
 function renderProfile() {
 
   const app =
@@ -4358,11 +4521,34 @@ ${isAdminUser ? `
 </section>
 ` : ""}
 
-<section class="profile-section">
+<button
+  class="profile-setting-row profile-feedback-button"
+  type="button"
+>
+  <div class="profile-setting-info">
+    <strong>REPORT / FEEDBACK</strong>
 
-  <div class="profile-section-heading">
-    APP SETTINGS
+    <span>
+      REPORT AN ISSUE OR SHARE YOUR IDEAS
+    </span>
   </div>
+
+  <span class="profile-setting-action">
+    →
+  </span>
+</button>
+
+<button
+  class="profile-setting-row profile-feedback-admin-button"
+  type="button"
+>
+  <div class="profile-setting-info">
+    <strong>FEEDBACK MANAGER</strong>
+    <span>VIEW USER SUBMISSIONS</span>
+  </div>
+
+  <span class="profile-setting-action">→</span>
+</button>
 
   <button
     class="profile-setting-row"
@@ -4431,9 +4617,7 @@ ${isAdminUser ? `
 
   </div>
 
-</section>
-
-<section class="profile-section">
+  <section class="profile-section">
 
   <div class="profile-section-heading">
     DATA
@@ -4464,6 +4648,10 @@ ${isAdminUser ? `
   </button>
 
 </section>
+
+</section>
+
+
 
       </main>
 
@@ -10034,6 +10222,379 @@ Press upward under control."
 }
 
 
+
+async function renderFeedbackDashboard() {
+  const allowed = await ensureAdminAccess();
+
+  if (!allowed) {
+    renderProfile();
+    return;
+  }
+
+  const app = document.querySelector("#app");
+
+  app.innerHTML = `
+    <div class="app-shell">
+      <header class="app-header">
+        <button
+          class="feedback-admin-back-button"
+          type="button"
+          aria-label="Back to profile"
+        >←</button>
+
+        <span class="profile-header-label">
+          FEEDBACK / ADMIN
+        </span>
+      </header>
+
+      <main>
+        <section class="admin-screen">
+          <div class="admin-heading">
+            <div>
+              <span class="section-kicker">REDLINE SYSTEM</span>
+              <h1 class="admin-title">
+                USER <span>FEEDBACK.</span>
+              </h1>
+            </div>
+          </div>
+
+          <div class="feedback-admin-tools">
+            <input
+              id="feedback-admin-search"
+              type="search"
+              placeholder="Search subject, description, user ID..."
+              aria-label="Search feedback reports"
+            />
+
+            <select
+              id="feedback-admin-category"
+              aria-label="Filter reports by category"
+            >
+              <option value="all">ALL CATEGORIES</option>
+              <option value="bug">BUG REPORTS</option>
+              <option value="feature">FEATURE REQUESTS</option>
+              <option value="feedback">GENERAL FEEDBACK</option>
+              <option value="ui">UI / DESIGN</option>
+              <option value="other">OTHER</option>
+            </select>
+          </div>
+
+          <div class="admin-section-heading">
+            <span>SUBMITTED REPORTS</span>
+            <span id="feedback-admin-count">LOADING...</span>
+          </div>
+
+          <div
+            id="feedback-admin-list"
+            class="feedback-admin-list"
+            aria-live="polite"
+          >
+            <p>Loading reports...</p>
+          </div>
+        </section>
+      </main>
+    </div>
+  `;
+
+  document
+    .querySelector(".feedback-admin-back-button")
+    ?.addEventListener("click", renderProfile);
+
+  const list = document.querySelector("#feedback-admin-list");
+  const count = document.querySelector("#feedback-admin-count");
+  const searchInput = document.querySelector("#feedback-admin-search");
+  const categorySelect = document.querySelector("#feedback-admin-category");
+
+  let reports = [];
+
+  function renderReportCards() {
+    const query = searchInput.value.trim().toLowerCase();
+    const selectedCategory = categorySelect.value;
+
+    const filteredReports = reports.filter((report) => {
+      const searchableText = [
+        report.subject,
+        report.description,
+        report.category,
+        report.user_id,
+        report.created_at
+      ].join(" ").toLowerCase();
+
+      const matchesSearch = searchableText.includes(query);
+
+      const matchesCategory =
+        selectedCategory === "all" ||
+        report.category === selectedCategory;
+
+      return matchesSearch && matchesCategory;
+    });
+
+    count.textContent =
+      `${filteredReports.length} / ${reports.length} REPORTS`;
+
+    if (!filteredReports.length) {
+      list.innerHTML = `
+        <p class="feedback-admin-empty">
+          NO MATCHING REPORTS FOUND.
+        </p>
+      `;
+      return;
+    }
+
+    list.innerHTML = filteredReports.map((report) => {
+      const submittedAt = report.created_at
+        ? new Date(report.created_at).toLocaleString()
+        : "Unknown date";
+
+      return `
+        <article class="feedback-admin-card">
+          <div class="feedback-admin-card-top">
+            <span class="feedback-admin-category">
+              ${escapeHtml(report.category.toUpperCase())}
+            </span>
+
+            <time class="feedback-admin-date">
+              ${escapeHtml(submittedAt)}
+            </time>
+          </div>
+
+          <h2>${escapeHtml(report.subject)}</h2>
+
+          <p class="feedback-admin-description">${escapeHtml(report.description)}</p>
+
+          <div class="feedback-admin-user">
+            USER ID · ${escapeHtml(report.user_id)}
+          </div>
+
+          <div class="feedback-admin-actions">
+            <button
+              type="button"
+              class="feedback-admin-delete"
+              data-delete-report="${escapeHtml(report.id)}"
+            >
+              DELETE REPORT
+            </button>
+          </div>
+        </article>
+      `;
+    }).join("");
+  }
+
+  searchInput.addEventListener("input", renderReportCards);
+  categorySelect.addEventListener("change", renderReportCards);
+
+
+  list.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-delete-report]");
+
+    if (!button) {
+      return;
+    }
+
+    const reportId = button.dataset.deleteReport;
+    const report = reports.find(
+      (item) => item.id === reportId
+    );
+
+    if (!report || document.querySelector(".feedback-delete-overlay")) {
+      return;
+    }
+
+    const overlay = document.createElement("div");
+    overlay.className =
+      "delete-history-overlay feedback-delete-overlay";
+
+    overlay.innerHTML = `
+    <div class="delete-history-backdrop"></div>
+
+    <section
+      class="delete-history-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="feedback-delete-title"
+    >
+      <span class="delete-history-eyebrow">
+        PERMANENT ACTION
+      </span>
+
+      <h2 id="feedback-delete-title">
+        Delete this report?
+      </h2>
+
+      <p>
+        This report will be permanently removed from REDLINE.
+        This action cannot be undone.
+      </p>
+
+      <p class="feedback-delete-subject">
+        ${escapeHtml(report.subject)}
+      </p>
+
+      <p
+        class="feedback-delete-error"
+        role="status"
+        aria-live="polite"
+      ></p>
+
+      <div class="delete-history-actions">
+        <button
+          class="delete-history-cancel"
+          type="button"
+        >
+          CANCEL
+        </button>
+
+        <button
+          class="delete-history-confirm"
+          type="button"
+        >
+          DELETE REPORT
+        </button>
+      </div>
+    </section>
+  `;
+
+    document.body.appendChild(overlay);
+
+    const backdrop = overlay.querySelector(
+      ".delete-history-backdrop"
+    );
+    const modal = overlay.querySelector(
+      ".delete-history-modal"
+    );
+    const cancelButton = overlay.querySelector(
+      ".delete-history-cancel"
+    );
+    const confirmButton = overlay.querySelector(
+      ".delete-history-confirm"
+    );
+    const errorMessage = overlay.querySelector(
+      ".feedback-delete-error"
+    );
+
+    let isDeleting = false;
+
+    function closeModal() {
+      if (isDeleting) {
+        return;
+      }
+
+      gsap.timeline({
+        onComplete: () => overlay.remove()
+      })
+        .to(modal, {
+          opacity: 0,
+          y: 18,
+          scale: 0.97,
+          duration: 0.2,
+          ease: "power2.in"
+        })
+        .to(backdrop, {
+          opacity: 0,
+          duration: 0.15
+        }, "-=0.1");
+    }
+
+    backdrop.addEventListener("click", closeModal);
+    cancelButton.addEventListener("click", closeModal);
+
+    confirmButton.addEventListener("click", async () => {
+      if (isDeleting) {
+        return;
+      }
+
+      isDeleting = true;
+      confirmButton.disabled = true;
+      cancelButton.disabled = true;
+      confirmButton.textContent = "DELETING...";
+      errorMessage.textContent = "";
+
+      try {
+        const { error } = await supabase
+          .from("feedback_reports")
+          .delete()
+          .eq("id", reportId);
+
+        if (error) {
+          throw error;
+        }
+
+        reports = reports.filter(
+          (item) => item.id !== reportId
+        );
+
+        renderReportCards();
+
+        isDeleting = false;
+        closeModal();
+
+      } catch (error) {
+        console.error(
+          "Failed to delete feedback report:",
+          error
+        );
+
+        errorMessage.textContent =
+          "Unable to delete this report. Please try again.";
+
+        isDeleting = false;
+        confirmButton.disabled = false;
+        cancelButton.disabled = false;
+        confirmButton.textContent = "DELETE REPORT";
+      }
+    });
+
+    gsap.set(backdrop, { opacity: 0 });
+    gsap.set(modal, {
+      opacity: 0,
+      y: 20,
+      scale: 0.97
+    });
+
+    gsap.timeline()
+      .to(backdrop, {
+        opacity: 1,
+        duration: 0.18,
+        ease: "power2.out"
+      })
+      .to(modal, {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.3,
+        ease: "back.out(1.15)"
+      }, "-=0.08");
+  });
+
+
+  try {
+    const { data, error } = await supabase
+      .from("feedback_reports")
+      .select("id, category, subject, description, user_id, created_at")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    reports = data || [];
+    renderReportCards();
+
+  } catch (error) {
+    console.error("Failed to load feedback reports:", error);
+
+    count.textContent = "ERROR";
+
+    list.innerHTML = `
+      <p class="feedback-admin-empty">
+        COULD NOT LOAD REPORTS. CHECK YOUR SUPABASE PERMISSIONS.
+      </p>
+    `;
+  }
+}
+
+
+
 function attachAdminEvents() {
 
   const backButton =
@@ -11468,6 +12029,23 @@ function attachEvents() {
     () => {
       renderAdminDashboard();
     }
+  );
+
+  const profileFeedbackAdminButton =
+    document.querySelector(".profile-feedback-admin-button");
+
+  profileFeedbackAdminButton?.addEventListener(
+    "click",
+    renderFeedbackDashboard
+  );
+
+  const profileFeedbackButton = document.querySelector(
+    ".profile-feedback-button"
+  );
+
+  profileFeedbackButton?.addEventListener(
+    "click",
+    openFeedbackForm
   );
 
   const profileSignoutButton =
