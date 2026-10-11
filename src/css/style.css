@@ -608,7 +608,7 @@ svg {
   min-width: 0;
 
   height: 125px;
-  min-height: 125px;
+  min-height: 201px;
 
   display: grid;
   place-items: center;
@@ -11765,4 +11765,81 @@ html[data-reduce-motion="true"]
 .feedback-admin-back-button:focus-visible {
   outline: 2px solid #e11d2e;
   outline-offset: 3px;
+}
+
+
+/* REDLINE — Exercise detail viewport correction */
+
+.detail-overlay {
+  padding: 0;
+  overflow: hidden;
+}
+
+.exercise-detail {
+  box-sizing: border-box;
+  min-height: 0;
+
+  max-height: calc(100vh - 12px);
+  max-height: calc(100dvh - 12px);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Keep the close button accessible while scrolling */
+.detail-header {
+  position: sticky;
+  top: 0;
+  right: auto;
+
+  z-index: 20;
+  height: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.detail-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+
+  z-index: 21;
+  pointer-events: auto;
+}
+
+/* Preserve the existing mobile bottom-sheet layout */
+@media (max-width: 699px) {
+  .exercise-detail {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+
+    width: 100%;
+    max-height: calc(100vh - 12px);
+    max-height: calc(100dvh - 12px);
+
+    border-radius: 24px 24px 0 0;
+  }
+}
+
+/* Preserve the existing centered desktop modal */
+@media (min-width: 700px) {
+  .exercise-detail {
+    top: 50%;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+
+    width: min(650px, calc(100% - 40px));
+
+    max-height: calc(100vh - 40px);
+    max-height: calc(100dvh - 40px);
+
+    transform: translate(-50%, -50%);
+    border-radius: 24px;
+  }
 }
