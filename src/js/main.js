@@ -556,6 +556,84 @@ function getUserCacheKey(type) {
     : `redline-${type}-cache`;
 }
 
+
+let userExerciseTracking = new Map();
+
+function getSharedExerciseTracking(exerciseId, fallback = {}) {
+  const shared = userExerciseTracking.get(String(exerciseId));
+
+  if (shared) {
+    return { ...shared };
+  }
+
+  return {
+    weight: Number(fallback.weight ?? 0),
+    reps: Number(fallback.reps ?? 0),
+    sets: Number(fallback.sets ?? 3),
+    notes: String(fallback.notes ?? "")
+  };
+}
+
+async function saveSharedExerciseTracking(exerciseId, values) {
+  const userId = clerk.user?.id;
+
+  if (!userId || !exerciseId) {
+    console.error("Cannot save tracking: missing user or exercise ID.");
+    return false;
+  }
+
+  const tracking = {
+    weight: Number(values.weight ?? 0),
+    reps: Number(values.reps ?? 0),
+    sets: Number(values.sets ?? 3),
+    notes: String(values.notes ?? "")
+  };
+
+  const { data, error } = await supabase
+    .from("user_exercise_tracking")
+    .upsert(
+      {
+        user_id: userId,
+        exercise_id: exerciseId,
+        ...tracking,
+        updated_at: new Date().toISOString()
+      },
+      {
+        onConflict: "user_id,exercise_id"
+      }
+    )
+    .select("exercise_id, weight, reps, sets, notes")
+    .single();
+
+  if (error) {
+    console.error("Failed to save shared exercise tracking:", error);
+    return false;
+  }
+
+  const savedTracking = {
+    weight: Number(data.weight),
+    reps: Number(data.reps),
+    sets: Number(data.sets),
+    notes: data.notes ?? ""
+  };
+
+  userExerciseTracking.set(String(exerciseId), savedTracking);
+
+  // Update every routine copy in memory.
+  for (const routine of routines) {
+    for (const exercise of routine.exercises ?? []) {
+      if (String(exercise.exerciseId) === String(exerciseId)) {
+        Object.assign(exercise, savedTracking);
+      }
+    }
+  }
+
+  saveRoutinesToCache();
+
+  return true;
+}
+
+
 let routines = [
 ];
 
@@ -711,6 +789,39 @@ async function loadRoutinesFromSupabase() {
     return loadRoutinesFromSupabase();
   }
 
+
+  // Load the shared tracking values for this user.
+  const {
+    data: sharedTrackingRows,
+    error: sharedTrackingError
+  } = await supabase
+    .from("user_exercise_tracking")
+    .select("exercise_id, weight, reps, sets, notes")
+    .eq("user_id", userId);
+
+  if (sharedTrackingError) {
+    console.error(
+      "Failed to load shared exercise tracking:",
+      sharedTrackingError
+    );
+    return;
+  }
+
+  userExerciseTracking.clear();
+
+  for (const row of sharedTrackingRows || []) {
+    userExerciseTracking.set(
+      String(row.exercise_id),
+      {
+        weight: Number(row.weight),
+        reps: Number(row.reps),
+        sets: Number(row.sets),
+        notes: row.notes ?? ""
+      }
+    );
+  }
+
+
   const previousRoutines =
     JSON.stringify(routines);
 
@@ -724,13 +835,20 @@ async function loadRoutinesFromSupabase() {
           (a, b) =>
             a.order_index - b.order_index
         )
+
         .map((exercise) => ({
           exerciseId: exercise.exercise_id,
-          weight: Number(exercise.weight),
-          reps: exercise.reps,
-          sets: exercise.sets,
-          notes: exercise.notes || ""
+          ...getSharedExerciseTracking(
+            exercise.exercise_id,
+            {
+              weight: exercise.weight,
+              reps: exercise.reps,
+              sets: exercise.sets,
+              notes: exercise.notes || ""
+            }
+          )
         }))
+
   }));
 
   console.log(
@@ -4839,12 +4957,14 @@ ${isAdminUser ? `
                   ${sessions
                 .map((session) => {
 
+
                   const routine =
                     routines.find(
                       (item) =>
                         String(item.id) ===
-                        routineId
+                        String(session.routineId)
                     );
+
 
                   return `
                         <div class="profile-day-tooltip-session">
@@ -6378,7 +6498,7 @@ function openWeightEditor(
 
   saveButton.addEventListener(
     "click",
-    () => {
+    async () => {
 
       const value =
         Number(
@@ -6411,14 +6531,23 @@ function openWeightEditor(
       }
 
 
-      routineExercise.weight =
-        weightToKg(value);
 
-      syncRoutineToSupabase(activeRoutine);
+      const saved = await saveSharedExerciseTracking(
+        routineExercise.exerciseId,
+        {
+          ...routineExercise,
+          weight: weightToKg(value)
+        }
+      );
+
+      if (!saved) {
+        return;
+      }
 
       closeEditor(() => {
         renderRoutineDetail();
       });
+
 
     }
   );
@@ -6670,7 +6799,7 @@ function openRepsEditor(
 
   saveButton.addEventListener(
     "click",
-    () => {
+    async () => {
 
       const value =
         Number(
@@ -6703,10 +6832,17 @@ function openRepsEditor(
       }
 
 
-      routineExercise.reps =
-        value;
+      const saved = await saveSharedExerciseTracking(
+        routineExercise.exerciseId,
+        {
+          ...routineExercise,
+          reps: value
+        }
+      );
 
-      syncRoutineToSupabase(activeRoutine);
+      if (!saved) {
+        return;
+      }
 
       closeEditor(() => {
         renderRoutineDetail();
