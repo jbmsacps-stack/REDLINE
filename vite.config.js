@@ -8,7 +8,6 @@ export default defineConfig({
       includeAssets: [
         "icons/favicon-32.png",
         "icons/apple-touch-icon.png",
-        "icons/icon-512.png"
       ],
       manifest: false
     })
