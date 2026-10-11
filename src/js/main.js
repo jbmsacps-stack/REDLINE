@@ -997,6 +997,7 @@ function getLocalDate() {
 // FILTER OPTIONS
 // =========================
 
+
 const MUSCLE_FILTERS = [
   "All",
   "Chest",
@@ -1008,17 +1009,71 @@ const MUSCLE_FILTERS = [
   "Abs",
   "Obliques",
   "Serratus",
-  "Traps",
-  "Rear Delts",
-  "Lats",
-  "Lower Back",
-  "Quads",
-  "Hamstrings",
-  "Glutes",
-  "Adductors",
-  "Calves",
   "Legs",
 ];
+
+
+function getMuscleFilterGroups(value) {
+  const muscle = String(value ?? "")
+    .trim()
+    .toLowerCase();
+
+  const groups = new Set([muscle]);
+
+  const backPatterns = [
+    /\bback\b/,
+    /\blats?\b/,
+    /\blatissimus\b/,
+    /\btraps?\b/,
+    /\btrapezius\b/,
+    /\brear delts?\b/,
+    /\brear deltoids?\b/,
+    /\bposterior delts?\b/,
+    /\brhomboids?\b/,
+    /\blower back\b/,
+    /\bupper back\b/,
+    /\bmiddle back\b/,
+    /\berector spinae\b/,
+    /\bspinal erectors?\b/,
+    /\bteres major\b/,
+  ];
+
+  const legPatterns = [
+    /\blegs?\b/,
+    /\bquads?\b/,
+    /\bquadriceps\b/,
+    /\bhamstrings?\b/,
+    /\bglutes?\b/,
+    /\bgluteals?\b/,
+    /\badductors?\b/,
+    /\babductors?\b/,
+    /\bcalves\b/,
+    /\bcalf\b/,
+    /\bgastrocnemius\b/,
+    /\bsoleus\b/,
+    /\bhip flexors?\b/,
+    /\bhip extensors?\b/,
+    /\bvastus\b/,
+    /\brectus femoris\b/,
+    /\bbiceps femoris\b/,
+    /\bsemitendinosus\b/,
+    /\bsemimembranosus\b/,
+    /\btibialis anterior\b/,
+    /\bfibularis\b/,
+    /\bperoneals?\b/,
+  ];
+
+  if (backPatterns.some((pattern) => pattern.test(muscle))) {
+    groups.add("back");
+  }
+
+  if (legPatterns.some((pattern) => pattern.test(muscle))) {
+    groups.add("legs");
+  }
+
+  return groups;
+}
+
 
 const EQUIPMENT_FILTERS = [
   "All",
@@ -1043,32 +1098,36 @@ const EQUIPMENT_FILTERS = [
 ];
 
 
+
 function getAvailableMuscleFilters() {
+  const actualMuscles = exercises
+    .map((exercise) =>
+      String(exercise.muscle || "").trim()
+    )
+    .filter(Boolean);
 
-  const actualMuscles =
-    exercises
-      .map(
-        (exercise) =>
-          String(
-            exercise.muscle || ""
-          ).trim()
-      )
-      .filter(Boolean);
+  const additionalMuscles = actualMuscles
+    .filter((muscle) => {
+      const groups = getMuscleFilterGroups(muscle);
 
-  return [
-    ...MUSCLE_FILTERS,
-    ...actualMuscles
-      .filter(
-        (muscle) =>
-          !MUSCLE_FILTERS.includes(muscle)
-      )
-      .sort(
-        (a, b) =>
-          a.localeCompare(b)
-      )
-  ];
+      return (
+        !MUSCLE_FILTERS.includes(muscle) &&
+        !groups.has("back") &&
+        !groups.has("legs")
+      );
+    })
+    .filter(
+      (muscle, index, array) =>
+        array.findIndex(
+          (item) =>
+            item.toLowerCase() === muscle.toLowerCase()
+        ) === index
+    )
+    .sort((a, b) => a.localeCompare(b));
 
+  return [...MUSCLE_FILTERS, ...additionalMuscles];
 }
+
 
 
 function getAvailableEquipmentFilters() {
@@ -1230,19 +1289,25 @@ function render() {
         searchText.includes(searchTerm);
 
 
+
       const normalizeMuscle = (value) =>
         String(value ?? "").trim().toLowerCase();
 
+      const exerciseMuscles = [
+        exercise.muscle,
+        ...(Array.isArray(exercise.secondaryMuscles)
+          ? exercise.secondaryMuscles
+          : []),
+      ];
+
       const matchesMuscle =
         activeMuscle === "All" ||
-        normalizeMuscle(exercise.muscle) ===
-        normalizeMuscle(activeMuscle) ||
-        (Array.isArray(exercise.secondaryMuscles) &&
-          exercise.secondaryMuscles.some(
-            (muscle) =>
-              normalizeMuscle(muscle) ===
-              normalizeMuscle(activeMuscle)
-          ));
+        exerciseMuscles.some((muscle) =>
+          getMuscleFilterGroups(muscle).has(
+            normalizeMuscle(activeMuscle)
+          )
+        );
+
 
 
       const matchesEquipment =
